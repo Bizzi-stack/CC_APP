@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+export const runtime = 'edge'
+
 export async function POST(request: NextRequest) {
   try {
     const { playerId, passcode } = await request.json()
