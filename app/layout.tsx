@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { CartWishlistProvider } from '@/contexts/CartWishlistContext'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 export const metadata: Metadata = {
   title: 'THE CIRCLE FC',
@@ -25,6 +26,7 @@ export default function RootLayout({
         <CartWishlistProvider>
           {children}
         </CartWishlistProvider>
+        <SpeedInsights />
       </body>
     </html>
   )
