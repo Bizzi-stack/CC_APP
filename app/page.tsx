@@ -42,7 +42,7 @@ export default function Home() {
       {/* Background GIF Layer */}
       <div className="absolute inset-0 z-0 opacity-60">
         <img
-          src="/background.gif.gif"
+          src="https://ayxcbvzeptwplidkwmob.supabase.co/storage/v1/object/public/assets/background.gif.gif"
           alt="Background"
           className="w-full h-full object-cover"
         />
