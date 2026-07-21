@@ -89,7 +89,7 @@ export default function PublicCalendarPage() {
             {/* Next Session Highlight */}
             {nextSession && (
               new Date(nextSession.date + 'T00:00:00').getDay() === 5 ? (
-                <div className="border border-white bg-black overflow-hidden flex justify-center mb-6">
+                <div className="flex justify-center mb-6">
                   <img src="/schedule_graphic.png" alt="Friday Ball" className="w-full max-w-[600px] h-auto object-contain" />
                 </div>
               ) : (

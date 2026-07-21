@@ -84,7 +84,7 @@ export default function HomePage() {
           ) : nextSession ? (
             <Link href={isAdmin ? "/sessions" : "/calendar"}>
               {new Date(nextSession.date + 'T00:00:00').getDay() === 5 ? (
-                <div className="border border-[#333] bg-black overflow-hidden active:opacity-80 transition-opacity flex justify-center">
+                <div className="active:opacity-80 transition-opacity flex justify-center">
                   <img src="/schedule_graphic.png" alt="Friday Ball" className="w-full max-w-[500px] h-auto object-contain" />
                 </div>
               ) : (
