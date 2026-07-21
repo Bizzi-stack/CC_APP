@@ -88,25 +88,31 @@ export default function PublicCalendarPage() {
           <>
             {/* Next Session Highlight */}
             {nextSession && (
-              <div className="bg-[#111] border border-white p-5 text-center">
-                <p className="text-[10px] text-[#888] font-bold tracking-widest uppercase mb-3">Next Session</p>
-                <p className="text-2xl font-bold uppercase tracking-wide mb-1">
-                  {formatDateDay(nextSession.date)}
-                </p>
-                <p className="text-[#aaa] text-sm tracking-widest uppercase mb-4">
-                  {formatFullDateTime(nextSession.date)}
-                </p>
-                <div className="inline-flex items-center gap-2 bg-[#222] px-3 py-1.5 border border-[#333]">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                  <span className="text-xs font-bold tracking-wider uppercase">{nextSession.location}</span>
+              new Date(nextSession.date + 'T00:00:00').getDay() === 5 ? (
+                <div className="border border-white bg-black overflow-hidden flex justify-center mb-6">
+                  <img src="/schedule_graphic.png" alt="Friday Ball" className="w-full max-w-[600px] h-auto object-contain" />
                 </div>
-                {nextSession.notes && (
-                  <p className="text-[#666] text-xs mt-4 italic">{nextSession.notes}</p>
-                )}
-              </div>
+              ) : (
+                <div className="bg-[#111] border border-white p-5 text-center">
+                  <p className="text-[10px] text-[#888] font-bold tracking-widest uppercase mb-3">Next Session</p>
+                  <p className="text-2xl font-bold uppercase tracking-wide mb-1">
+                    {formatDateDay(nextSession.date)}
+                  </p>
+                  <p className="text-[#aaa] text-sm tracking-widest uppercase mb-4">
+                    {formatFullDateTime(nextSession.date)}
+                  </p>
+                  <div className="inline-flex items-center gap-2 bg-[#222] px-3 py-1.5 border border-[#333]">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <span className="text-xs font-bold tracking-wider uppercase">{nextSession.location}</span>
+                  </div>
+                  {nextSession.notes && (
+                    <p className="text-[#666] text-xs mt-4 italic">{nextSession.notes}</p>
+                  )}
+                </div>
+              )
             )}
 
             {/* Other Upcoming Sessions */}

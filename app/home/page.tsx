@@ -83,16 +83,22 @@ export default function HomePage() {
             </div>
           ) : nextSession ? (
             <Link href={isAdmin ? "/sessions" : "/calendar"}>
-              <div className="border border-[#333] bg-[#0a0a0a] p-5 active:bg-[#111] transition-colors">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 ${nextSession.type === '5v5_match' ? 'bg-white text-black' : 'border border-[#444] text-[#aaa]'}`}>
-                    {nextSession.type === '5v5_match' ? '5v5 MATCH' : 'FREE SESSION'}
-                  </span>
+              {new Date(nextSession.date + 'T00:00:00').getDay() === 5 ? (
+                <div className="border border-[#333] bg-black overflow-hidden active:opacity-80 transition-opacity flex justify-center">
+                  <img src="/schedule_graphic.png" alt="Friday Ball" className="w-full max-w-[500px] h-auto object-contain" />
                 </div>
-                <p className="text-white font-semibold text-base mt-2">{nextSession.title}</p>
-                <p className="text-[#888] text-sm mt-1">{formatDate(nextSession.date)} · {formatTime(nextSession.time)}</p>
-                <p className="text-[#666] text-sm mt-0.5">{nextSession.location}</p>
-              </div>
+              ) : (
+                <div className="border border-[#333] bg-[#0a0a0a] p-5 active:bg-[#111] transition-colors">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 ${nextSession.type === '5v5_match' ? 'bg-white text-black' : 'border border-[#444] text-[#aaa]'}`}>
+                      {nextSession.type === '5v5_match' ? '5v5 MATCH' : 'FREE SESSION'}
+                    </span>
+                  </div>
+                  <p className="text-white font-semibold text-base mt-2">{nextSession.title}</p>
+                  <p className="text-[#888] text-sm mt-1">{formatDate(nextSession.date)} · {formatTime(nextSession.time)}</p>
+                  <p className="text-[#666] text-sm mt-0.5">{nextSession.location}</p>
+                </div>
+              )}
             </Link>
           ) : (
             <div className="border border-[#1a1a1a] p-5 text-center">
