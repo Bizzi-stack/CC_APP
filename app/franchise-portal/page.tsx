@@ -488,6 +488,9 @@ export default function FranchisePortalPage() {
               {marketPlayers.map(player => {
                 const isFreeAgent = player.available
                 const canAfford = franchise.budget >= player.value
+                const pendingOffer = contractOffers.find(o => o.player_id === player.id && ['pending', 'countered'].includes(o.status))
+                const pendingBid = outgoingBids.find(b => b.player_id === player.id && ['pending', 'counter_proposed'].includes(b.status))
+                
                 return (
                   <div key={player.id} className="border border-[#222] bg-[#0a0a0a] p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -519,24 +522,36 @@ export default function FranchisePortalPage() {
                     </div>
 
                     {isFreeAgent ? (
-                      <button
-                        disabled={actioning !== null}
-                        onClick={() => handleSignPlayer(player)}
-                        className={`px-4 py-2 font-bold text-[10px] uppercase tracking-widest transition-colors disabled:opacity-50
-                          ${canAfford
-                            ? 'bg-white text-black hover:bg-gray-200 active:opacity-60'
-                            : 'border border-[#333] text-[#444] bg-[#050505] cursor-not-allowed'}`}
-                      >
-                        {actioning === player.id ? '...' : canAfford ? 'Sign' : 'Too Costly'}
-                      </button>
+                      pendingOffer ? (
+                        <button disabled className="px-4 py-2 font-bold text-[10px] uppercase tracking-widest border border-amber-500/30 text-amber-500 bg-amber-500/5 cursor-not-allowed">
+                          Offer Sent
+                        </button>
+                      ) : (
+                        <button
+                          disabled={actioning !== null}
+                          onClick={() => handleSignPlayer(player)}
+                          className={`px-4 py-2 font-bold text-[10px] uppercase tracking-widest transition-colors disabled:opacity-50
+                            ${canAfford
+                              ? 'bg-white text-black hover:bg-gray-200 active:opacity-60'
+                              : 'border border-[#333] text-[#444] bg-[#050505] cursor-not-allowed'}`}
+                        >
+                          {actioning === player.id ? '...' : canAfford ? 'Sign' : 'Too Costly'}
+                        </button>
+                      )
                     ) : (
-                      <button
-                        disabled={actioning !== null}
-                        onClick={() => setBiddingPlayer(player)}
-                        className="border border-white text-white hover:bg-white hover:text-black transition-colors px-4 py-2 font-bold text-[10px] uppercase tracking-widest active:opacity-60"
-                      >
-                        Bid
-                      </button>
+                      pendingBid ? (
+                        <button disabled className="px-4 py-2 font-bold text-[10px] uppercase tracking-widest border border-[#4caf50]/30 text-[#4caf50] bg-[#4caf50]/5 cursor-not-allowed">
+                          Bid Sent
+                        </button>
+                      ) : (
+                        <button
+                          disabled={actioning !== null}
+                          onClick={() => setBiddingPlayer(player)}
+                          className="border border-white text-white hover:bg-white hover:text-black transition-colors px-4 py-2 font-bold text-[10px] uppercase tracking-widest active:opacity-60"
+                        >
+                          Bid
+                        </button>
+                      )
                     )}
                   </div>
                 )
