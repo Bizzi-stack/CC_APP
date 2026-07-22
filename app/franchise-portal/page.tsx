@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { requestNotificationPermission, sendNativeNotification } from '@/lib/notifications'
 
 interface Player {
   id: string
@@ -357,9 +358,18 @@ export default function FranchisePortalPage() {
           <Link href="/home" className="text-[#888] hover:text-white transition-colors text-xs font-bold uppercase tracking-wider">
             ← Home
           </Link>
-          <button onClick={handleLogout} className="text-[#ff4444] text-xs font-bold uppercase tracking-wider active:opacity-60">
-            Sign Out
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={requestNotificationPermission}
+              className="text-amber-400 hover:text-amber-300 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-full transition-colors"
+              title="Enable Phone & Push Notifications"
+            >
+              <span>🔔</span> Alerts
+            </button>
+            <button onClick={handleLogout} className="text-[#ff4444] text-xs font-bold uppercase tracking-wider active:opacity-60 ml-1">
+              Sign Out
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
