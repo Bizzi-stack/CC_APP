@@ -76,15 +76,20 @@ export default function PlayerPortalPage() {
   // Canvas positions state
   const [canvasPositions, setCanvasPositions] = useState<BadgePosition[]>([])
 
+  // Contract Offers State
+  const [incomingOffers, setIncomingOffers] = useState<any[]>([])
+  const [respondingOffer, setRespondingOffer] = useState<string | null>(null)
+
   useEffect(() => {
     fetchPortalData()
   }, [])
 
   const fetchPortalData = async () => {
     try {
-      const [meRes, badgesRes] = await Promise.all([
+      const [meRes, badgesRes, offersRes] = await Promise.all([
         fetch('/api/player/me'),
-        fetch('/api/canvas-badges')
+        fetch('/api/canvas-badges'),
+        fetch('/api/player/offers')
       ])
 
       if (!meRes.ok) {
@@ -97,6 +102,7 @@ export default function PlayerPortalPage() {
 
       const meData = await meRes.json()
       const badgesData = await badgesRes.json()
+      const offersData = await offersRes.json()
 
       const curPlayer = meData.player
       setPlayer(curPlayer)
@@ -107,10 +113,50 @@ export default function PlayerPortalPage() {
       setSpotifyTrackUrl(curPlayer.spotify_track_url || '')
       setIsBusiness(Boolean(curPlayer.is_business))
       setBusinessName(curPlayer.business_name || '')
+      setIncomingOffers(offersData.offers || [])
     } catch (err: any) {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleRespondOffer = async (offerId: string, action: 'accept' | 'reject' | 'counter') => {
+    let counterWage: number | undefined = undefined
+
+    if (action === 'counter') {
+      const wageStr = prompt('Enter your proposed daily wage (CR/Day):')
+      if (wageStr === null) return
+      counterWage = parseInt(wageStr)
+      if (isNaN(counterWage) || counterWage < 100) {
+        alert('Please enter a valid daily wage of at least 100 CR.')
+        return
+      }
+    } else if (action === 'accept') {
+      if (!confirm('Are you sure you want to accept this contract and sign to the club?')) return
+    }
+
+    setRespondingOffer(offerId)
+    setError('')
+    setSuccessMsg('')
+    try {
+      const res = await fetch('/api/player/offers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offerId, action, counterWage })
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to process contract offer')
+
+      if (data.message) {
+        setSuccessMsg(data.message)
+      }
+      await fetchPortalData()
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setRespondingOffer(null)
     }
   }
 
@@ -466,7 +512,69 @@ export default function PlayerPortalPage() {
           </div>
         ) : (
           <div className="border border-[#222] bg-[#050505] p-5 text-center text-[#555] text-xs uppercase tracking-wider">
-            You are a Free Agent. Sign to a team to earn weekly wages!
+            You are a Free Agent. Sign to a team to earn daily wages!
+          </div>
+        )}
+
+        {/* Incoming Free Agent Contract Proposals & Wage Negotiations */}
+        {incomingOffers.length > 0 && (
+          <div className="bg-[#050505] border border-amber-500/40 p-5 space-y-4 rounded-xl">
+            <h2 className="text-xs font-bold tracking-widest uppercase text-amber-400 flex items-center gap-2 border-b border-[#222] pb-2">
+              <span>📋</span>
+              Incoming Contract Proposals ({incomingOffers.length})
+            </h2>
+
+            <div className="space-y-3">
+              {incomingOffers.map(offer => (
+                <div key={offer.id} className="bg-black border border-[#222] p-4 rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {offer.franchise?.logo_url ? (
+                        <img src={offer.franchise.logo_url} alt="" className="w-6 h-6 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-[#222] flex items-center justify-center text-[10px] font-bold text-[#888]">
+                          {offer.franchise?.name.substring(0, 2)}
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-xs font-bold text-white">{offer.franchise?.name}</p>
+                        <p className="text-[9px] text-[#666] uppercase">Offered Daily Wage</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-mono font-bold text-amber-400">{offer.offered_wage.toLocaleString()} CR/day</p>
+                      <span className="text-[8px] uppercase tracking-widest font-bold px-2 py-0.5 rounded bg-[#111] text-[#888] border border-[#222]">
+                        {offer.proposed_by === 'player' ? 'Your Counter Proposal' : 'Club Offer'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-1 border-t border-[#111]">
+                    <button
+                      onClick={() => handleRespondOffer(offer.id, 'accept')}
+                      disabled={respondingOffer === offer.id}
+                      className="flex-1 bg-white hover:bg-gray-200 text-black text-[10px] font-bold uppercase tracking-wider py-2 rounded transition-colors"
+                    >
+                      Accept Contract
+                    </button>
+                    <button
+                      onClick={() => handleRespondOffer(offer.id, 'counter')}
+                      disabled={respondingOffer === offer.id}
+                      className="flex-1 bg-amber-500 hover:bg-amber-600 text-black text-[10px] font-bold uppercase tracking-wider py-2 rounded transition-colors"
+                    >
+                      Negotiate Wage
+                    </button>
+                    <button
+                      onClick={() => handleRespondOffer(offer.id, 'reject')}
+                      disabled={respondingOffer === offer.id}
+                      className="px-3 bg-[#1c1c1c] hover:bg-[#282828] text-[#888] hover:text-white text-[10px] font-bold uppercase tracking-wider py-2 rounded transition-colors"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

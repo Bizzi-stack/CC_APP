@@ -57,16 +57,19 @@ export default function FranchisePortalPage() {
   const [biddingPlayer, setBiddingPlayer] = useState<Player | null>(null)
   const [customBidAmount, setCustomBidAmount] = useState('')
 
+  const [contractOffers, setContractOffers] = useState<any[]>([])
+
   useEffect(() => {
     fetchPortalData()
   }, [])
 
   const fetchPortalData = async () => {
     try {
-      const [meRes, playersRes, bidsRes] = await Promise.all([
+      const [meRes, playersRes, bidsRes, offersRes] = await Promise.all([
         fetch('/api/franchise/me'),
         fetch('/api/players'),
-        fetch('/api/franchise/bids')
+        fetch('/api/franchise/bids'),
+        fetch('/api/franchise/offer')
       ])
 
       if (!meRes.ok) {
@@ -80,6 +83,7 @@ export default function FranchisePortalPage() {
       const meData = await meRes.json()
       const playersData = await playersRes.json()
       const bidsData = await bidsRes.json()
+      const offersData = await offersRes.json()
 
       const currentFranchise = meData.franchise
       setFranchise(currentFranchise)
@@ -91,6 +95,7 @@ export default function FranchisePortalPage() {
 
       setOutgoingBids(bidsData.outgoingBids || [])
       setIncomingBids(bidsData.incomingBids || [])
+      setContractOffers(offersData.offers || [])
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -105,7 +110,7 @@ export default function FranchisePortalPage() {
       return
     }
 
-    const wageStr = prompt(`Sign ${player.name} for ${player.value.toLocaleString()} CR.\nSet daily wage (salary) for this player (minimum 100 CR):`, Math.max(100, Math.floor(player.value * 0.1)).toString())
+    const wageStr = prompt(`Send signing contract proposal to ${player.name}.\nProposed daily wage (minimum 100 CR):`, Math.max(100, Math.floor(player.value * 0.1)).toString())
     if (wageStr === null) return // Cancelled
     const wage = parseInt(wageStr)
     if (isNaN(wage) || wage < 100) {
@@ -115,17 +120,57 @@ export default function FranchisePortalPage() {
 
     setActioning(player.id)
     try {
-      const res = await fetch('/api/franchise/sign', {
+      const res = await fetch('/api/franchise/offer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId: player.id, wage })
+        body: JSON.stringify({ playerId: player.id, offeredWage: wage })
       })
 
+      const data = await res.json()
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Failed to sign player')
+        throw new Error(data.error || 'Failed to send contract offer')
       }
 
+      alert(`Contract offer of ${wage.toLocaleString()} CR/day sent to ${player.name}! The player can now accept, decline, or negotiate their wage in their portal.`)
+      await fetchPortalData()
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setActioning(null)
+    }
+  }
+
+  const handleAcceptCounterOffer = async (offerId: string) => {
+    setActioning(offerId)
+    try {
+      const res = await fetch('/api/franchise/offer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offerId, action: 'accept_counter' })
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to accept counter-offer')
+
+      alert(data.message || 'Counter-offer accepted and player signed!')
+      await fetchPortalData()
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setActioning(null)
+    }
+  }
+
+  const handleRejectContractOffer = async (offerId: string) => {
+    setActioning(offerId)
+    try {
+      const res = await fetch('/api/franchise/offer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offerId, action: 'reject' })
+      })
+
+      if (!res.ok) throw new Error('Failed to reject contract offer')
       await fetchPortalData()
     } catch (err: any) {
       alert(err.message)
@@ -492,6 +537,60 @@ export default function FranchisePortalPage() {
 
         {tab === 'bids' && (
           <div className="space-y-6">
+            {/* Free Agent Wage Offers & Counter-Offers */}
+            <div>
+              <h2 className="text-xs text-[#555] font-bold tracking-widest uppercase mb-3">Free Agent Contract Proposals & Negotiations</h2>
+              {contractOffers.length === 0 ? (
+                <p className="text-xs text-[#444] border border-dashed border-[#222] p-4 text-center uppercase tracking-wider">No active Free Agent contract offers</p>
+              ) : (
+                <div className="space-y-3">
+                  {contractOffers.map(offer => (
+                    <div key={offer.id} className="border border-[#222] bg-[#0a0a0a] p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-white">{offer.player?.name}</span>
+                          <span className="text-[10px] text-[#555] uppercase">(Free Agent)</span>
+                        </div>
+                        <span className={`text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 border
+                          ${offer.status === 'accepted' && 'border-[#2a6b2a] text-[#4caf50] bg-[#0a1f0a]'}
+                          ${offer.status === 'rejected' && 'border-[#6b2a2a] text-[#f44336] bg-[#1f0a0a]'}
+                          ${offer.status === 'countered' && 'border-[#6b582a] text-[#ffb74d] bg-[#1f190a]'}
+                          ${offer.status === 'pending' && 'border-[#333] text-[#888] bg-[#111]'}
+                        `}>
+                          {offer.status === 'countered' ? 'Player Countered' : offer.status}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-center text-xs">
+                        <div>
+                          <span className="text-[#555] block text-[8px] uppercase tracking-wider">Offered Daily Wage</span>
+                          <span className="text-amber-400 font-mono font-bold">{offer.offered_wage.toLocaleString()} CR/day</span>
+                        </div>
+                        {offer.status === 'countered' && offer.proposed_by === 'player' && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleAcceptCounterOffer(offer.id)}
+                              disabled={actioning === offer.id}
+                              className="bg-white text-black text-[10px] font-bold uppercase px-3 py-1.5 rounded"
+                            >
+                              Accept Counter Wage
+                            </button>
+                            <button
+                              onClick={() => handleRejectContractOffer(offer.id)}
+                              disabled={actioning === offer.id}
+                              className="bg-[#1f0a0a] text-[#f44336] border border-[#6b2a2a] text-[10px] font-bold uppercase px-3 py-1.5 rounded"
+                            >
+                              Decline
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Outgoing Bids section */}
             <div>
               <h2 className="text-xs text-[#555] font-bold tracking-widest uppercase mb-3">Bids Placed (Outgoing)</h2>
