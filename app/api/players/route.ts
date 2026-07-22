@@ -8,26 +8,47 @@ export async function GET(request: NextRequest) {
   const available = searchParams.get('available')
   const status = searchParams.get('status') // 'active', 'pending', or null (all)
 
-  let query = supabase
+  let { data, error } = await supabase
     .from('players')
-    .select('*, franchises(*), owned_franchise:franchises!owned_franchise_id(id, name, logo_url)')
+    .select('*, franchises(*), owned_franchise:franchises!players_owned_franchise_id_fkey(id, name, logo_url)')
     .order('name', { ascending: true })
 
-  // Filter by status (default to 'active' for public, 'all' when admin passes no filter)
-  if (status === 'active') {
-    query = query.eq('status', 'active')
-  } else if (status === 'pending') {
-    query = query.eq('status', 'pending')
-  }
-  // status === 'all' or null → no filter, return everything
+  // Fallback if relation cache is updating
+  if (error) {
+    let fallbackQuery = supabase
+      .from('players')
+      .select('*, franchises(*)')
+      .order('name', { ascending: true })
 
-  if (available === 'true') {
-    query = query.eq('available', true)
-  } else if (available === 'false') {
-    query = query.eq('available', false)
-  }
+    if (status === 'active') {
+      fallbackQuery = fallbackQuery.eq('status', 'active')
+    } else if (status === 'pending') {
+      fallbackQuery = fallbackQuery.eq('status', 'pending')
+    }
 
-  const { data, error } = await query
+    if (available === 'true') {
+      fallbackQuery = fallbackQuery.eq('available', true)
+    } else if (available === 'false') {
+      fallbackQuery = fallbackQuery.eq('available', false)
+    }
+
+    const fallbackRes = await fallbackQuery
+    data = fallbackRes.data
+    error = fallbackRes.error
+  } else {
+    // Apply filters to data if query succeeded
+    if (status === 'active') {
+      data = (data || []).filter(p => p.status === 'active')
+    } else if (status === 'pending') {
+      data = (data || []).filter(p => p.status === 'pending')
+    }
+
+    if (available === 'true') {
+      data = (data || []).filter(p => p.available === true)
+    } else if (available === 'false') {
+      data = (data || []).filter(p => p.available === false)
+    }
+  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
