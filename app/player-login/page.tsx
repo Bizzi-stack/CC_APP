@@ -46,8 +46,7 @@ export default function PlayerLoginPage() {
         throw new Error(data.error || 'Failed to authenticate')
       }
 
-      router.push('/player-portal')
-      router.refresh()
+      window.location.href = '/player-portal'
     } catch (err: any) {
       setError(err.message)
       setSubmitting(false)

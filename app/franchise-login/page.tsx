@@ -53,8 +53,7 @@ export default function FranchiseLoginPage() {
         throw new Error(data.error || 'Login failed')
       }
 
-      router.push('/franchise-portal')
-      router.refresh()
+      window.location.href = '/franchise-portal'
     } catch (err: any) {
       setError(err.message)
       setLoading(false)
