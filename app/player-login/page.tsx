@@ -19,7 +19,7 @@ export default function PlayerLoginPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetch('/api/players?status=active')
+    fetch(`/api/players?status=active&t=${Date.now()}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         setPlayers(data.players || [])
