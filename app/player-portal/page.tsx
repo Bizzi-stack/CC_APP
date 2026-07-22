@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import BadgeCanvasEditor, { BadgePosition } from '@/components/BadgeCanvasEditor'
 import VerificationBadge from '@/components/VerificationBadge'
+import ProfileBanner from '@/components/ProfileBanner'
 
 interface CanvasBadge {
   id: string
@@ -29,6 +30,11 @@ interface Player {
   canvas_badges_data?: BadgePosition[]
   last_wage_collection?: string
   verification_badge?: string | null
+  banner_url?: string | null
+  instagram_url?: string | null
+  spotify_track_url?: string | null
+  is_business?: boolean | null
+  business_name?: string | null
   franchises?: {
     name: string
   } | null
@@ -46,6 +52,15 @@ export default function PlayerPortalPage() {
   const [listingBadge, setListingBadge] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
+
+  // Banner & Profile Customization State
+  const [bannerUrl, setBannerUrl] = useState('')
+  const [instagramUrl, setInstagramUrl] = useState('')
+  const [spotifyTrackUrl, setSpotifyTrackUrl] = useState('')
+  const [isBusiness, setIsBusiness] = useState(false)
+  const [businessName, setBusinessName] = useState('')
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [uploadingBanner, setUploadingBanner] = useState(false)
 
   // Canvas positions state
   const [canvasPositions, setCanvasPositions] = useState<BadgePosition[]>([])
@@ -76,10 +91,67 @@ export default function PlayerPortalPage() {
       setPlayer(curPlayer)
       setCanvasPositions(curPlayer.canvas_badges_data || [])
       setCanvasBadges(badgesData.badges || [])
+      setBannerUrl(curPlayer.banner_url || '')
+      setInstagramUrl(curPlayer.instagram_url || '')
+      setSpotifyTrackUrl(curPlayer.spotify_track_url || '')
+      setIsBusiness(Boolean(curPlayer.is_business))
+      setBusinessName(curPlayer.business_name || '')
     } catch (err: any) {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Banner image must be under 10MB')
+      return
+    }
+    setUploadingBanner(true)
+    setError('')
+    try {
+      const uploadForm = new FormData()
+      uploadForm.append('file', file)
+      const res = await fetch('/api/upload', { method: 'POST', body: uploadForm })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Banner upload failed')
+      setBannerUrl(data.url)
+      setSuccessMsg('Banner uploaded! Click "Save Profile Changes" below to publish.')
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setUploadingBanner(false)
+    }
+  }
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSavingProfile(true)
+    setError('')
+    setSuccessMsg('')
+    try {
+      const res = await fetch('/api/player/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          banner_url: bannerUrl || null,
+          instagram_url: instagramUrl || null,
+          spotify_track_url: spotifyTrackUrl || null,
+          is_business: isBusiness,
+          business_name: businessName || null
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to save profile customization')
+      setSuccessMsg('Profile customization saved successfully!')
+      await fetchPortalData()
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setSavingProfile(false)
     }
   }
 
@@ -275,6 +347,17 @@ export default function PlayerPortalPage() {
           </button>
         </div>
 
+        {/* Live Profile Banner Graphic & Spotify Player */}
+        <div className="mb-6">
+          <ProfileBanner
+            banner_url={bannerUrl || player?.banner_url}
+            instagram_url={instagramUrl || player?.instagram_url}
+            spotify_track_url={spotifyTrackUrl || player?.spotify_track_url}
+            is_business={isBusiness}
+            business_name={businessName || player?.business_name}
+          />
+        </div>
+
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full border border-[#333] bg-[#111] overflow-hidden flex items-center justify-center shrink-0">
             {player?.photo_url ? (
@@ -357,6 +440,112 @@ export default function PlayerPortalPage() {
             You are a Free Agent. Sign to a team to earn weekly wages!
           </div>
         )}
+
+        {/* Profile & Banner Customization Form */}
+        <form onSubmit={handleSaveProfile} className="bg-[#050505] border border-[#222] p-5 space-y-4 rounded-xl">
+          <h2 className="text-xs font-bold tracking-widest uppercase text-white border-b border-[#222] pb-2 flex items-center gap-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+            Banner, IG & Spotify Setup
+          </h2>
+
+          {/* Banner Photo Upload or URL */}
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block">
+              Profile Banner Image
+            </label>
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={bannerUrl}
+                onChange={e => setBannerUrl(e.target.value)}
+                placeholder="https://... or upload photo"
+                className="flex-1 h-10 px-3 bg-black border border-[#333] text-white text-xs outline-none focus:border-white transition-colors"
+              />
+              <label className="h-10 px-3 bg-[#1c1c1c] hover:bg-[#282828] border border-[#333] text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center cursor-pointer transition-colors shrink-0">
+                {uploadingBanner ? '...' : 'Upload'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBannerUpload}
+                  className="hidden"
+                  disabled={uploadingBanner}
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* Instagram URL or Handle */}
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block">
+              Instagram Profile Link / Handle
+            </label>
+            <input
+              type="text"
+              value={instagramUrl}
+              onChange={e => setInstagramUrl(e.target.value)}
+              placeholder="e.g. @your_username or https://instagram.com/..."
+              className="w-full h-10 px-3 bg-black border border-[#333] text-white text-xs outline-none focus:border-white transition-colors"
+            />
+          </div>
+
+          {/* Spotify Track URL */}
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block">
+              Spotify Signature Song (Track Link)
+            </label>
+            <input
+              type="text"
+              value={spotifyTrackUrl}
+              onChange={e => setSpotifyTrackUrl(e.target.value)}
+              placeholder="https://open.spotify.com/track/..."
+              className="w-full h-10 px-3 bg-black border border-[#333] text-white text-xs outline-none focus:border-white transition-colors"
+            />
+            <p className="text-[8px] text-[#555]">
+              Copy link to track from Spotify. Visitors can play your track preview directly from your banner!
+            </p>
+          </div>
+
+          {/* Business Owner Toggle */}
+          <div className="pt-2 border-t border-[#1a1a1a] space-y-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isBusiness}
+                onChange={e => setIsBusiness(e.target.checked)}
+                className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+              />
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                Enable Business Owner Banner Tag
+              </span>
+            </label>
+
+            {isBusiness && (
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block">
+                  Business / Brand Name
+                </label>
+                <input
+                  type="text"
+                  value={businessName}
+                  onChange={e => setBusinessName(e.target.value)}
+                  placeholder="e.g. Apex Football Academy"
+                  className="w-full h-10 px-3 bg-black border border-[#333] text-white text-xs outline-none focus:border-white transition-colors"
+                />
+              </div>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={savingProfile}
+            className="w-full h-10 bg-white hover:bg-gray-200 text-black text-xs font-bold uppercase tracking-widest transition-colors active:opacity-60 disabled:opacity-40 mt-2"
+          >
+            {savingProfile ? 'Saving...' : 'Save Profile Changes'}
+          </button>
+        </form>
 
         {/* Snapping canvas editor */}
         <div className="space-y-4 border-t border-[#111] pt-6">

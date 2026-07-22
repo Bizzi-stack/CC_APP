@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
+import ProfileBanner from '@/components/ProfileBanner'
 
 interface Player {
   id: string
@@ -16,6 +17,11 @@ interface Player {
   status: string
   franchise_id?: string
   verification_badge?: string | null
+  banner_url?: string | null
+  instagram_url?: string | null
+  spotify_track_url?: string | null
+  is_business?: boolean | null
+  business_name?: string | null
   franchises?: {
     id: string
     name: string
@@ -139,7 +145,18 @@ export default function MarketPage() {
             onClick={e => e.stopPropagation()}
           >
             {/* Close handle */}
-            <div className="w-12 h-1.5 bg-[#333] rounded-full mx-auto mb-6" />
+            <div className="w-12 h-1.5 bg-[#333] rounded-full mx-auto mb-4" />
+
+            {/* Profile Banner, IG link & Spotify player */}
+            <div className="mb-5">
+              <ProfileBanner
+                banner_url={selectedPlayer.banner_url}
+                instagram_url={selectedPlayer.instagram_url}
+                spotify_track_url={selectedPlayer.spotify_track_url}
+                is_business={selectedPlayer.is_business}
+                business_name={selectedPlayer.business_name}
+              />
+            </div>
 
             <div className="flex gap-4">
               {/* Big Photo */}
