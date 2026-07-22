@@ -23,18 +23,38 @@ export async function requestNotificationPermission(): Promise<boolean> {
   }
 }
 
-export function sendNativeNotification(title: string, options?: { body?: string; icon?: string }) {
+export async function sendNativeNotification(title: string, options?: { body?: string; icon?: string; url?: string }) {
   if (typeof window === 'undefined' || !('Notification' in window)) return
 
   if (Notification.permission === 'granted') {
+    const notificationOptions = {
+      icon: options?.icon || '/logo_2.png',
+      body: options?.body || 'Check your portal for updates!',
+      badge: '/logo_2.png',
+      data: { url: options?.url || '/' }
+    };
+
     try {
-      new Notification(title, {
-        icon: options?.icon || '/logo_2.png',
-        body: options?.body || 'Check your portal for updates!',
-        badge: '/logo_2.png'
-      })
+      // For iOS Safari, new Notification() doesn't work, so we use the service worker
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration && 'showNotification' in registration) {
+          await registration.showNotification(title, notificationOptions);
+          return;
+        }
+      }
+
+      // Fallback for browsers that support the constructor
+      new Notification(title, notificationOptions);
     } catch (e) {
-      console.error('Failed to trigger native notification:', e)
+      console.error('Failed to trigger native notification:', e);
+      
+      // Secondary fallback
+      try {
+        new Notification(title, notificationOptions);
+      } catch (innerError) {
+        console.error('Fallback notification also failed:', innerError);
+      }
     }
   }
 }
