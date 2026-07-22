@@ -5,6 +5,7 @@ import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
 import BadgeCanvasEditor, { BadgePosition } from '@/components/BadgeCanvasEditor'
 import VerificationBadge from '@/components/VerificationBadge'
+import { FranchiseOwnerBadge } from '@/components/ProfileBanner'
 
 interface Player {
   id: string
@@ -21,6 +22,13 @@ interface Player {
   passcode?: string
   owned_badge_ids?: string[]
   verification_badge?: string | null
+  is_franchise_owner?: boolean | null
+  owned_franchise_id?: string | null
+  owned_franchise?: {
+    id: string
+    name: string
+    logo_url: string | null
+  } | null
   franchises?: {
     id: string
     name: string
@@ -64,6 +72,8 @@ export default function AdminPlayersPage() {
   const [approveVerification, setApproveVerification] = useState('none')
   const [approveBadges, setApproveBadges] = useState('')
   const [approveCanvasBadgesData, setApproveCanvasBadgesData] = useState<BadgePosition[]>([])
+  const [approveIsFranchiseOwner, setApproveIsFranchiseOwner] = useState(false)
+  const [approveOwnedFranchiseId, setApproveOwnedFranchiseId] = useState('')
 
   // Edit modal state
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null)
@@ -75,6 +85,8 @@ export default function AdminPlayersPage() {
   const [editVerification, setEditVerification] = useState('none')
   const [editBadges, setEditBadges] = useState('')
   const [editCanvasBadgesData, setEditCanvasBadgesData] = useState<BadgePosition[]>([])
+  const [editIsFranchiseOwner, setEditIsFranchiseOwner] = useState(false)
+  const [editOwnedFranchiseId, setEditOwnedFranchiseId] = useState('')
   
   const [canvasBadges, setCanvasBadges] = useState<CanvasBadge[]>([])
 
@@ -149,7 +161,9 @@ export default function AdminPlayersPage() {
       wages: approveWages ? parseInt(approveWages) : 0,
       balance: approveBalance ? parseInt(approveBalance) : 0,
       passcode: approvePasscode || '1234',
-      verification_badge: approveVerification || 'none',
+      verification_badge: approveIsFranchiseOwner ? 'red' : (approveVerification || 'none'),
+      is_franchise_owner: approveIsFranchiseOwner,
+      owned_franchise_id: approveIsFranchiseOwner ? (approveOwnedFranchiseId || null) : null,
       badges: approveBadges.split(',').map(b => b.trim()).filter(b => b),
       canvas_badge_ids: approveBadgeIds,
       canvas_badges_data: approveCanvasBadgesData,
@@ -177,6 +191,8 @@ export default function AdminPlayersPage() {
       setApprovePasscode('1234')
       setApproveBadges('')
       setApproveCanvasBadgesData([])
+      setApproveIsFranchiseOwner(false)
+      setApproveOwnedFranchiseId('')
       await fetchPlayersAndFranchises()
     } catch (err) {
       console.error(err)
@@ -198,7 +214,9 @@ export default function AdminPlayersPage() {
       wages: editWages ? parseInt(editWages) : 0,
       balance: editBalance ? parseInt(editBalance) : 0,
       passcode: editPasscode || '1234',
-      verification_badge: editVerification || 'none',
+      verification_badge: editIsFranchiseOwner ? 'red' : (editVerification || 'none'),
+      is_franchise_owner: editIsFranchiseOwner,
+      owned_franchise_id: editIsFranchiseOwner ? (editOwnedFranchiseId || null) : null,
       badges: editBadges.split(',').map(b => b.trim()).filter(b => b),
       canvas_badge_ids: editBadgeIds,
       canvas_badges_data: editCanvasBadgesData,
@@ -226,6 +244,8 @@ export default function AdminPlayersPage() {
       setEditPasscode('1234')
       setEditBadges('')
       setEditCanvasBadgesData([])
+      setEditIsFranchiseOwner(false)
+      setEditOwnedFranchiseId('')
       await fetchPlayersAndFranchises()
     } catch (err) {
       console.error(err)
@@ -337,6 +357,8 @@ export default function AdminPlayersPage() {
                     setEditVerification(player.verification_badge || 'none')
                     setEditBadges(player.badges ? player.badges.join(', ') : '')
                     setEditCanvasBadgesData(player.canvas_badges_data || (player.canvas_badge_ids?.map(id => ({ id, x: 50, y: 50 })) || []))
+                    setEditIsFranchiseOwner(player.is_franchise_owner || false)
+                    setEditOwnedFranchiseId(player.owned_franchise_id || '')
                   }}
                   onDelete={deletePlayer}
                   actioning={actioning}
@@ -365,6 +387,8 @@ export default function AdminPlayersPage() {
                     setApprovePasscode('1234')
                     setApproveBadges('')
                     setApproveCanvasBadgesData(player.canvas_badges_data || (player.canvas_badge_ids?.map(id => ({ id, x: 50, y: 50 })) || []))
+                    setApproveIsFranchiseOwner(player.is_franchise_owner || false)
+                    setApproveOwnedFranchiseId(player.owned_franchise_id || '')
                   }}
                   onReject={rejectPlayer}
                   actioning={actioning}
@@ -480,6 +504,47 @@ export default function AdminPlayersPage() {
                   <option value="red">Red Checkmark</option>
                 </select>
               </div>
+            </div>
+
+            {/* Franchise Owner Special Permission */}
+            <div className="pt-2 border-t border-[#1a1a1a] space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={approveIsFranchiseOwner}
+                  onChange={e => {
+                    const checked = e.target.checked
+                    setApproveIsFranchiseOwner(checked)
+                    if (checked) {
+                      setApproveVerification('red')
+                    }
+                  }}
+                  className="w-4 h-4 accent-red-600 rounded cursor-pointer"
+                />
+                <span className="text-xs font-bold text-red-500 uppercase tracking-wider flex items-center gap-1">
+                  👑 Make Franchise Owner (Red Checkmark)
+                </span>
+              </label>
+
+              {approveIsFranchiseOwner && (
+                <div>
+                  <label className="block text-[10px] font-bold text-[#888] tracking-widest uppercase mb-1.5">
+                    Select Owned Franchise
+                  </label>
+                  <select
+                    value={approveOwnedFranchiseId}
+                    onChange={e => setApproveOwnedFranchiseId(e.target.value)}
+                    className="w-full h-11 px-3 bg-[#111] border border-red-500/50 text-white text-sm outline-none focus:border-red-500 transition-colors appearance-none cursor-pointer"
+                  >
+                    <option value="" className="bg-[#111]">Select Owned Franchise...</option>
+                    {franchises.map(f => (
+                      <option key={f.id} value={f.id} className="bg-[#111]">
+                        {f.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
             <div>
@@ -625,6 +690,47 @@ export default function AdminPlayersPage() {
               </div>
             </div>
 
+            {/* Franchise Owner Special Permission */}
+            <div className="pt-2 border-t border-[#1a1a1a] space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editIsFranchiseOwner}
+                  onChange={e => {
+                    const checked = e.target.checked
+                    setEditIsFranchiseOwner(checked)
+                    if (checked) {
+                      setEditVerification('red')
+                    }
+                  }}
+                  className="w-4 h-4 accent-red-600 rounded cursor-pointer"
+                />
+                <span className="text-xs font-bold text-red-500 uppercase tracking-wider flex items-center gap-1">
+                  👑 Make Franchise Owner (Red Checkmark)
+                </span>
+              </label>
+
+              {editIsFranchiseOwner && (
+                <div>
+                  <label className="block text-[10px] font-bold text-[#888] tracking-widest uppercase mb-1.5">
+                    Select Owned Franchise
+                  </label>
+                  <select
+                    value={editOwnedFranchiseId}
+                    onChange={e => setEditOwnedFranchiseId(e.target.value)}
+                    className="w-full h-11 px-3 bg-[#111] border border-red-500/50 text-white text-sm outline-none focus:border-red-500 transition-colors appearance-none cursor-pointer"
+                  >
+                    <option value="" className="bg-[#111]">Select Owned Franchise...</option>
+                    {franchises.map(f => (
+                      <option key={f.id} value={f.id} className="bg-[#111]">
+                        {f.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
             <div>
               <label className="block text-[10px] font-bold text-[#555] tracking-widest uppercase mb-1.5">
                 Badges (optional)
@@ -695,7 +801,8 @@ function ActivePlayerRow({ player, onToggle, onEdit, onDelete, actioning }: {
           <span className="truncate">{player.name}</span>
           <VerificationBadge type={player.verification_badge} className="w-[20px] h-[20px] ml-0.5" />
         </p>
-        <div className="flex items-center gap-2 mt-0.5">
+        <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+          <FranchiseOwnerBadge isOwner={player.is_franchise_owner} franchiseName={player.owned_franchise?.name} />
           {player.franchises && (
             <div className="flex items-center gap-1 bg-[#111] border border-[#333] px-1.5 py-0.5" title={player.franchises.name}>
               {player.franchises.logo_url ? (

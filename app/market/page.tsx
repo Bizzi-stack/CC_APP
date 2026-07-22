@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
-import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer } from '@/components/ProfileBanner'
+import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseOwnerBadge } from '@/components/ProfileBanner'
 
 interface Player {
   id: string
@@ -22,6 +22,13 @@ interface Player {
   spotify_track_url?: string | null
   is_business?: boolean | null
   business_name?: string | null
+  is_franchise_owner?: boolean | null
+  owned_franchise_id?: string | null
+  owned_franchise?: {
+    id: string
+    name: string
+    logo_url: string | null
+  } | null
   franchises?: {
     id: string
     name: string
@@ -166,6 +173,7 @@ export default function MarketPage() {
                   <VerificationBadge type={selectedPlayer.verification_badge} className="w-[28px] h-[28px] ml-0.5" />
                 </h2>
                 <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <FranchiseOwnerBadge isOwner={selectedPlayer.is_franchise_owner} franchiseName={selectedPlayer.owned_franchise?.name} />
                   <BusinessBadge isBusiness={selectedPlayer.is_business} businessName={selectedPlayer.business_name} />
                   <InstagramBadge url={selectedPlayer.instagram_url} />
                   {selectedPlayer.franchises && (
@@ -296,6 +304,7 @@ function PublicPlayerRow({ player }: { player: Player }) {
           <VerificationBadge type={player.verification_badge} className="w-[20px] h-[20px] ml-0.5" />
         </p>
         <div className="flex flex-wrap items-center gap-2 mt-0.5">
+          <FranchiseOwnerBadge isOwner={player.is_franchise_owner} franchiseName={player.owned_franchise?.name} />
           <BusinessBadge isBusiness={player.is_business} businessName={player.business_name} />
           <InstagramBadge url={player.instagram_url} />
           {player.franchises && (

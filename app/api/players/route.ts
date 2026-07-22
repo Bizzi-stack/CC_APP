@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from('players')
-    .select('*, franchises(*)')
+    .select('*, franchises(*), owned_franchise:franchises!owned_franchise_id(id, name, logo_url)')
     .order('name', { ascending: true })
 
   // Filter by status (default to 'active' for public, 'all' when admin passes no filter)
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
         canvas_badges_data: canvas_badges_data || [],
         verification_badge: verification_badge || 'none',
       }])
-      .select('*, franchises(*)')
+      .select('*, franchises(*), owned_franchise:franchises!owned_franchise_id(id, name, logo_url)')
       .single()
 
     if (error) {
@@ -88,7 +88,7 @@ export async function PATCH(request: NextRequest) {
       .from('players')
       .update(body)
       .eq('id', id)
-      .select('*, franchises(*)')
+      .select('*, franchises(*), owned_franchise:franchises!owned_franchise_id(id, name, logo_url)')
       .single()
 
     if (error) {

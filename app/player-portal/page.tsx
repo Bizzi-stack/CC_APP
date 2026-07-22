@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import BadgeCanvasEditor, { BadgePosition } from '@/components/BadgeCanvasEditor'
 import VerificationBadge from '@/components/VerificationBadge'
-import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer } from '@/components/ProfileBanner'
+import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseOwnerBadge } from '@/components/ProfileBanner'
 
 interface CanvasBadge {
   id: string
@@ -22,22 +22,33 @@ interface CanvasBadge {
 interface Player {
   id: string
   name: string
-  photo_url?: string
   position?: string
+  photo_url?: string
   wages: number
   balance: number
-  owned_badge_ids?: string[]
-  canvas_badges_data?: BadgePosition[]
-  last_wage_collection?: string
+  available: boolean
+  last_wage_collection?: string | null
   verification_badge?: string | null
   banner_url?: string | null
   instagram_url?: string | null
   spotify_track_url?: string | null
   is_business?: boolean | null
   business_name?: string | null
-  franchises?: {
+  is_franchise_owner?: boolean | null
+  owned_franchise_id?: string | null
+  owned_franchise?: {
+    id: string
     name: string
+    logo_url: string | null
   } | null
+  franchises?: {
+    id: string
+    name: string
+    logo_url: string | null
+  } | null
+  owned_badge_ids?: string[]
+  canvas_badge_ids?: string[]
+  canvas_badges_data?: BadgePosition[]
 }
 
 export default function PlayerPortalPage() {
@@ -361,6 +372,7 @@ export default function PlayerPortalPage() {
               <VerificationBadge type={player?.verification_badge} className="w-[22px] h-[22px] ml-0.5" />
             </h1>
             <div className="flex flex-wrap items-center gap-1.5 mt-1">
+              <FranchiseOwnerBadge isOwner={player?.is_franchise_owner} franchiseName={player?.owned_franchise?.name} />
               <BusinessBadge isBusiness={isBusiness} businessName={businessName || player?.business_name} />
               <InstagramBadge url={instagramUrl || player?.instagram_url} />
               <span className="text-[9px] font-bold text-[#888] border border-[#2a2a2a] px-1 py-0.5 uppercase">
@@ -374,6 +386,25 @@ export default function PlayerPortalPage() {
             </div>
           </div>
         </div>
+
+        {/* Franchise Owner Special Access Quick Button */}
+        {player?.is_franchise_owner && (
+          <div className="mt-4 p-3 bg-gradient-to-r from-red-950/40 via-black to-red-950/40 border border-red-800/40 rounded-xl flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-base">👑</span>
+              <div>
+                <p className="text-xs font-bold text-red-400 uppercase tracking-wider">Franchise Owner Access</p>
+                <p className="text-[10px] text-[#888]">Manage {player?.owned_franchise?.name || 'your franchise'} portal</p>
+              </div>
+            </div>
+            <Link
+              href="/franchise-portal"
+              className="bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded transition-colors shrink-0"
+            >
+              Open Portal →
+            </Link>
+          </div>
+        )}
 
         {/* Embedded Spotify Track Player if provided */}
         {(spotifyTrackUrl || player?.spotify_track_url) && (

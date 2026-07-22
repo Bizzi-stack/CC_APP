@@ -72,6 +72,19 @@ export function BusinessBadge({ isBusiness, businessName }: { isBusiness?: boole
   )
 }
 
+export function FranchiseOwnerBadge({ isOwner, franchiseName }: { isOwner?: boolean | null; franchiseName?: string | null }) {
+  if (!isOwner) return null
+
+  return (
+    <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-md border border-red-400/40 shrink-0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+      </svg>
+      <span>Franchise Owner{franchiseName ? `: ${franchiseName}` : ''}</span>
+    </div>
+  )
+}
+
 export function SpotifyPlayer({ url }: { url?: string | null }) {
   const spotifyEmbedUrl = getSpotifyEmbedUrl(url)
   if (!spotifyEmbedUrl) return null
