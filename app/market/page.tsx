@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
-import ProfileBanner from '@/components/ProfileBanner'
+import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer } from '@/components/ProfileBanner'
 
 interface Player {
   id: string
@@ -145,18 +145,7 @@ export default function MarketPage() {
             onClick={e => e.stopPropagation()}
           >
             {/* Close handle */}
-            <div className="w-12 h-1.5 bg-[#333] rounded-full mx-auto mb-4" />
-
-            {/* Profile Banner, IG link & Spotify player */}
-            <div className="mb-5">
-              <ProfileBanner
-                banner_url={selectedPlayer.banner_url}
-                instagram_url={selectedPlayer.instagram_url}
-                spotify_track_url={selectedPlayer.spotify_track_url}
-                is_business={selectedPlayer.is_business}
-                business_name={selectedPlayer.business_name}
-              />
-            </div>
+            <div className="w-12 h-1.5 bg-[#333] rounded-full mx-auto mb-6" />
 
             <div className="flex gap-4">
               {/* Big Photo */}
@@ -177,6 +166,8 @@ export default function MarketPage() {
                   <VerificationBadge type={selectedPlayer.verification_badge} className="w-[28px] h-[28px] ml-0.5" />
                 </h2>
                 <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <BusinessBadge isBusiness={selectedPlayer.is_business} businessName={selectedPlayer.business_name} />
+                  <InstagramBadge url={selectedPlayer.instagram_url} />
                   {selectedPlayer.franchises && (
                     <div className="flex items-center gap-1.5 bg-[#111] border border-[#333] px-2 py-1" title={selectedPlayer.franchises.name}>
                       {selectedPlayer.franchises.logo_url ? (
@@ -203,6 +194,13 @@ export default function MarketPage() {
                 </div>
               </div>
             </div>
+
+            {/* Embedded Spotify Player if track provided */}
+            {selectedPlayer.spotify_track_url && (
+              <div className="mt-4">
+                <SpotifyPlayer url={selectedPlayer.spotify_track_url} />
+              </div>
+            )}
 
             {/* Value & Text Badges */}
             <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -298,6 +296,8 @@ function PublicPlayerRow({ player }: { player: Player }) {
           <VerificationBadge type={player.verification_badge} className="w-[20px] h-[20px] ml-0.5" />
         </p>
         <div className="flex flex-wrap items-center gap-2 mt-0.5">
+          <BusinessBadge isBusiness={player.is_business} businessName={player.business_name} />
+          <InstagramBadge url={player.instagram_url} />
           {player.franchises && (
             <div className="flex items-center gap-1.5 bg-[#111] border border-[#333] px-1.5 py-0.5" title={player.franchises.name}>
               {player.franchises.logo_url ? (

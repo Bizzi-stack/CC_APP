@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import BadgeCanvasEditor, { BadgePosition } from '@/components/BadgeCanvasEditor'
 import VerificationBadge from '@/components/VerificationBadge'
-import ProfileBanner from '@/components/ProfileBanner'
+import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer } from '@/components/ProfileBanner'
 
 interface CanvasBadge {
   id: string
@@ -347,17 +347,6 @@ export default function PlayerPortalPage() {
           </button>
         </div>
 
-        {/* Live Profile Banner Graphic & Spotify Player */}
-        <div className="mb-6">
-          <ProfileBanner
-            banner_url={bannerUrl || player?.banner_url}
-            instagram_url={instagramUrl || player?.instagram_url}
-            spotify_track_url={spotifyTrackUrl || player?.spotify_track_url}
-            is_business={isBusiness}
-            business_name={businessName || player?.business_name}
-          />
-        </div>
-
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full border border-[#333] bg-[#111] overflow-hidden flex items-center justify-center shrink-0">
             {player?.photo_url ? (
@@ -372,6 +361,8 @@ export default function PlayerPortalPage() {
               <VerificationBadge type={player?.verification_badge} className="w-[22px] h-[22px] ml-0.5" />
             </h1>
             <div className="flex flex-wrap items-center gap-1.5 mt-1">
+              <BusinessBadge isBusiness={isBusiness} businessName={businessName || player?.business_name} />
+              <InstagramBadge url={instagramUrl || player?.instagram_url} />
               <span className="text-[9px] font-bold text-[#888] border border-[#2a2a2a] px-1 py-0.5 uppercase">
                 {player?.position || 'Unassigned'}
               </span>
@@ -383,6 +374,13 @@ export default function PlayerPortalPage() {
             </div>
           </div>
         </div>
+
+        {/* Embedded Spotify Track Player if provided */}
+        {(spotifyTrackUrl || player?.spotify_track_url) && (
+          <div className="mt-4">
+            <SpotifyPlayer url={spotifyTrackUrl || player?.spotify_track_url} />
+          </div>
+        )}
 
         {/* Financial info cards */}
         <div className="grid grid-cols-2 gap-3 mt-6">
@@ -448,34 +446,8 @@ export default function PlayerPortalPage() {
               <path d="M12 20h9" />
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
             </svg>
-            Banner, IG & Spotify Setup
+            Instagram, Spotify & Business Setup
           </h2>
-
-          {/* Banner Photo Upload or URL */}
-          <div className="space-y-1.5">
-            <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block">
-              Profile Banner Image
-            </label>
-            <div className="flex gap-2 items-center">
-              <input
-                type="text"
-                value={bannerUrl}
-                onChange={e => setBannerUrl(e.target.value)}
-                placeholder="https://... or upload photo"
-                className="flex-1 h-10 px-3 bg-black border border-[#333] text-white text-xs outline-none focus:border-white transition-colors"
-              />
-              <label className="h-10 px-3 bg-[#1c1c1c] hover:bg-[#282828] border border-[#333] text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center cursor-pointer transition-colors shrink-0">
-                {uploadingBanner ? '...' : 'Upload'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleBannerUpload}
-                  className="hidden"
-                  disabled={uploadingBanner}
-                />
-              </label>
-            </div>
-          </div>
 
           {/* Instagram URL or Handle */}
           <div className="space-y-1.5">
