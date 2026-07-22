@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     .from('free_agent_offers')
     .select('*, franchise:franchises(*), player:players(*)')
     .eq('player_id', playerId)
-    .in('status', ['pending', 'countered'])
+    .in('status', ['pending', 'countered', 'rejected'])
     .order('updated_at', { ascending: false })
 
   if (error) {
@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
   try {
     const { offerId, action, counterWage } = await request.json()
 
-    if (!offerId || !action || !['accept', 'reject', 'counter'].includes(action)) {
-      return NextResponse.json({ error: 'Offer ID and valid action (accept/reject/counter) are required' }, { status: 400 })
+    if (!offerId || !action || !['accept', 'reject', 'counter', 'dismiss'].includes(action)) {
+      return NextResponse.json({ error: 'Offer ID and valid action (accept/reject/counter/dismiss) are required' }, { status: 400 })
     }
 
     // Fetch offer details
@@ -54,6 +54,23 @@ export async function POST(request: NextRequest) {
 
     const player = offer.player
     const franchise = offer.franchise
+
+    if (action === 'dismiss') {
+      if (offer.status !== 'rejected') {
+        return NextResponse.json({ error: 'Only rejected offers can be dismissed' }, { status: 400 })
+      }
+      
+      const { error: deleteError } = await supabase
+        .from('free_agent_offers')
+        .delete()
+        .eq('id', offerId)
+
+      if (deleteError) {
+        return NextResponse.json({ error: 'Failed to dismiss offer' }, { status: 500 })
+      }
+
+      return NextResponse.json({ success: true, message: 'Offer dismissed' })
+    }
 
     if (action === 'accept') {
       const agreedWage = offer.offered_wage
