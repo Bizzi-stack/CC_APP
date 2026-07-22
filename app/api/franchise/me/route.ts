@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   // Fetch roster of signed players
   const { data: roster, error: rosterError } = await supabase
     .from('players')
-    .select('*, franchises(*)')
+    .select('*, franchises:franchises!players_franchise_id_fkey(*)')
     .eq('franchise_id', franchiseToken)
     .order('name', { ascending: true })
 

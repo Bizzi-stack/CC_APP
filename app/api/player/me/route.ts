@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   const { data: player, error } = await supabase
     .from('players')
-    .select('*, franchises(*)')
+    .select('*, franchises:franchises!players_franchise_id_fkey(*)')
     .eq('id', playerId)
     .single()
 
