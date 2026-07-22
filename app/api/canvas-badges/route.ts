@@ -98,6 +98,37 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { id, name, price, is_listed } = body
+
+    if (!id) {
+      return NextResponse.json({ error: 'Badge ID is required' }, { status: 400 })
+    }
+
+    const updates: Record<string, any> = {}
+    if (name !== undefined) updates.name = name.trim()
+    if (price !== undefined) updates.price = Number(price)
+    if (is_listed !== undefined) updates.is_listed = Boolean(is_listed)
+
+    const { data, error } = await supabase
+      .from('canvas_badges')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ badge: data })
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const id = searchParams.get('id')

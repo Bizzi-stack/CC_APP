@@ -32,6 +32,23 @@ export default function BadgesPage() {
     }
   }
 
+  const handleEditName = async (badge: CanvasBadge) => {
+    const newName = prompt('Enter new display name for this sticker:', badge.name)
+    if (newName === null || !newName.trim() || newName.trim() === badge.name) return
+
+    try {
+      const res = await fetch('/api/canvas-badges', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: badge.id, name: newName.trim() })
+      })
+      if (!res.ok) throw new Error('Failed to update badge name')
+      setBadges(badges.map(b => b.id === badge.id ? { ...b, name: newName.trim() } : b))
+    } catch (err: any) {
+      alert(err.message)
+    }
+  }
+
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this badge from the library?')) return
 
@@ -77,7 +94,7 @@ export default function BadgesPage() {
         ) : (
           <div className="grid grid-cols-2 gap-4">
             {badges.map(badge => (
-              <div key={badge.id} className="border border-[#222] bg-[#0a0a0a] p-4 flex flex-col items-center gap-3 relative">
+              <div key={badge.id} className="border border-[#222] bg-[#0a0a0a] p-4 flex flex-col items-center gap-3 relative group">
                 <button
                   onClick={() => handleDelete(badge.id)}
                   className="absolute top-2 right-2 p-1.5 bg-[#111] border border-[#333] text-[#555] active:text-[#ff4444] transition-colors"
@@ -92,7 +109,14 @@ export default function BadgesPage() {
                 <div className="w-20 h-20 flex items-center justify-center overflow-hidden">
                   <img src={badge.image_url} alt={badge.name} className="w-full h-full object-contain" />
                 </div>
-                <h3 className="font-bold text-xs text-center">{badge.name}</h3>
+                
+                <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => handleEditName(badge)}>
+                  <h3 className="font-bold text-xs text-center">{badge.name}</h3>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                  </svg>
+                </div>
               </div>
             ))}
           </div>
