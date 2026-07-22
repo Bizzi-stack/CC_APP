@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
 export default function NewBadgePage() {
   const router = useRouter()
@@ -41,21 +42,52 @@ export default function NewBadgePage() {
     setLoading(true)
 
     try {
-      const formData = new FormData()
-      formData.append('file', photoFile)
+      let imageUrl = ''
 
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
+      // 1. Direct Supabase Storage Upload (Bypasses Vercel 4.5MB proxy body limit!)
+      const bucketName = process.env.NEXT_PUBLIC_SUPABASE_BUCKET || 'catalog-images'
+      const fileExt = photoFile.name.split('.').pop()
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`
+      const filePath = `catalog-items/${fileName}`
 
-      const uploadData = await uploadRes.json()
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, photoFile, {
+          contentType: photoFile.type,
+          upsert: false
+        })
 
-      if (!uploadRes.ok) {
-        throw new Error(uploadData.error || 'Failed to upload photo')
+      if (!storageError && storageData) {
+        const { data: urlData } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(filePath)
+        imageUrl = urlData.publicUrl
+      } else {
+        // 2. Fallback to /api/upload with safe non-JSON error handling
+        const formData = new FormData()
+        formData.append('file', photoFile)
+
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        })
+
+        const rawText = await uploadRes.text()
+        let uploadData: any = {}
+        try {
+          uploadData = JSON.parse(rawText)
+        } catch {
+          if (uploadRes.status === 413) {
+            throw new Error('File exceeds Vercel proxy payload limit (~4.5MB). Direct upload failed: ' + (storageError?.message || 'Storage error'))
+          }
+          throw new Error(`Upload failed (${uploadRes.status}): ${rawText.slice(0, 100)}`)
+        }
+
+        if (!uploadRes.ok) {
+          throw new Error(uploadData.error || 'Failed to upload photo')
+        }
+        imageUrl = uploadData.url
       }
-
-      const imageUrl = uploadData.url
 
       const res = await fetch('/api/canvas-badges', {
         method: 'POST',
@@ -63,7 +95,7 @@ export default function NewBadgePage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name,
+          name: name.trim() || photoFile.name.replace(/\.[^/.]+$/, ''),
           image_url: imageUrl
         })
       })
