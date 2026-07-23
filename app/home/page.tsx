@@ -170,6 +170,16 @@ export default function HomePage() {
                   <span className="text-white font-semibold text-sm">Player Portal</span>
                   <span className="text-[#555] text-xs">Collect wages</span>
                 </Link>
+
+                <Link href="/league" className="border border-[#222] p-5 flex flex-col gap-2 items-center justify-center text-center active:bg-[#111] transition-colors">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                  <span className="text-white font-semibold text-sm">League & Stats</span>
+                  <span className="text-[#555] text-xs">Standings</span>
+                </Link>
               </>
             )}
 
@@ -209,6 +219,24 @@ export default function HomePage() {
                   </svg>
                   <span className="text-white font-semibold text-sm">Transfer Bids</span>
                   <span className="text-[#555] text-xs">Manage offers</span>
+                </Link>
+
+                <Link href="/league" className="border border-[#222] p-5 flex flex-col gap-2 items-center justify-center text-center active:bg-[#111] transition-colors">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                  <span className="text-white font-semibold text-sm">League & Stats</span>
+                  <span className="text-[#555] text-xs">Standings</span>
+                </Link>
+
+                <Link href="/admin-stats" className="border border-[#222] p-5 flex flex-col gap-2 items-center justify-center text-center active:bg-[#111] transition-colors">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 20v-6M6 20V10M18 20V4"/>
+                  </svg>
+                  <span className="text-white font-semibold text-sm">Update Stats</span>
+                  <span className="text-[#555] text-xs">Admin tool</span>
                 </Link>
               </>
             )}

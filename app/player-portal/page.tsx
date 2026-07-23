@@ -51,6 +51,10 @@ interface Player {
   owned_badge_ids?: string[]
   canvas_badge_ids?: string[]
   canvas_badges_data?: BadgePosition[]
+  goals?: number
+  assists?: number
+  is_top_scorer?: boolean
+  is_top_assister?: boolean
 }
 
 export default function PlayerPortalPage() {
@@ -445,6 +449,21 @@ export default function PlayerPortalPage() {
                 </span>
               )}
             </div>
+            {/* Stats */}
+            <div className="flex gap-3 mt-2 text-[10px] font-mono text-[#aaa]">
+              <span title="Goals">⚽ {player?.goals || 0}</span>
+              <span title="Assists">🎯 {player?.assists || 0}</span>
+            </div>
+          </div>
+
+          {/* Dynamic Badges */}
+          <div className="flex flex-col gap-1 ml-auto shrink-0">
+            {player?.is_top_scorer && (
+              <img src="/top-scorer.png" alt="Top Scorer" className="w-8 h-8 object-contain drop-shadow-lg" title="Current Top Scorer" />
+            )}
+            {player?.is_top_assister && (
+              <img src="/top-assists.png" alt="Top Assists" className="w-8 h-8 object-contain drop-shadow-lg" title="Current Top Assists" />
+            )}
           </div>
         </div>
 
