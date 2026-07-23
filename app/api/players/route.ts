@@ -98,6 +98,14 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const body = await request.json()
+
+    // Enforce franchise owner rules
+    if (body.is_franchise_owner && body.owned_franchise_id) {
+      body.available = false
+      body.status = 'signed'
+      body.franchise_id = body.owned_franchise_id
+    }
+
     const { data, error } = await supabase
       .from('players')
       .update(body)

@@ -29,6 +29,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Player is not signed to this franchise' }, { status: 400 })
     }
 
+    if (player.is_franchise_owner && player.owned_franchise_id === franchiseId) {
+      return NextResponse.json({ error: 'Cannot release the franchise owner' }, { status: 400 })
+    }
+
     // Get franchise details
     const { data: franchise, error: franchiseError } = await supabase
       .from('franchises')
