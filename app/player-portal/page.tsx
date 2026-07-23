@@ -21,6 +21,27 @@ interface CanvasBadge {
   } | null
 }
 
+interface FranchiseMatch {
+  id: string
+  challenger_id: string
+  challenged_id: string
+  wager_amount: number
+  status: string
+  created_at: string
+  challenger: { id: string, name: string, logo_url: string | null }
+  challenged: { id: string, name: string, logo_url: string | null }
+}
+
+interface PlayerWager {
+  id: string
+  challenge_id: string
+  predicted_winner_id: string | null
+  wager_amount: number
+  status: string
+  challenge: FranchiseMatch
+  predicted_winner: { id: string, name: string, logo_url: string | null } | null
+}
+
 interface Player {
   id: string
   name: string
@@ -85,6 +106,13 @@ export default function PlayerPortalPage() {
 
   // Contract Offers State
   const [incomingOffers, setIncomingOffers] = useState<any[]>([])
+  
+  // Sportsbook State
+  const [activeMatches, setActiveMatches] = useState<FranchiseMatch[]>([])
+  const [myWagers, setMyWagers] = useState<PlayerWager[]>([])
+  const [bettingMatch, setBettingMatch] = useState<FranchiseMatch | null>(null)
+  const [betAmount, setBetAmount] = useState('')
+  const [betPick, setBetPick] = useState<string | null>(null) // null for draw, id for franchise
   const [respondingOffer, setRespondingOffer] = useState<string | null>(null)
 
   useEffect(() => {
@@ -93,10 +121,12 @@ export default function PlayerPortalPage() {
 
   const fetchPortalData = async () => {
     try {
-      const [meRes, badgesRes, offersRes] = await Promise.all([
+      const [meRes, badgesRes, offersRes, matchesRes, wagersRes] = await Promise.all([
         fetch('/api/player/me'),
         fetch('/api/canvas-badges'),
-        fetch('/api/player/offers')
+        fetch('/api/player/offers'),
+        fetch('/api/player/matches'),
+        fetch('/api/player/wagers')
       ])
 
       if (!meRes.ok) {
@@ -110,6 +140,8 @@ export default function PlayerPortalPage() {
       const meData = await meRes.json()
       const badgesData = await badgesRes.json()
       const offersData = await offersRes.json()
+      const matchesData = await matchesRes?.json() || { matches: [] }
+      const wagersData = await wagersRes?.json() || { wagers: [] }
 
       const curPlayer = meData.player
       setPlayer(curPlayer)
@@ -121,10 +153,43 @@ export default function PlayerPortalPage() {
       setIsBusiness(Boolean(curPlayer.is_business))
       setBusinessName(curPlayer.business_name || '')
       setIncomingOffers(offersData.offers || [])
+      setActiveMatches(matchesData.matches || [])
+      setMyWagers(wagersData.wagers || [])
     } catch (err: any) {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handlePlaceBet = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!bettingMatch) return
+    const amount = parseInt(betAmount)
+    if (isNaN(amount) || amount <= 0) return await showDialog({ type: 'alert', message: 'Invalid wager amount' })
+    if (player && player.balance < amount) return await showDialog({ type: 'alert', message: 'Insufficient CR balance' })
+
+    try {
+      const res = await fetch('/api/player/wagers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          challenge_id: bettingMatch.id, 
+          predicted_winner_id: betPick, 
+          wager_amount: amount 
+        })
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to place bet')
+
+      await showDialog({ type: 'alert', message: 'Bet placed successfully!' })
+      setBettingMatch(null)
+      setBetAmount('')
+      setBetPick(null)
+      await fetchPortalData()
+    } catch (err: any) {
+      await showDialog({ type: 'alert', message: err.message })
     }
   }
 
@@ -864,6 +929,68 @@ export default function PlayerPortalPage() {
           )}
         </div>
       </div>
+      {/* Betting Modal */}
+      {bettingMatch && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0a0a0a] border border-[#222] p-6 w-full max-w-sm">
+            <h2 className="text-lg font-bold uppercase tracking-wide mb-2 text-white">Place Bet</h2>
+            <p className="text-xs text-[#666] mb-6">
+              Bet on the outcome of {bettingMatch.challenger.name} vs {bettingMatch.challenged.name}. Wins payout 2x.
+            </p>
+
+            <form onSubmit={handlePlaceBet} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest uppercase text-[#555]">
+                  Select Winner
+                </label>
+                <select
+                  required
+                  value={betPick || 'draw'}
+                  onChange={e => setBetPick(e.target.value === 'draw' ? null : e.target.value)}
+                  className="w-full bg-[#111] border border-[#333] p-4 text-white focus:outline-none focus:border-white transition-colors text-sm font-bold uppercase"
+                >
+                  <option value={bettingMatch.challenger.id}>{bettingMatch.challenger.name}</option>
+                  <option value="draw">Draw</option>
+                  <option value={bettingMatch.challenged.id}>{bettingMatch.challenged.name}</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest uppercase text-[#555]">
+                  Wager Amount (CR)
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  max={player?.balance || 0}
+                  value={betAmount}
+                  onChange={e => setBetAmount(e.target.value)}
+                  placeholder="e.g. 100"
+                  className="w-full bg-[#111] border border-[#333] p-4 text-white focus:outline-none focus:border-white transition-colors text-base font-bold font-mono"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="submit"
+                  className="flex-1 bg-amber-500 text-black font-bold tracking-widest uppercase p-4 hover:bg-amber-400 transition-colors text-xs"
+                >
+                  Confirm Bet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setBettingMatch(null); setBetAmount(''); setBetPick(null); }}
+                  className="flex-1 border border-[#333] text-white font-bold tracking-widest uppercase p-4 hover:bg-[#111] transition-colors text-xs"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <DialogComponent />
     </div>
   )

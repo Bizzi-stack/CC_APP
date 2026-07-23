@@ -112,6 +112,55 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ============================================
+    // RESOLVE PLAYER WAGERS (SPORTSBOOK)
+    // ============================================
+    const { data: playerWagers } = await supabase
+      .from('player_wagers')
+      .select('*')
+      .eq('challenge_id', challenge_id)
+      .eq('status', 'pending')
+
+    if (playerWagers && playerWagers.length > 0) {
+      for (const wager of playerWagers) {
+        if (winner_id) {
+          // A winner was declared
+          if (wager.predicted_winner_id === winner_id) {
+            // Player guessed correctly -> 2x payout
+            const winnings = wager.wager_amount * 2
+            
+            // 1. Fetch current balance
+            const { data: p } = await supabase.from('players').select('balance').eq('id', wager.player_id).single()
+            if (p) {
+              await supabase.from('players').update({ balance: (p.balance || 0) + winnings }).eq('id', wager.player_id)
+            }
+            // 2. Mark won
+            await supabase.from('player_wagers').update({ status: 'won' }).eq('id', wager.id)
+          } else {
+            // Player guessed wrong
+            await supabase.from('player_wagers').update({ status: 'lost' }).eq('id', wager.id)
+          }
+        } else {
+          // Draw was declared
+          if (wager.predicted_winner_id === null) {
+            // Player bet on draw -> 2x payout (or 1.5x? We'll do 2x for simplicity)
+            const winnings = wager.wager_amount * 2
+            const { data: p } = await supabase.from('players').select('balance').eq('id', wager.player_id).single()
+            if (p) {
+              await supabase.from('players').update({ balance: (p.balance || 0) + winnings }).eq('id', wager.player_id)
+            }
+            await supabase.from('player_wagers').update({ status: 'won' }).eq('id', wager.id)
+          } else {
+            // Player bet on a team, match was a draw.
+            // In many sportsbooks, draw means bets are lost unless it's a draw-no-bet.
+            // Let's just refund them if they bet on a team and it was a draw, or count it as lost.
+            // Standard: If they could have bet draw and didn't, they lost.
+            await supabase.from('player_wagers').update({ status: 'lost' }).eq('id', wager.id)
+          }
+        }
+      }
+    }
+
     // Update challenge status
     await supabase
       .from('franchise_challenges')
