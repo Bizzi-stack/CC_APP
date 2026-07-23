@@ -102,7 +102,7 @@ export async function PATCH(request: NextRequest) {
     // Enforce franchise owner rules
     if (body.is_franchise_owner && body.owned_franchise_id) {
       body.available = false
-      body.status = 'signed'
+      // Do not change status to 'signed', status is 'active' or 'pending' for the whole system
       body.franchise_id = body.owned_franchise_id
     }
 
