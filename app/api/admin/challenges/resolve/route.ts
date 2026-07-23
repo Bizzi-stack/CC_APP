@@ -31,20 +31,53 @@ export async function POST(request: NextRequest) {
 
     // Resolve payouts
     if (winner_id) {
-      // Winner takes all (both wagers)
+      // 50/50 split between franchise and roster
       const totalPot = challenge.wager_amount * 2
 
       if (totalPot > 0) {
+        const franchiseShare = Math.floor(totalPot / 2)
+        const playersShare = totalPot - franchiseShare
+
+        // 1. Fetch winning franchise
         const { data: winner } = await supabase
           .from('franchises')
           .select('budget')
           .eq('id', winner_id)
           .single()
 
+        // 2. Fetch winning roster
+        const { data: roster } = await supabase
+          .from('players')
+          .select('id, balance')
+          .eq('franchise_id', winner_id)
+
+        let finalFranchisePayout = franchiseShare
+
+        // 3. Payout players
+        if (roster && roster.length > 0) {
+          const perPlayerShare = Math.floor(playersShare / roster.length)
+          const remainder = playersShare - (perPlayerShare * roster.length)
+          finalFranchisePayout += remainder // Give remaining un-splittable credits to the franchise
+
+          if (perPlayerShare > 0) {
+            // Update all players
+            for (const player of roster) {
+              await supabase
+                .from('players')
+                .update({ balance: (player.balance || 0) + perPlayerShare })
+                .eq('id', player.id)
+            }
+          }
+        } else {
+          // If no roster, franchise takes the entire pot
+          finalFranchisePayout = totalPot
+        }
+
+        // 4. Payout franchise
         if (winner) {
           await supabase
             .from('franchises')
-            .update({ budget: winner.budget + totalPot })
+            .update({ budget: winner.budget + finalFranchisePayout })
             .eq('id', winner_id)
         }
       }
