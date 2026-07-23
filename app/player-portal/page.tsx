@@ -6,6 +6,7 @@ import Link from 'next/link'
 import BadgeCanvasEditor, { BadgePosition } from '@/components/BadgeCanvasEditor'
 import VerificationBadge from '@/components/VerificationBadge'
 import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseOwnerBadge } from '@/components/ProfileBanner'
+import { useCustomDialog } from '@/components/CustomDialog'
 import { requestNotificationPermission, sendNativeNotification } from '@/lib/notifications'
 
 interface CanvasBadge {
@@ -58,6 +59,7 @@ export default function PlayerPortalPage() {
   const [canvasBadges, setCanvasBadges] = useState<CanvasBadge[]>([])
   const [loading, setLoading] = useState(true)
   const [claiming, setClaiming] = useState(false)
+  const { showDialog, DialogComponent } = useCustomDialog()
   const [buying, setBuying] = useState<string | null>(null)
   const [savingCanvas, setSavingCanvas] = useState(false)
   const [shopTab, setShopTab] = useState<'shop' | 'collection'>('shop')
@@ -126,15 +128,16 @@ export default function PlayerPortalPage() {
     let counterWage: number | undefined = undefined
 
     if (action === 'counter') {
-      const wageStr = prompt('Enter your proposed daily wage (CR/Day):')
+      const wageStr = await showDialog({ type: 'prompt', message: 'Enter your proposed daily wage (CR/Day):', placeholder: 'e.g. 500' })
       if (wageStr === null) return
-      counterWage = parseInt(wageStr)
+      counterWage = parseInt(wageStr as string)
       if (isNaN(counterWage) || counterWage < 100) {
-        alert('Please enter a valid daily wage of at least 100 CR.')
+        await showDialog({ type: 'alert', message: 'Please enter a valid daily wage of at least 100 CR.' })
         return
       }
     } else if (action === 'accept') {
-      if (!confirm('Are you sure you want to accept this contract and sign to the club?')) return
+      const confirmed = await showDialog({ type: 'confirm', message: 'Are you sure you want to accept this contract and sign to the club?' })
+      if (!confirmed) return
     }
 
     setRespondingOffer(offerId)
@@ -235,7 +238,8 @@ export default function PlayerPortalPage() {
   }
 
   const handleBuyBadge = async (badgeId: string, badgeName: string) => {
-    if (!confirm(`Do you want to purchase the "${badgeName}" badge for 5,000 CR?`)) {
+    const confirmed = await showDialog({ type: 'confirm', message: `Do you want to purchase the "${badgeName}" badge for 5,000 CR?` })
+    if (!confirmed) {
       return
     }
 
@@ -300,11 +304,11 @@ export default function PlayerPortalPage() {
   }
 
   const handleListBadge = async (badgeId: string, currentPrice: number) => {
-    const priceStr = prompt(`Enter resale price (Credits) for this badge:`, currentPrice.toString())
+    const priceStr = await showDialog({ type: 'prompt', message: 'Enter resale price (Credits) for this badge:', defaultValue: currentPrice.toString() })
     if (priceStr === null) return
-    const price = parseInt(priceStr)
+    const price = parseInt(priceStr as string)
     if (isNaN(price) || price <= 0) {
-      alert('Please enter a valid positive number for the price.')
+      await showDialog({ type: 'alert', message: 'Please enter a valid positive number for the price.' })
       return
     }
 
@@ -331,7 +335,8 @@ export default function PlayerPortalPage() {
   }
 
   const handleUnlistBadge = async (badgeId: string) => {
-    if (!confirm('Are you sure you want to remove this badge from the marketplace?')) {
+    const confirmed = await showDialog({ type: 'confirm', message: 'Are you sure you want to remove this badge from the marketplace?' })
+    if (!confirmed) {
       return
     }
 
@@ -840,6 +845,7 @@ export default function PlayerPortalPage() {
           )}
         </div>
       </div>
+      <DialogComponent />
     </div>
   )
 }

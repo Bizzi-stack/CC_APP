@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useCustomDialog } from '@/components/CustomDialog'
 import { requestNotificationPermission, sendNativeNotification } from '@/lib/notifications'
 
 interface Player {
@@ -53,6 +54,7 @@ export default function FranchisePortalPage() {
   const [actioning, setActioning] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('roster')
   const [error, setError] = useState('')
+  const { showDialog, DialogComponent } = useCustomDialog()
 
   // Bidding modal state
   const [biddingPlayer, setBiddingPlayer] = useState<Player | null>(null)
@@ -107,15 +109,15 @@ export default function FranchisePortalPage() {
   const handleSignPlayer = async (player: Player) => {
     if (!franchise) return
     if (franchise.budget < player.value) {
-      alert(`Insufficient credits! This player costs ${player.value.toLocaleString()} CR but you only have ${franchise.budget.toLocaleString()} CR remaining.`)
+      await showDialog({ type: 'alert', message: `Insufficient credits! This player costs ${player.value.toLocaleString()} CR but you only have ${franchise.budget.toLocaleString()} CR remaining.` })
       return
     }
 
-    const wageStr = prompt(`Send signing contract proposal to ${player.name}.\nProposed daily wage (minimum 100 CR):`, Math.max(100, Math.floor(player.value * 0.1)).toString())
+    const wageStr = await showDialog({ type: 'prompt', message: `Send signing contract proposal to ${player.name}.\nProposed daily wage (minimum 100 CR):`, defaultValue: Math.max(100, Math.floor(player.value * 0.1)).toString() })
     if (wageStr === null) return // Cancelled
-    const wage = parseInt(wageStr)
+    const wage = parseInt(wageStr as string)
     if (isNaN(wage) || wage < 100) {
-      alert("Please enter a valid daily wage of at least 100 CR.")
+      await showDialog({ type: 'alert', message: 'Please enter a valid daily wage of at least 100 CR.' })
       return
     }
 
@@ -132,10 +134,10 @@ export default function FranchisePortalPage() {
         throw new Error(data.error || 'Failed to send contract offer')
       }
 
-      alert(`Contract offer of ${wage.toLocaleString()} CR/day sent to ${player.name}! The player can now accept, decline, or negotiate their wage in their portal.`)
+      await showDialog({ type: 'alert', message: `Contract offer of ${wage.toLocaleString()} CR/day sent to ${player.name}! The player can now accept, decline, or negotiate their wage in their portal.` })
       await fetchPortalData()
     } catch (err: any) {
-      alert(err.message)
+      await showDialog({ type: 'alert', message: err.message })
     } finally {
       setActioning(null)
     }
@@ -153,10 +155,10 @@ export default function FranchisePortalPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to accept counter-offer')
 
-      alert(data.message || 'Counter-offer accepted and player signed!')
+      await showDialog({ type: 'alert', message: data.message || 'Counter-offer accepted and player signed!' })
       await fetchPortalData()
     } catch (err: any) {
-      alert(err.message)
+      await showDialog({ type: 'alert', message: err.message })
     } finally {
       setActioning(null)
     }
@@ -174,14 +176,15 @@ export default function FranchisePortalPage() {
       if (!res.ok) throw new Error('Failed to reject contract offer')
       await fetchPortalData()
     } catch (err: any) {
-      alert(err.message)
+      await showDialog({ type: 'alert', message: err.message })
     } finally {
       setActioning(null)
     }
   }
 
   const handleReleasePlayer = async (player: Player) => {
-    if (!confirm(`Are you sure you want to release ${player.name}? Their market value of ${player.value.toLocaleString()} CR will be refunded to your budget.`)) {
+    const confirmed = await showDialog({ type: 'confirm', message: `Are you sure you want to release ${player.name}? Their market value of ${player.value.toLocaleString()} CR will be refunded to your budget.` })
+    if (!confirmed) {
       return
     }
 
@@ -200,7 +203,7 @@ export default function FranchisePortalPage() {
 
       await fetchPortalData()
     } catch (err: any) {
-      alert(err.message)
+      await showDialog({ type: 'alert', message: err.message })
     } finally {
       setActioning(null)
     }
@@ -212,12 +215,12 @@ export default function FranchisePortalPage() {
 
     const amount = parseInt(customBidAmount)
     if (isNaN(amount) || amount <= 0) {
-      alert('Please enter a valid positive number.')
+      await showDialog({ type: 'alert', message: 'Please enter a valid positive number.' })
       return
     }
 
     if (franchise.budget < amount) {
-      alert(`Insufficient credits! You cannot bid ${amount.toLocaleString()} CR. Your budget is ${franchise.budget.toLocaleString()} CR.`)
+      await showDialog({ type: 'alert', message: `Insufficient credits! You cannot bid ${amount.toLocaleString()} CR. Your budget is ${franchise.budget.toLocaleString()} CR.` })
       return
     }
 
@@ -239,7 +242,7 @@ export default function FranchisePortalPage() {
       await fetchPortalData()
       setTab('bids')
     } catch (err: any) {
-      alert(err.message)
+      await showDialog({ type: 'alert', message: err.message })
     } finally {
       setActioning(null)
     }
@@ -250,7 +253,8 @@ export default function FranchisePortalPage() {
       ? 'Are you sure you want to accept this counter proposal? Credits will be exchanged immediately.'
       : 'Are you sure you want to decline this counter proposal?'
     
-    if (!confirm(confirmationMsg)) return
+    const confirmed = await showDialog({ type: 'confirm', message: confirmationMsg })
+    if (!confirmed) return
 
     setActioning(bidId)
     try {
@@ -267,7 +271,7 @@ export default function FranchisePortalPage() {
 
       await fetchPortalData()
     } catch (err: any) {
-      alert(err.message)
+      await showDialog({ type: 'alert', message: err.message })
     } finally {
       setActioning(null)
     }
@@ -275,22 +279,24 @@ export default function FranchisePortalPage() {
 
   const handleRespondPendingBid = async (bidId: string, action: 'accept' | 'reject' | 'counter') => {
     if (action === 'accept') {
-      if (!confirm('Are you sure you want to accept this transfer bid? Credits will be exchanged and the player will be transferred.')) {
+      const confirmed = await showDialog({ type: 'confirm', message: 'Are you sure you want to accept this transfer bid? Credits will be exchanged and the player will be transferred.' })
+      if (!confirmed) {
         return
       }
     } else if (action === 'reject') {
-      if (!confirm('Are you sure you want to reject this transfer bid?')) {
+      const confirmed = await showDialog({ type: 'confirm', message: 'Are you sure you want to reject this transfer bid?' })
+      if (!confirmed) {
         return
       }
     }
 
     let counterAmount: number | undefined
     if (action === 'counter') {
-      const amountStr = prompt('Enter your counter proposal amount (CR):')
+      const amountStr = await showDialog({ type: 'prompt', message: 'Enter your counter proposal amount (CR):' })
       if (amountStr === null) return // Cancelled
-      counterAmount = parseInt(amountStr)
+      counterAmount = parseInt(amountStr as string)
       if (isNaN(counterAmount) || counterAmount <= 0) {
-        alert('Please enter a valid positive number.')
+        await showDialog({ type: 'alert', message: 'Please enter a valid positive number.' })
         return
       }
     }
@@ -310,7 +316,7 @@ export default function FranchisePortalPage() {
 
       await fetchPortalData()
     } catch (err: any) {
-      alert(err.message)
+      await showDialog({ type: 'alert', message: err.message })
     } finally {
       setActioning(null)
     }
@@ -791,6 +797,7 @@ export default function FranchisePortalPage() {
           </div>
         </div>
       )}
+      <DialogComponent />
     </div>
   )
 }
