@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
     const { data: player, error: playerError } = await supabase
       .from('players')
-      .select('franchise_id')
+      .select('franchise_id, is_franchise_owner')
       .eq('id', tokenCookie.value)
       .single()
 
@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
       .eq('status', 'accepted')
       .order('created_at', { ascending: false })
 
-    // 3. Exclude matches involving the player's franchise
-    if (player.franchise_id) {
+    // 3. Exclude matches involving the player's franchise (unless they are the owner)
+    if (player.franchise_id && !player.is_franchise_owner) {
       query = query.neq('challenger_id', player.franchise_id).neq('challenged_id', player.franchise_id)
     }
 
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     // Since Supabase doesn't perfectly support an OR query with multiple NEQ conditions easily in one builder chain 
     // without advanced filters, let's filter in memory just to be absolutely safe
     let finalMatches = matches || []
-    if (player.franchise_id) {
+    if (player.franchise_id && !player.is_franchise_owner) {
       finalMatches = finalMatches.filter(m => m.challenger_id !== player.franchise_id && m.challenged_id !== player.franchise_id)
     }
 

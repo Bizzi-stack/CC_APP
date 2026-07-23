@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     // 1. Verify player balance
     const { data: player, error: playerError } = await supabase
       .from('players')
-      .select('balance, franchise_id')
+      .select('balance, franchise_id, is_franchise_owner')
       .eq('id', playerId)
       .single()
 
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Can only bet on active matches' }, { status: 400 })
     }
 
-    if (player.franchise_id && (challenge.challenger_id === player.franchise_id || challenge.challenged_id === player.franchise_id)) {
+    if (player.franchise_id && !player.is_franchise_owner && (challenge.challenger_id === player.franchise_id || challenge.challenged_id === player.franchise_id)) {
       return NextResponse.json({ error: 'Cannot bet on matches involving your own franchise' }, { status: 400 })
     }
 
