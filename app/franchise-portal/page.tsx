@@ -41,7 +41,19 @@ interface Bid {
   seller: Franchise | null
 }
 
-type Tab = 'roster' | 'market' | 'bids'
+interface Challenge {
+  id: string
+  challenger_id: string
+  challenged_id: string
+  wager_amount: number
+  status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'canceled'
+  winner_id: string | null
+  created_at: string
+  challenger: Franchise
+  challenged: Franchise
+}
+
+type Tab = 'roster' | 'market' | 'bids' | 'challenges'
 
 export default function FranchisePortalPage() {
   const router = useRouter()
@@ -50,6 +62,13 @@ export default function FranchisePortalPage() {
   const [marketPlayers, setMarketPlayers] = useState<Player[]>([])
   const [outgoingBids, setOutgoingBids] = useState<Bid[]>([])
   const [incomingBids, setIncomingBids] = useState<Bid[]>([])
+  const [challenges, setChallenges] = useState<Challenge[]>([])
+  const [allFranchises, setAllFranchises] = useState<Franchise[]>([])
+  
+  // Challenge Modal State
+  const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false)
+  const [challengeOpponentId, setChallengeOpponentId] = useState('')
+  const [challengeWager, setChallengeWager] = useState('')
   const [loading, setLoading] = useState(true)
   const [actioning, setActioning] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('roster')
@@ -68,11 +87,13 @@ export default function FranchisePortalPage() {
 
   const fetchPortalData = async () => {
     try {
-      const [meRes, playersRes, bidsRes, offersRes] = await Promise.all([
+      const [meRes, playersRes, bidsRes, offersRes, challengesRes, franchisesRes] = await Promise.all([
         fetch('/api/franchise/me'),
         fetch('/api/players'),
         fetch('/api/franchise/bids'),
-        fetch('/api/franchise/offer')
+        fetch('/api/franchise/offer'),
+        fetch('/api/franchise/challenges'),
+        fetch('/api/franchises')
       ])
 
       if (!meRes.ok) {
@@ -87,6 +108,8 @@ export default function FranchisePortalPage() {
       const playersData = await playersRes.json()
       const bidsData = await bidsRes.json()
       const offersData = await offersRes.json()
+      const challengesData = await challengesRes.json()
+      const franchisesData = await franchisesRes?.json() || { franchises: [] }
 
       const currentFranchise = meData.franchise
       setFranchise(currentFranchise)
@@ -99,6 +122,8 @@ export default function FranchisePortalPage() {
       setOutgoingBids(bidsData.outgoingBids || [])
       setIncomingBids(bidsData.incomingBids || [])
       setContractOffers(offersData.offers || [])
+      setChallenges(challengesData.challenges || [])
+      setAllFranchises(franchisesData.franchises || [])
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -277,6 +302,65 @@ export default function FranchisePortalPage() {
     }
   }
 
+  const handleCreateChallenge = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!challengeOpponentId) return await showDialog({ type: 'alert', message: 'Please select an opponent' })
+    const wager = parseInt(challengeWager)
+    if (isNaN(wager) || wager < 0) return await showDialog({ type: 'alert', message: 'Invalid wager amount' })
+    if (franchise && franchise.budget < wager) return await showDialog({ type: 'alert', message: 'Insufficient budget' })
+
+    setActioning('create-challenge')
+    try {
+      const res = await fetch('/api/franchise/challenges', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challenged_id: challengeOpponentId, wager_amount: wager })
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to send challenge')
+
+      await showDialog({ type: 'alert', message: 'Challenge sent successfully!' })
+      setIsChallengeModalOpen(false)
+      setChallengeOpponentId('')
+      setChallengeWager('')
+      await fetchPortalData()
+    } catch (err: any) {
+      await showDialog({ type: 'alert', message: err.message })
+    } finally {
+      setActioning(null)
+    }
+  }
+
+  const handleRespondChallenge = async (challengeId: string, action: 'accept' | 'reject' | 'cancel') => {
+    let confirmMsg = `Are you sure you want to ${action} this wager?`
+    if (action === 'accept') confirmMsg += ' The wager amount will be deducted from your budget.'
+    
+    const confirmed = await showDialog({ type: 'confirm', message: confirmMsg })
+    if (!confirmed) return
+
+    setActioning(challengeId)
+    try {
+      const res = await fetch('/api/franchise/challenges/respond', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challenge_id: challengeId, action })
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to respond to wager')
+      }
+
+      await showDialog({ type: 'alert', message: `Wager ${action}ed successfully!` })
+      await fetchPortalData()
+    } catch (err: any) {
+      await showDialog({ type: 'alert', message: err.message })
+    } finally {
+      setActioning(null)
+    }
+  }
+
   const handleRespondPendingBid = async (bidId: string, action: 'accept' | 'reject' | 'counter') => {
     if (action === 'accept') {
       const confirmed = await showDialog({ type: 'confirm', message: 'Are you sure you want to accept this transfer bid? Credits will be exchanged and the player will be transferred.' })
@@ -431,6 +515,13 @@ export default function FranchisePortalPage() {
             ${tab === 'bids' ? 'text-white border-b-2 border-white bg-[#050505]' : 'text-[#555]'}`}
         >
           Bids ({outgoingBids.length + incomingBids.length})
+        </button>
+        <button
+          onClick={() => setTab('challenges')}
+          className={`flex-1 py-4 text-[10px] font-bold tracking-widest uppercase transition-colors
+            ${tab === 'challenges' ? 'text-white border-b-2 border-white bg-[#050505]' : 'text-[#555]'}`}
+        >
+          Wagers ({challenges.length})
         </button>
       </div>
 
@@ -752,6 +843,168 @@ export default function FranchisePortalPage() {
           </div>
         )}
       </div>
+
+      {tab === 'challenges' && (
+          <div className="space-y-8">
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-white font-bold tracking-widest uppercase text-sm">Pending Wagers</h3>
+                <button
+                  onClick={() => setIsChallengeModalOpen(true)}
+                  className="bg-amber-500 text-black px-4 py-2 text-[10px] font-bold tracking-widest uppercase hover:bg-amber-400 transition-colors"
+                >
+                  New Challenge
+                </button>
+              </div>
+              <div className="space-y-4">
+                {challenges.filter(c => c.status === 'pending').map(challenge => {
+                  const isIncoming = challenge.challenged_id === franchise?.id
+                  const opponent = isIncoming ? challenge.challenger : challenge.challenged
+                  
+                  return (
+                    <div key={challenge.id} className="border border-[#222] bg-black p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                      <div className="flex items-center gap-4">
+                        {opponent.logo_url && <img src={opponent.logo_url} alt="Logo" className="w-10 h-10 object-contain" />}
+                        <div>
+                          <p className="text-white text-xs font-bold uppercase">{isIncoming ? 'Received from' : 'Sent to'}: {opponent.name}</p>
+                          <p className="text-amber-500 font-mono text-sm font-bold">{challenge.wager_amount.toLocaleString()} CR</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {isIncoming ? (
+                          <>
+                            <button
+                              disabled={actioning !== null}
+                              onClick={() => handleRespondChallenge(challenge.id, 'accept')}
+                              className="px-6 py-2 bg-white text-black font-bold uppercase tracking-widest text-[10px] hover:bg-gray-200 transition-colors disabled:opacity-50"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              disabled={actioning !== null}
+                              onClick={() => handleRespondChallenge(challenge.id, 'reject')}
+                              className="px-6 py-2 border border-[#333] text-white font-bold uppercase tracking-widest text-[10px] hover:bg-[#111] transition-colors disabled:opacity-50"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            disabled={actioning !== null}
+                            onClick={() => handleRespondChallenge(challenge.id, 'cancel')}
+                            className="px-6 py-2 border border-[#333] text-white font-bold uppercase tracking-widest text-[10px] hover:bg-[#111] transition-colors disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+                {challenges.filter(c => c.status === 'pending').length === 0 && (
+                  <p className="text-[#555] text-xs uppercase tracking-widest">No pending wagers</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-white font-bold tracking-widest uppercase text-sm mb-4 border-t border-[#1a1a1a] pt-8">Active Matches</h3>
+              <div className="space-y-4">
+                {challenges.filter(c => c.status === 'accepted').map(challenge => {
+                  const isChallenger = challenge.challenger_id === franchise?.id
+                  const opponent = isChallenger ? challenge.challenged : challenge.challenger
+                  return (
+                    <div key={challenge.id} className="border border-[#222] bg-[#050505] p-6 text-center">
+                      <div className="flex justify-center items-center gap-8 mb-4">
+                        <div className="text-center">
+                          {franchise?.logo_url && <img src={franchise.logo_url} alt="You" className="w-12 h-12 mx-auto mb-2 object-contain" />}
+                          <p className="text-[10px] text-white font-bold uppercase">{franchise?.name}</p>
+                        </div>
+                        <div className="text-amber-500 font-bold italic tracking-widest uppercase text-sm">VS</div>
+                        <div className="text-center">
+                          {opponent.logo_url && <img src={opponent.logo_url} alt="Opponent" className="w-12 h-12 mx-auto mb-2 object-contain" />}
+                          <p className="text-[10px] text-[#555] font-bold uppercase">{opponent.name}</p>
+                        </div>
+                      </div>
+                      <div className="inline-block border border-amber-500/30 bg-amber-500/10 px-4 py-2">
+                        <p className="text-[10px] text-amber-500 font-bold uppercase tracking-widest mb-1">Total Pot</p>
+                        <p className="text-white font-mono text-lg font-bold">{(challenge.wager_amount * 2).toLocaleString()} CR</p>
+                      </div>
+                      <p className="text-[#555] text-[10px] uppercase tracking-widest mt-4">Waiting for Admin to resolve match</p>
+                    </div>
+                  )
+                })}
+                {challenges.filter(c => c.status === 'accepted').length === 0 && (
+                  <p className="text-[#555] text-xs uppercase tracking-widest">No active wagers</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+      {/* Challenge Modal */}
+      {isChallengeModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0a0a0a] border border-[#222] p-6 w-full max-w-sm">
+            <h2 className="text-lg font-bold uppercase tracking-wide mb-2 text-white">Challenge Franchise</h2>
+            <p className="text-xs text-[#666] mb-6">
+              Select an opponent and set a wager. If accepted, the wager will be held until the match is resolved.
+            </p>
+
+            <form onSubmit={handleCreateChallenge} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest uppercase text-[#555]">
+                  Opponent
+                </label>
+                <select
+                  required
+                  value={challengeOpponentId}
+                  onChange={e => setChallengeOpponentId(e.target.value)}
+                  className="w-full bg-[#111] border border-[#333] p-4 text-white focus:outline-none focus:border-white transition-colors text-sm font-bold uppercase"
+                >
+                  <option value="">Select Franchise</option>
+                  {allFranchises.filter(f => f.id !== franchise?.id).map(f => (
+                    <option key={f.id} value={f.id}>{f.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest uppercase text-[#555]">
+                  Wager Amount (CR)
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  max={franchise?.budget || 0}
+                  value={challengeWager}
+                  onChange={e => setChallengeWager(e.target.value)}
+                  placeholder="e.g. 500"
+                  className="w-full bg-[#111] border border-[#333] p-4 text-white focus:outline-none focus:border-white transition-colors text-base font-bold font-mono"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={actioning !== null}
+                  className="flex-1 bg-white text-black font-bold tracking-widest uppercase p-4 hover:bg-gray-200 transition-colors disabled:opacity-50 text-xs"
+                >
+                  Send Challenge
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsChallengeModalOpen(false)}
+                  className="flex-1 border border-[#333] text-white font-bold tracking-widest uppercase p-4 hover:bg-[#111] transition-colors text-xs"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Bid Modal Overlay */}
       {biddingPlayer && (
