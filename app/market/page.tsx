@@ -92,6 +92,21 @@ export default function MarketPage() {
         </div>
       </div>
 
+      {/* Top Gainers Ticker */}
+      {players.length > 0 && (
+        <div className="bg-[#050505] border-b border-[#222] py-2.5 px-4 overflow-x-auto whitespace-nowrap flex items-center gap-6 no-scrollbar">
+          <div className="flex items-center gap-1 text-[10px] font-bold tracking-widest text-emerald-400 uppercase flex-shrink-0">
+            <span>🔥 TOP GAINERS</span>
+          </div>
+          {players.filter(p => (p.value || 0) > 0).sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 5).map(p => (
+            <div key={p.id} onClick={() => setSelectedPlayer(p)} className="inline-flex items-center gap-2 cursor-pointer text-[10px] flex-shrink-0 hover:opacity-80 bg-[#111] border border-[#222] px-2.5 py-1 rounded">
+              <span className="font-bold text-white">{p.name}</span>
+              <span className="font-mono text-emerald-400 font-bold">{(p.value || 0).toLocaleString()} CR</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Filter Tabs */}
       <div className="flex border-b border-[#1a1a1a]">
         {(['all', 'available', 'unavailable'] as Filter[]).map(f => (

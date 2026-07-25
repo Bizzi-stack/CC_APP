@@ -76,6 +76,8 @@ interface Player {
   assists?: number
   is_top_scorer?: boolean
   is_top_assister?: boolean
+  wage_streak?: number
+  loan_balance?: number
 }
 
 export default function PlayerPortalPage() {
@@ -297,7 +299,43 @@ export default function PlayerPortalPage() {
         throw new Error(data.error || 'Failed to collect wages')
       }
 
-      setSuccessMsg(`Successfully collected wages of ${data.collected.toLocaleString()} CR!`)
+      if (data.isJackpot) {
+        await showDialog({
+          type: 'alert',
+          message: `🎰 LUCKY JACKPOT DROP!\nYou won an extra +1,500 CR bonus drop!\n\nTotal Collected: ${data.totalEarned.toLocaleString()} CR\nStreak Multiplier: ${data.streak}x 🔥`
+        })
+      } else {
+        setSuccessMsg(`Collected ${data.totalEarned.toLocaleString()} CR! (Streak: ${data.streak}x 🔥)`)
+      }
+
+      if (data.loanRepaid > 0) {
+        setSuccessMsg(prev => `${prev} [${data.loanRepaid.toLocaleString()} CR auto-repaid to your loan balance]`)
+      }
+
+      await fetchPortalData()
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setClaiming(false)
+    }
+  }
+
+  const handleClaimLoan = async () => {
+    const confirmed = await showDialog({
+      type: 'confirm',
+      message: 'Take out a 1,000 CR Friday Micro-Loan? This credit will be added to your balance to place match wagers and will be auto-repaid from your future wages or match winnings.'
+    })
+    if (!confirmed) return
+
+    setClaiming(true)
+    setError('')
+    setSuccessMsg('')
+    try {
+      const res = await fetch('/api/player/loan?bypass=true', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to claim Friday Loan')
+
+      setSuccessMsg('⚡ Friday Micro-Loan of 1,000 CR granted! Place your match wagers now.')
       await fetchPortalData()
     } catch (err: any) {
       setError(err.message)
@@ -589,31 +627,81 @@ export default function PlayerPortalPage() {
 
         {/* Claim daily wages card */}
         {player?.wages && player.wages > 0 ? (
-          <div className="bg-[#050505] border border-[#222] p-4 text-center space-y-4">
-            <h2 className="text-[10px] text-[#666] font-bold tracking-widest uppercase">Wage Collection Center</h2>
+          <div className="bg-[#050505] border border-[#222] p-4 text-center space-y-4 rounded-xl relative overflow-hidden">
+            {/* Streak Badge Header */}
+            <div className="flex items-center justify-between border-b border-[#1a1a1a] pb-3">
+              <h2 className="text-[10px] text-[#666] font-bold tracking-widest uppercase">Wage Collection Center</h2>
+              <span className="text-[10px] font-bold text-amber-400 bg-amber-950/40 border border-amber-900/60 px-2.5 py-1 rounded-full flex items-center gap-1">
+                <span>🔥</span>
+                <span>{player.wage_streak || 0} Day Streak (+{((player.wage_streak || 0) > 0 ? (player.wage_streak || 1) - 1 : 0) * 10}% Bonus)</span>
+              </span>
+            </div>
+
+            {player.loan_balance !== undefined && player.loan_balance > 0 && (
+              <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded text-amber-300 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between">
+                <span>💳 Active Micro-Loan:</span>
+                <span>{player.loan_balance.toLocaleString()} CR (Auto-Repaying)</span>
+              </div>
+            )}
+
             {canClaim ? (
               <div className="space-y-3">
-                <p className="text-xs text-[#aaa]">Your daily wage is ready to be collected!</p>
+                <p className="text-xs text-[#aaa]">Your daily wage is ready with streak bonus & 10% Jackpot drop chance!</p>
                 <button
                   disabled={claiming}
                   onClick={handleCollectWages}
-                  className="w-full bg-white text-black font-bold uppercase tracking-widest text-[10px] py-3 active:opacity-60 transition-opacity"
+                  className="w-full bg-white text-black font-bold uppercase tracking-widest text-[10px] py-3 rounded-lg active:opacity-60 transition-opacity flex items-center justify-center gap-2"
                 >
-                  {claiming ? 'Collecting...' : `Collect Daily Wages (+${player.wages.toLocaleString()} CR)`}
+                  <span>🎰</span>
+                  <span>{claiming ? 'Collecting...' : `Collect Daily Wage (+${player.wages.toLocaleString()} CR Base)`}</span>
                 </button>
               </div>
             ) : (
               <div className="space-y-1 py-1">
-                <p className="text-[#ffb74d] text-xs font-bold uppercase tracking-wider">Wages Already Claimed Today</p>
+                <p className="text-[#ffb74d] text-xs font-bold uppercase tracking-wider">Wages Claimed Today</p>
                 <p className="text-[10px] text-[#555] uppercase">Next collection is available in less than 24 hours.</p>
               </div>
             )}
           </div>
         ) : (
-          <div className="border border-[#222] bg-[#050505] p-5 text-center text-[#555] text-xs uppercase tracking-wider">
+          <div className="border border-[#222] bg-[#050505] p-5 text-center text-[#555] text-xs uppercase tracking-wider rounded-xl">
             You are a Free Agent. Sign to a team to earn daily wages!
           </div>
         )}
+
+        {/* Friday Matchday Micro-Loan Card */}
+        <div className="bg-gradient-to-br from-[#0c0a00] to-[#050505] border border-amber-500/30 p-4 text-center space-y-3 rounded-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">💳</span>
+              <div className="text-left">
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider">Friday Matchday Micro-Loan</h3>
+                <p className="text-[9px] text-[#888] uppercase">Get 1,000 CR Credit Advance for Friday Wagers</p>
+              </div>
+            </div>
+            <span className="text-[9px] font-bold text-amber-400 bg-amber-950/60 border border-amber-900/60 px-2 py-0.5 rounded uppercase">
+              Friday Special
+            </span>
+          </div>
+
+          {player?.loan_balance && player.loan_balance > 0 ? (
+            <p className="text-[10px] text-amber-400/80 font-mono">
+              Loan active: {player.loan_balance.toLocaleString()} CR remaining. Winnings & wages will automatically pay off your balance!
+            </p>
+          ) : (player?.balance || 0) >= 1000 ? (
+            <p className="text-[10px] text-[#555] uppercase">
+              Micro-Loans unlock when your wallet balance drops below 1,000 CR.
+            </p>
+          ) : (
+            <button
+              disabled={claiming}
+              onClick={handleClaimLoan}
+              className="w-full bg-amber-500 text-black font-bold uppercase tracking-widest text-[10px] py-2.5 rounded-lg hover:bg-amber-400 transition-colors"
+            >
+              {claiming ? 'Processing...' : '⚡ Request 1,000 CR Friday Loan'}
+            </button>
+          )}
+        </div>
 
         {/* Incoming Free Agent Contract Proposals & Wage Negotiations */}
         {incomingOffers.length > 0 && (

@@ -129,10 +129,24 @@ export async function POST(request: NextRequest) {
             // Player guessed correctly -> 2x payout
             const winnings = wager.wager_amount * 2
             
-            // 1. Fetch current balance
-            const { data: p } = await supabase.from('players').select('balance').eq('id', wager.player_id).single()
+            // 1. Fetch current balance & loan
+            const { data: p } = await supabase.from('players').select('balance, loan_balance').eq('id', wager.player_id).single()
             if (p) {
-              await supabase.from('players').update({ balance: (p.balance || 0) + winnings }).eq('id', wager.player_id)
+              let loan = p.loan_balance || 0
+              let addedToBal = winnings
+              if (loan > 0) {
+                if (winnings >= loan) {
+                  addedToBal = winnings - loan
+                  loan = 0
+                } else {
+                  loan = loan - winnings
+                  addedToBal = 0
+                }
+              }
+              await supabase.from('players').update({ 
+                balance: (p.balance || 0) + addedToBal,
+                loan_balance: loan
+              }).eq('id', wager.player_id)
             }
             // 2. Mark won
             await supabase.from('player_wagers').update({ status: 'won' }).eq('id', wager.id)
@@ -143,11 +157,25 @@ export async function POST(request: NextRequest) {
         } else {
           // Draw was declared
           if (wager.predicted_winner_id === null) {
-            // Player bet on draw -> 2x payout (or 1.5x? We'll do 2x for simplicity)
+            // Player bet on draw -> 2x payout
             const winnings = wager.wager_amount * 2
-            const { data: p } = await supabase.from('players').select('balance').eq('id', wager.player_id).single()
+            const { data: p } = await supabase.from('players').select('balance, loan_balance').eq('id', wager.player_id).single()
             if (p) {
-              await supabase.from('players').update({ balance: (p.balance || 0) + winnings }).eq('id', wager.player_id)
+              let loan = p.loan_balance || 0
+              let addedToBal = winnings
+              if (loan > 0) {
+                if (winnings >= loan) {
+                  addedToBal = winnings - loan
+                  loan = 0
+                } else {
+                  loan = loan - winnings
+                  addedToBal = 0
+                }
+              }
+              await supabase.from('players').update({ 
+                balance: (p.balance || 0) + addedToBal,
+                loan_balance: loan
+              }).eq('id', wager.player_id)
             }
             await supabase.from('player_wagers').update({ status: 'won' }).eq('id', wager.id)
           } else {
