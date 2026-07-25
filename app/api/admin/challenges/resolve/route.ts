@@ -161,6 +161,47 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ============================================
+    // PLAYER MARKET VALUE FLUCTUATIONS
+    // ============================================
+    if (winner_id) {
+      const loser_id = winner_id === challenge.challenger_id ? challenge.challenged_id : challenge.challenger_id
+      
+      // Update winners (+1000)
+      const { data: winners } = await supabase.from('players').select('id, value').eq('franchise_id', winner_id)
+      if (winners) {
+        for (const p of winners) {
+          const oldVal = p.value || 0
+          const newVal = oldVal + 1000
+          await supabase.from('players').update({ value: newVal }).eq('id', p.id)
+          await supabase.from('player_value_history').insert([{
+            player_id: p.id,
+            old_value: oldVal,
+            new_value: newVal,
+            change_reason: 'Match Win'
+          }])
+        }
+      }
+
+      // Update losers (-500)
+      const { data: losers } = await supabase.from('players').select('id, value').eq('franchise_id', loser_id)
+      if (losers) {
+        for (const p of losers) {
+          const oldVal = p.value || 0
+          const newVal = Math.max(0, oldVal - 500)
+          if (newVal !== oldVal) {
+            await supabase.from('players').update({ value: newVal }).eq('id', p.id)
+            await supabase.from('player_value_history').insert([{
+              player_id: p.id,
+              old_value: oldVal,
+              new_value: newVal,
+              change_reason: 'Match Loss'
+            }])
+          }
+        }
+      }
+    }
+
     // Update challenge status
     await supabase
       .from('franchise_challenges')

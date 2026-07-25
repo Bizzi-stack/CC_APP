@@ -14,12 +14,53 @@ export async function POST(request: NextRequest) {
     if (type === 'player') {
       // Allowed updates for players
       const { goals, assists } = updates
+
+      // Fetch old stats first to calculate difference
+      const { data: oldPlayer, error: fetchError } = await supabase
+        .from('players')
+        .select('goals, assists, value')
+        .eq('id', id)
+        .single()
+      
+      if (fetchError) throw fetchError
+
+      const oldGoals = oldPlayer.goals || 0
+      const oldAssists = oldPlayer.assists || 0
+      const oldValue = oldPlayer.value || 0
+      
+      let valueBump = 0
+      let reasons = []
+
+      if (goals !== undefined && goals > oldGoals) {
+        const diff = goals - oldGoals
+        valueBump += diff * 500
+        reasons.push(`+${diff} Goal${diff > 1 ? 's' : ''}`)
+      }
+      if (assists !== undefined && assists > oldAssists) {
+        const diff = assists - oldAssists
+        valueBump += diff * 250
+        reasons.push(`+${diff} Assist${diff > 1 ? 's' : ''}`)
+      }
+
       const dataToUpdate: any = {}
       if (goals !== undefined) dataToUpdate.goals = goals
       if (assists !== undefined) dataToUpdate.assists = assists
 
+      if (valueBump > 0) {
+        dataToUpdate.value = oldValue + valueBump
+      }
+
       const { error } = await supabase.from('players').update(dataToUpdate).eq('id', id)
       if (error) throw error
+
+      if (valueBump > 0) {
+        await supabase.from('player_value_history').insert([{
+          player_id: id,
+          old_value: oldValue,
+          new_value: oldValue + valueBump,
+          change_reason: reasons.join(', ')
+        }])
+      }
     } else if (type === 'franchise') {
       // Allowed updates for franchises
       const { wins, draws, losses, goals_for, goals_against } = updates

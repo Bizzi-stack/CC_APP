@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
 
@@ -25,18 +26,40 @@ export default function PlayerStatsPage() {
   const params = useParams()
   const playerId = params.id as string
   const [player, setPlayer] = useState<Player | null>(null)
+  const [history, setHistory] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const chartRef = useRef<HTMLDivElement>(null)
+
+  const scrollToChart = () => {
+    chartRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   useEffect(() => {
     if (!playerId) return
 
-    fetch(`/api/players?status=active`)
-      .then(res => res.json())
-      .then(data => {
+    Promise.all([
+      fetch(`/api/players?status=active`),
+      fetch(`/api/player/history?player_id=${playerId}`)
+    ])
+      .then(async ([resPlayers, resHistory]) => {
+        const data = await resPlayers.json()
+        const historyData = await resHistory.json()
+
         const found = data.players?.find((p: Player) => p.id === playerId)
         if (found) {
           setPlayer(found)
+          
+          if (historyData.history) {
+            // Format history data for chart
+            const chartData = historyData.history.map((h: any) => ({
+              date: new Date(h.created_at).toLocaleDateString(),
+              value: h.new_value,
+              reason: h.change_reason
+            }))
+            // Add initial point if needed, but the query gives chronologically
+            setHistory(chartData)
+          }
         } else {
           setError('Player not found')
         }
@@ -138,7 +161,10 @@ export default function PlayerStatsPage() {
 
           {/* Market Value */}
           {player.value !== undefined && player.value > 0 && (
-            <div className="bg-[#0a0a0a] border border-[#222] p-6 rounded-2xl relative overflow-hidden group hover:border-[#444] transition-colors col-span-2 sm:col-span-1">
+            <div 
+              onClick={scrollToChart}
+              className="bg-[#0a0a0a] border border-[#222] p-6 rounded-2xl relative overflow-hidden group hover:border-[#444] transition-colors col-span-2 sm:col-span-1 cursor-pointer"
+            >
               <div className="absolute -right-4 -bottom-4 text-9xl text-white opacity-[0.02] font-black pointer-events-none group-hover:scale-110 transition-transform duration-500">
                 $
               </div>
@@ -149,6 +175,51 @@ export default function PlayerStatsPage() {
             </div>
           )}
         </div>
+
+        {/* Market Value Chart */}
+        {history.length > 0 && (
+          <div ref={chartRef} className="mt-12 bg-[#0a0a0a] border border-[#222] p-6 rounded-2xl">
+            <h3 className="text-xs font-bold tracking-[0.2em] text-[#aaa] uppercase mb-8">Value Fluctuation History</h3>
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={history}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} />
+                  <XAxis 
+                    dataKey="date" 
+                    stroke="#555" 
+                    tick={{fill: '#555', fontSize: 10}}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis 
+                    stroke="#555" 
+                    tick={{fill: '#555', fontSize: 10}}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(val) => `${val >= 1000 ? (val/1000) + 'k' : val}`}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '8px' }}
+                    itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                    labelStyle={{ color: '#888', marginBottom: '4px', fontSize: '12px' }}
+                    formatter={(value: any, name: any, props: any) => [
+                      `${value.toLocaleString()} CR`, 
+                      props.payload.reason
+                    ]}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="value" 
+                    stroke="#fff" 
+                    strokeWidth={2}
+                    dot={{ fill: '#000', stroke: '#fff', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: '#fff' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
       </div>
 
       <PublicNav />
