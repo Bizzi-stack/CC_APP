@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
     const [fRes, pRes, lRes, sRes] = await Promise.all([
       supabase.from('franchises').select('*'),
       supabase.from('players').select('id, name, value, franchise_id, is_franchise_owner, owned_franchise_id'),
-      supabase.from('franchise_share_listings').select('*, seller:players!franchise_share_listings_seller_id_fkey(id, name), franchise:franchises!franchise_share_listings_franchise_id_fkey(id, name, logo_url)').eq('status', 'active'),
-      supabase.from('franchise_shares').select('*, owner:players!franchise_shares_owner_id_fkey(id, name), franchise:franchises!franchise_shares_franchise_id_fkey(id, name, logo_url)')
+      supabase.from('franchise_share_listings').select('*, seller:players!seller_id(id, name), franchise:franchises!franchise_id(id, name, logo_url)').eq('status', 'active'),
+      supabase.from('franchise_shares').select('*, owner:players!owner_id(id, name), franchise:franchises!franchise_id(id, name, logo_url)')
     ])
 
     if (fRes.error) throw fRes.error
