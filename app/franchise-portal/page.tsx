@@ -1312,7 +1312,7 @@ export default function FranchisePortalPage() {
         </div>
       )}
 
-      {DialogComponent}
+      <DialogComponent />
     </div>
   )
 }
