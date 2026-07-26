@@ -41,16 +41,16 @@ export function InstagramBadge({ url }: { url?: string | null }) {
       target="_blank"
       rel="noopener noreferrer"
       onClick={e => e.stopPropagation()}
-      className="inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:brightness-110 text-white text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md shadow-md transition-all active:scale-95 shrink-0"
+      className="inline-flex items-center gap-1 bg-gradient-to-r from-purple-950 via-pink-900 to-amber-950 hover:brightness-125 text-pink-200 text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded border border-pink-500/30 shadow-sm transition-all active:scale-95 shrink-0"
       title="Visit Instagram Profile"
     >
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
         <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
         <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
       </svg>
       <span>Instagram</span>
-      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
         <polyline points="15 3 21 3 21 9" />
         <line x1="10" y1="14" x2="21" y2="3" />
@@ -63,24 +63,26 @@ export function BusinessBadge({ isBusiness, businessName }: { isBusiness?: boole
   if (!isBusiness) return null
 
   return (
-    <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-md border border-yellow-300/40 shrink-0 animate-live-badge">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-badge-shine">
-        <path d="M3 21h18M3 7v14M21 7v14M6 21V11M10 21V11M14 21V11M18 21V11M12 3l9 4H3l9-4z" />
-      </svg>
-      <span>{businessName || 'Business Owner'}</span>
+    <div
+      className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 text-amber-200 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-amber-500/30 shadow-sm shrink-0"
+      title={businessName ? `Business Owner: ${businessName}` : 'Business Owner'}
+    >
+      <span className="text-[10px]">🏢</span>
+      <span className="truncate max-w-[120px]">{businessName || 'Business Owner'}</span>
     </div>
   )
 }
 
-export function FranchiseOwnerBadge({ isOwner, franchiseName }: { isOwner?: boolean | null; franchiseName?: string | null }) {
+export function FranchiseOwnerBadge({ isOwner, franchiseName, compact = false }: { isOwner?: boolean | null; franchiseName?: string | null; compact?: boolean }) {
   if (!isOwner) return null
 
   return (
-    <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-md border border-red-400/40 shrink-0 animate-live-badge-alt">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-badge-shine">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-      </svg>
-      <span>Franchise Owner{franchiseName ? `: ${franchiseName}` : ''}</span>
+    <div
+      className="inline-flex items-center gap-1 bg-gradient-to-r from-red-950 via-red-900 to-red-950 text-red-200 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-red-500/30 shadow-sm shrink-0"
+      title={franchiseName ? `Franchise Owner: ${franchiseName}` : 'Franchise Owner'}
+    >
+      <span className="text-[10px]">👑</span>
+      <span className="truncate max-w-[130px]">{compact || !franchiseName ? 'Owner' : `Owner: ${franchiseName}`}</span>
     </div>
   )
 }

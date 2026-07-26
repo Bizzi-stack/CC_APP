@@ -499,7 +499,7 @@ function PublicPlayerRow({ player }: { player: Player }) {
             <span>{getCountryFlag(player.country)}</span>
             <span>{player.country || 'Barbados'}</span>
           </span>
-          <FranchiseOwnerBadge isOwner={player.is_franchise_owner} franchiseName={player.owned_franchise?.name} />
+          <FranchiseOwnerBadge isOwner={player.is_franchise_owner} franchiseName={player.owned_franchise?.name} compact={true} />
           <BusinessBadge isBusiness={player.is_business} businessName={player.business_name} />
           <InstagramBadge url={player.instagram_url} />
           {player.franchises && (
