@@ -96,7 +96,13 @@ export default function PlayerPortalPage() {
   const [error, setError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
 
+const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST', 'CF']
+
   // Banner & Profile Customization State
+  const [playerName, setPlayerName] = useState('')
+  const [photoUrl, setPhotoUrl] = useState('')
+  const [playerPosition, setPlayerPosition] = useState('')
+  const [playerNotes, setPlayerNotes] = useState('')
   const [bannerUrl, setBannerUrl] = useState('')
   const [instagramUrl, setInstagramUrl] = useState('')
   const [spotifyTrackUrl, setSpotifyTrackUrl] = useState('')
@@ -105,6 +111,8 @@ export default function PlayerPortalPage() {
   const [country, setCountry] = useState('Barbados')
   const [savingProfile, setSavingProfile] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const photoInputRef = useRef<HTMLInputElement>(null)
 
   // Canvas positions state
   const [canvasPositions, setCanvasPositions] = useState<BadgePosition[]>([])
@@ -150,6 +158,10 @@ export default function PlayerPortalPage() {
 
       const curPlayer = meData.player
       setPlayer(curPlayer)
+      setPlayerName(curPlayer.name || '')
+      setPhotoUrl(curPlayer.photo_url || '')
+      setPlayerPosition(curPlayer.position || '')
+      setPlayerNotes(curPlayer.notes || '')
       setCanvasPositions(curPlayer.canvas_badges_data || [])
       setCanvasBadges(badgesData.badges || [])
       setBannerUrl(curPlayer.banner_url || '')
@@ -239,6 +251,30 @@ export default function PlayerPortalPage() {
     }
   }
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Headshot image must be under 10MB')
+      return
+    }
+    setUploadingPhoto(true)
+    setError('')
+    try {
+      const uploadForm = new FormData()
+      uploadForm.append('file', file)
+      const res = await fetch('/api/upload', { method: 'POST', body: uploadForm })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Photo upload failed')
+      setPhotoUrl(data.url)
+      setSuccessMsg('New headshot photo uploaded! Click "Save Profile Changes" below to publish.')
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setUploadingPhoto(false)
+    }
+  }
+
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -273,6 +309,10 @@ export default function PlayerPortalPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          name: playerName.trim(),
+          photo_url: photoUrl || null,
+          position: playerPosition || null,
+          notes: playerNotes.trim() || null,
           banner_url: bannerUrl || null,
           instagram_url: instagramUrl || null,
           spotify_track_url: spotifyTrackUrl || null,
@@ -815,18 +855,128 @@ export default function PlayerPortalPage() {
           </div>
         )}
 
-        {/* Profile & Banner Customization Form */}
-        <form onSubmit={handleSaveProfile} className="bg-[#050505] border border-[#222] p-5 space-y-4 rounded-xl">
-          <h2 className="text-xs font-bold tracking-widest uppercase text-white border-b border-[#222] pb-2 flex items-center gap-2">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-            </svg>
-            Instagram, Spotify & Business Setup
+        {/* Profile & Media Customization Form */}
+        <form onSubmit={handleSaveProfile} className="bg-[#050505] border border-[#222] p-5 space-y-5 rounded-xl">
+          <h2 className="text-xs font-bold tracking-widest uppercase text-white border-b border-[#222] pb-2 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+              Edit Player Profile & Media
+            </span>
+            <span className="text-[9px] text-[#666] font-normal lowercase">(player portal permissions)</span>
           </h2>
 
+          {/* Headshot Photo & Full Name Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center pt-1">
+            {/* Photo Preview & Change Button */}
+            <div className="flex flex-col items-center gap-2">
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+                id="player-photo-input"
+              />
+              <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-[#333] bg-[#111] shadow-lg group">
+                {photoUrl ? (
+                  <img src={photoUrl} alt="Player Headshot" className="w-full h-full object-cover object-top" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[#555] font-bold text-xs">
+                    No Photo
+                  </div>
+                )}
+                <label
+                  htmlFor="player-photo-input"
+                  className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity text-[9px] font-bold text-white uppercase text-center px-1"
+                >
+                  {uploadingPhoto ? 'Uploading...' : 'Change Photo'}
+                </label>
+              </div>
+              <label
+                htmlFor="player-photo-input"
+                className="text-[9px] font-bold text-[#888] hover:text-white uppercase tracking-wider cursor-pointer underline"
+              >
+                {uploadingPhoto ? 'Uploading...' : 'Upload Headshot'}
+              </label>
+            </div>
+
+            {/* Name & Position */}
+            <div className="sm:col-span-2 space-y-3">
+              <div>
+                <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={playerName}
+                  onChange={e => setPlayerName(e.target.value)}
+                  placeholder="Your Name"
+                  required
+                  className="w-full h-10 px-3 bg-black border border-[#333] text-white text-xs outline-none focus:border-white transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block mb-1">
+                  Position
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {POSITIONS.map(pos => (
+                    <button
+                      key={pos}
+                      type="button"
+                      onClick={() => setPlayerPosition(playerPosition === pos ? '' : pos)}
+                      className={`text-[9px] font-bold px-2 py-1 border transition-colors ${
+                        playerPosition === pos
+                          ? 'bg-white text-black border-white'
+                          : 'border-[#333] text-[#888] hover:border-white'
+                      }`}
+                    >
+                      {pos}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bio / Notes */}
+          <div className="space-y-1.5 pt-2 border-t border-[#1a1a1a]">
+            <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block">
+              Player Bio / Notes
+            </label>
+            <input
+              type="text"
+              value={playerNotes}
+              onChange={e => setPlayerNotes(e.target.value)}
+              placeholder="Tell fans and scouts about your style of play..."
+              className="w-full h-10 px-3 bg-black border border-[#333] text-white text-xs outline-none focus:border-white transition-colors"
+            />
+          </div>
+
+          {/* Nationality / Country Flag */}
+          <div className="pt-2 border-t border-[#1a1a1a] space-y-1.5">
+            <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block">
+              Nationality / Country Flag
+            </label>
+            <select
+              value={country}
+              onChange={e => setCountry(e.target.value)}
+              className="w-full h-10 px-3 bg-black border border-[#333] text-white text-xs outline-none focus:border-white transition-colors cursor-pointer uppercase font-bold"
+            >
+              {COUNTRY_LIST.map(c => (
+                <option key={c.code} value={c.name} className="bg-[#111] text-white">
+                  {c.flag} {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Instagram URL or Handle */}
-          <div className="space-y-1.5">
+          <div className="pt-2 border-t border-[#1a1a1a] space-y-1.5">
             <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block">
               Instagram Profile Link / Handle
             </label>
@@ -854,24 +1004,6 @@ export default function PlayerPortalPage() {
             <p className="text-[8px] text-[#555]">
               Copy link to track from Spotify. Visitors can play your track preview directly from your banner!
             </p>
-          </div>
-
-          {/* Nationality / Country Flag */}
-          <div className="pt-2 border-t border-[#1a1a1a] space-y-1.5">
-            <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block">
-              Nationality / Country Flag
-            </label>
-            <select
-              value={country}
-              onChange={e => setCountry(e.target.value)}
-              className="w-full h-10 px-3 bg-black border border-[#333] text-white text-xs outline-none focus:border-white transition-colors cursor-pointer uppercase font-bold"
-            >
-              {COUNTRY_LIST.map(c => (
-                <option key={c.code} value={c.name} className="bg-[#111] text-white">
-                  {c.flag} {c.name}
-                </option>
-              ))}
-            </select>
           </div>
 
           {/* Business Owner Toggle */}

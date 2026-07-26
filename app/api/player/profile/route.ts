@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { banner_url, instagram_url, spotify_track_url, is_business, business_name, country } = body
+    const { name, photo_url, position, notes, banner_url, instagram_url, spotify_track_url, is_business, business_name, country } = body
 
     // Format Instagram URL if provided as handle
     let formattedIg = instagram_url ? instagram_url.trim() : null
@@ -30,9 +30,11 @@ export async function POST(request: NextRequest) {
       business_name: business_name ? business_name.trim() : null,
     }
 
-    if (country) {
-      updateData.country = country
-    }
+    if (name && name.trim()) updateData.name = name.trim()
+    if (photo_url && photo_url.trim()) updateData.photo_url = photo_url.trim()
+    if (position !== undefined) updateData.position = position || null
+    if (notes !== undefined) updateData.notes = notes || null
+    if (country) updateData.country = country
 
     const { error } = await supabase
       .from('players')
