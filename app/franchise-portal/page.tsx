@@ -545,6 +545,7 @@ export default function FranchisePortalPage() {
             + Sell Shares
           </button>
         </div>
+      </div>
 
       {/* Tabs */}
       <div className="flex border-b border-[#1a1a1a]">
