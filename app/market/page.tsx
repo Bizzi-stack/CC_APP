@@ -403,11 +403,7 @@ export default function MarketPage() {
                 </div>
               )}
 
-              {selectedPlayer.badges && selectedPlayer.badges.map(badge => (
-                <span key={badge} className="text-xs font-bold text-white border border-[#555] px-3 py-2">
-                  {badge}
-                </span>
-              ))}
+              <PlayStylesList badges={selectedPlayer.badges} />
             </div>
 
             {/* IMVU Style Canvas */}
