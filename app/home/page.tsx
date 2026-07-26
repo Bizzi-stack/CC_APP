@@ -107,6 +107,50 @@ export default function HomePage() {
           )}
         </section>
 
+        {/* Currency Exchange Value Graphic */}
+        <section className="relative overflow-hidden bg-gradient-to-r from-[#0c0c0d] via-[#161208] to-[#0c0c0d] border border-amber-500/30 rounded-xl p-4 shadow-xl text-center group">
+          {/* Subtle Ambient Shimmer Effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent animate-badge-shine pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col items-center gap-2">
+            <span className="text-[9px] font-extrabold tracking-[0.25em] text-amber-400 uppercase flex items-center gap-1.5">
+              <span>⚡</span> OFFICIAL LEAGUE CURRENCY EXCHANGE <span>⚡</span>
+            </span>
+
+            {/* Graphic Exchange Pill Container */}
+            <div className="flex items-center justify-center gap-3 mt-1 py-2.5 px-4 bg-black/80 border border-[#262215] rounded-lg shadow-inner w-full">
+              {/* CR side */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-emerald-400 font-mono font-black text-base sm:text-lg tracking-tight">
+                  1,000,000
+                </span>
+                <span className="text-[10px] font-bold text-emerald-500/80 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                  CR
+                </span>
+              </div>
+
+              {/* Equals Arrow Badge */}
+              <div className="w-7 h-7 rounded-full bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-300 font-black text-xs shadow-md shrink-0 animate-pulse">
+                =
+              </div>
+
+              {/* BDD side */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-amber-300 font-mono font-black text-base sm:text-lg tracking-tight flex items-center gap-1">
+                  <span>🇧🇧</span> 100
+                </span>
+                <span className="text-[10px] font-bold text-amber-400/90 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/30">
+                  BDD
+                </span>
+              </div>
+            </div>
+
+            <p className="text-[9px] text-[#888] font-mono tracking-wider uppercase mt-0.5">
+              10,000 CR = 1 BDD (Barbados Dollars)
+            </p>
+          </div>
+        </section>
+
         {/* Quick Actions */}
         <section>
           <h2 className="text-xs text-[#555] font-bold tracking-widest uppercase mb-3">Quick Actions</h2>
