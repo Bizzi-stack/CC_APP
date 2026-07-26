@@ -109,76 +109,146 @@ export default function HomePage() {
 
         {/* Quick Actions */}
         <section>
-          <h2 className="text-xs text-[#555] font-bold tracking-widest uppercase mb-3">Quick Actions</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <Link href={isAdmin ? "/sessions" : "/calendar"} className="border border-[#222] p-5 flex flex-col gap-2 items-center justify-center text-center active:bg-[#111] transition-colors">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              <span className="text-white font-semibold text-sm">View Sessions</span>
-              <span className="text-[#555] text-xs">All upcoming</span>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xs text-[#666] font-bold tracking-[0.2em] uppercase">Quick Actions</h2>
+            <span className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase flex items-center gap-1.5 animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              Live Ecosystem
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3.5">
+            {/* 1. View Sessions */}
+            <Link 
+              href={isAdmin ? "/sessions" : "/calendar"} 
+              className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-white/10 to-transparent rounded-tr-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-[#444] group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform duration-300">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </div>
+              <div>
+                <span className="text-white font-bold text-sm tracking-tight group-hover:text-amber-400 transition-colors block">View Sessions</span>
+                <span className="text-[#555] text-[10px] uppercase font-bold tracking-widest mt-0.5 block">Friday Ball & Fixtures</span>
+              </div>
             </Link>
 
-            <Link href={isAdmin ? "/players" : "/market"} className="border border-[#222] p-5 flex flex-col gap-2 items-center justify-center text-center active:bg-[#111] transition-colors relative">
-              {isAdmin && pendingCount > 0 && (
-                <div className="absolute top-3 right-3 bg-[#f44336] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
+            {/* 2. Player Market */}
+            <Link 
+              href={isAdmin ? "/players" : "/market"} 
+              className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden"
+            >
+              {isAdmin && pendingCount > 0 ? (
+                <div className="absolute top-2.5 right-2.5 bg-[#f44336] text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-lg animate-bounce">
                   {pendingCount} Pending
                 </div>
+              ) : (
+                <div className="absolute top-2.5 right-2.5 text-[8px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-900/60 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                  <span>🔥</span> Stock Ticker
+                </div>
               )}
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
-              </svg>
-              <span className="text-white font-semibold text-sm">Player Market</span>
-              <span className="text-[#555] text-xs">Transfer listed</span>
+              <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-[#444] group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform duration-300">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+                </svg>
+              </div>
+              <div>
+                <span className="text-white font-bold text-sm tracking-tight group-hover:text-emerald-400 transition-colors block">Player Market</span>
+                <span className="text-[#555] text-[10px] uppercase font-bold tracking-widest mt-0.5 block">Transfer Values</span>
+              </div>
             </Link>
 
             {isAdmin && (
-              <Link href="/badges" className="border border-[#222] p-5 flex flex-col gap-2 items-center justify-center text-center active:bg-[#111] transition-colors relative">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 15l-8-4.5V17a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 17v-6.5L12 15z"></path>
-                  <path d="M12 15V3"></path>
-                  <path d="M4 10.5L12 6l8 4.5"></path>
-                </svg>
-                <span className="text-white font-semibold text-sm">Badge Library</span>
-                <span className="text-[#555] text-xs">Manage canvas</span>
+              <Link 
+                href="/badges" 
+                className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden"
+              >
+                <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-[#444] group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-12 transition-transform duration-300">
+                    <path d="M12 15l-8-4.5V17a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 17v-6.5L12 15z"></path>
+                    <path d="M12 15V3"></path>
+                    <path d="M4 10.5L12 6l8 4.5"></path>
+                  </svg>
+                </div>
+                <div>
+                  <span className="text-white font-bold text-sm tracking-tight group-hover:text-purple-400 transition-colors block">Badge Library</span>
+                  <span className="text-[#555] text-[10px] uppercase font-bold tracking-widest mt-0.5 block">Manage Canvas</span>
+                </div>
               </Link>
             )}
 
             {!isAdmin && (
               <>
-                <Link href="/join" className="border border-[#222] p-5 flex flex-col gap-2 items-center justify-center text-center active:bg-[#111] transition-colors">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
-                  </svg>
-                  <span className="text-white font-semibold text-sm">Submit Profile</span>
-                  <span className="text-[#555] text-xs">Join market</span>
+                {/* 3. Submit Profile */}
+                <Link 
+                  href="/join" 
+                  className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden"
+                >
+                  <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-[#444] group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-90 transition-transform duration-500">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-white font-bold text-sm tracking-tight group-hover:text-cyan-400 transition-colors block">Submit Profile</span>
+                    <span className="text-[#555] text-[10px] uppercase font-bold tracking-widest mt-0.5 block">Join Free Agency</span>
+                  </div>
                 </Link>
 
-                <Link href="/franchise-portal" className="border border-[#222] p-5 flex flex-col gap-2 items-center justify-center text-center active:bg-[#111] transition-colors">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  </svg>
-                  <span className="text-white font-semibold text-sm">Franchise Portal</span>
-                  <span className="text-[#555] text-xs">Sign players</span>
+                {/* 4. Franchise Portal */}
+                <Link 
+                  href="/franchise-portal" 
+                  className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-red-900/60 hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(220,38,38,0.15)] overflow-hidden"
+                >
+                  <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-red-800 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 group-hover:stroke-red-500 transition-all duration-300">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-white font-bold text-sm tracking-tight group-hover:text-red-400 transition-colors block">Franchise Portal</span>
+                    <span className="text-[#555] text-[10px] uppercase font-bold tracking-widest mt-0.5 block">Club Owner Suite</span>
+                  </div>
                 </Link>
 
-                <Link href="/player-portal" className="border border-[#222] p-5 flex flex-col gap-2 items-center justify-center text-center active:bg-[#111] transition-colors">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
-                  </svg>
-                  <span className="text-white font-semibold text-sm">Player Portal</span>
-                  <span className="text-[#555] text-xs">Collect wages</span>
+                {/* 5. Player Portal */}
+                <Link 
+                  href="/player-portal" 
+                  className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-amber-900/60 hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(245,158,11,0.15)] overflow-hidden"
+                >
+                  <div className="absolute top-2.5 right-2.5 text-[8px] font-bold text-amber-400 bg-amber-950/60 border border-amber-900/60 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                    <span>🎰</span> Daily Wage
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-amber-800 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 group-hover:stroke-amber-400 transition-all duration-300">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-white font-bold text-sm tracking-tight group-hover:text-amber-400 transition-colors block">Player Portal</span>
+                    <span className="text-[#555] text-[10px] uppercase font-bold tracking-widest mt-0.5 block">Wages & Wagers</span>
+                  </div>
                 </Link>
 
-                <Link href="/league" className="border border-[#222] p-5 flex flex-col gap-2 items-center justify-center text-center active:bg-[#111] transition-colors">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="20" x2="18" y2="10"/>
-                    <line x1="12" y1="20" x2="12" y2="4"/>
-                    <line x1="6" y1="20" x2="6" y2="14"/>
-                  </svg>
-                  <span className="text-white font-semibold text-sm">League & Stats</span>
-                  <span className="text-[#555] text-xs">Standings</span>
+                {/* 6. League & Stats */}
+                <Link 
+                  href="/league" 
+                  className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden"
+                >
+                  <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-[#444] group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform duration-300">
+                      <line x1="18" y1="20" x2="18" y2="10"/>
+                      <line x1="12" y1="20" x2="12" y2="4"/>
+                      <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-white font-bold text-sm tracking-tight group-hover:text-blue-400 transition-colors block">League & Stats</span>
+                    <span className="text-[#555] text-[10px] uppercase font-bold tracking-widest mt-0.5 block">Leaderboards</span>
+                  </div>
                 </Link>
               </>
             )}
