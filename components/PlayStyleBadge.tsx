@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { getPlayStyle, PlayStyleDef } from '@/lib/playstyles'
 
 interface PlayStyleBadgeProps {
@@ -16,48 +16,114 @@ export default function PlayStyleBadge({
   showTooltip = true,
   className = ''
 }: PlayStyleBadgeProps) {
+  const [isOpen, setIsOpen] = useState(false)
   const playStyle = getPlayStyle(styleNameOrId)
+
+  // Close modal when pressing Escape key
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen])
 
   // Fallback if not a mapped Playstyle
   if (!playStyle) {
     return (
-      <span className={`inline-flex items-center text-[10px] font-bold text-white border border-[#444] bg-[#111] px-2 py-0.5 rounded shadow-sm ${className}`}>
+      <span className={`inline-flex items-center text-[10px] font-bold text-white border border-[#333] bg-black/60 px-1.5 py-0.5 uppercase shrink-0 ${className}`}>
         {styleNameOrId}
       </span>
     )
   }
 
+  const handleToggle = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsOpen(prev => !prev)
+  }
+
   return (
-    <div
-      className={`group relative inline-flex items-center gap-1.5 bg-black/80 border border-amber-500/30 shadow-md rounded-md px-2 py-0.5 transition-all hover:scale-105 shrink-0 ${className}`}
-      title={showTooltip ? `${playStyle.name} (${playStyle.category}): ${playStyle.description}` : playStyle.name}
-    >
-      {/* PlayStyle PNG Image Graphic */}
-      <img
-        src={playStyle.imageUrl}
-        alt={playStyle.name}
-        className="w-5 h-5 object-contain filter drop-shadow shrink-0"
-      />
+    <>
+      {/* Rectangular Clean Badge matching Country/Franchise/Position style */}
+      <button
+        type="button"
+        onClick={handleToggle}
+        onTouchEnd={handleToggle}
+        className={`inline-flex items-center gap-1.5 bg-black/60 border border-[#333] hover:border-amber-500/60 px-1.5 py-0.5 text-[10px] font-bold uppercase transition-all shrink-0 cursor-pointer active:scale-95 ${className}`}
+        title={`${playStyle.name}: Tap to view details`}
+      >
+        {/* PlayStyle PNG Image Graphic */}
+        <img
+          src={playStyle.imageUrl}
+          alt={playStyle.name}
+          className="w-3.5 h-3.5 object-contain filter drop-shadow shrink-0"
+        />
 
-      {/* Label */}
-      <span className="text-[9px] font-extrabold uppercase tracking-wider text-amber-300">
-        {playStyle.name}
-      </span>
+        {/* Label */}
+        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
+          {playStyle.name}
+        </span>
+      </button>
 
-      {/* Optional Hover Card Tooltip */}
-      {showTooltip && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-52 p-2.5 bg-black/95 border border-amber-500/40 rounded-lg shadow-2xl backdrop-blur-md text-left pointer-events-none">
-          <div className="flex items-center gap-2 border-b border-[#222] pb-1.5 mb-1.5">
-            <img src={playStyle.imageUrl} alt="" className="w-6 h-6 object-contain" />
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-black uppercase text-amber-300 truncate">{playStyle.name}</p>
-              <p className="text-[8px] font-mono text-[#888] uppercase">{playStyle.category}</p>
+      {/* Interactive Modal Popover on Tap / Click */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setIsOpen(false)
+          }}
+        >
+          <div
+            className="relative w-full max-w-xs bg-[#0b0b0b] border border-amber-500/40 p-4 rounded-xl shadow-2xl space-y-3 text-left"
+            onClick={(e) => {
+              e.stopPropagation()
+            }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[#222] pb-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-lg bg-black border border-amber-500/30 flex items-center justify-center p-1 shadow-inner">
+                  <img src={playStyle.imageUrl} alt={playStyle.name} className="w-full h-full object-contain" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase text-amber-300 tracking-wider">
+                    {playStyle.name}
+                  </h3>
+                  <span className="text-[9px] font-mono text-[#888] uppercase tracking-widest">
+                    {playStyle.category} PlayStyle
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setIsOpen(false)
+                }}
+                className="w-7 h-7 rounded-full bg-[#1c1c1c] hover:bg-[#333] text-[#aaa] hover:text-white flex items-center justify-center text-xs font-bold transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Description */}
+            <p className="text-xs text-[#ccc] leading-relaxed font-normal">
+              {playStyle.description}
+            </p>
+
+            {/* Action footer hint */}
+            <div className="pt-1 text-[9px] text-[#666] font-mono uppercase tracking-wider text-right">
+              Tap anywhere to close
             </div>
           </div>
-          <p className="text-[9px] text-[#bbb] leading-tight font-normal">{playStyle.description}</p>
         </div>
       )}
-    </div>
+    </>
   )
 }
 
@@ -65,7 +131,7 @@ export function PlayStylesList({ badges, compact = false }: { badges?: string[] 
   if (!badges || badges.length === 0) return null
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-1.5 shrink-0">
       {badges.map((badge, idx) => (
         <PlayStyleBadge key={`${badge}-${idx}`} styleNameOrId={badge} compact={compact} />
       ))}
