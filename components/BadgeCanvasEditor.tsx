@@ -147,12 +147,13 @@ export default function BadgeCanvasEditor({
           >
             <div className="absolute inset-0 opacity-[0.03] bg-black" />
             
-            {positions.map(pos => {
+            {positions.map((pos, idx) => {
               const badge = availableBadges.find(b => b.id === pos.id)
               if (!badge) return null
               const width = pos.width || 10
               const height = pos.height || 40
               const isActive = draggingId === pos.id || resizingId === pos.id
+              const floatClass = isActive ? '' : (idx % 2 === 0 ? 'animate-live-badge' : 'animate-live-badge-alt')
               return (
                 <div
                   key={pos.id}
@@ -168,7 +169,7 @@ export default function BadgeCanvasEditor({
                   <img 
                     src={badge.image_url} 
                     alt={badge.name} 
-                    className="w-full h-full object-cover filter drop-shadow-md cursor-move pointer-events-auto"
+                    className={`w-full h-full object-cover filter drop-shadow-md cursor-move pointer-events-auto ${floatClass}`}
                     onPointerDown={(e) => onPointerDown(e, pos.id, false)}
                     draggable={false}
                   />

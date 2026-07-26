@@ -29,7 +29,7 @@ export default function VerificationBadge({ type, className = 'w-[22px] h-[22px]
       src={src}
       alt={alt}
       title={alt}
-      className={`inline-block ml-0.5 shrink-0 align-middle select-none ${className}`}
+      className={`inline-block ml-0.5 shrink-0 align-middle select-none animate-badge-shine ${className}`}
       draggable={false}
     />
   )

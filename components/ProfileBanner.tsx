@@ -63,8 +63,8 @@ export function BusinessBadge({ isBusiness, businessName }: { isBusiness?: boole
   if (!isBusiness) return null
 
   return (
-    <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-md border border-yellow-300/40 shrink-0">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+    <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-md border border-yellow-300/40 shrink-0 animate-live-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-badge-shine">
         <path d="M3 21h18M3 7v14M21 7v14M6 21V11M10 21V11M14 21V11M18 21V11M12 3l9 4H3l9-4z" />
       </svg>
       <span>{businessName || 'Business Owner'}</span>
@@ -76,8 +76,8 @@ export function FranchiseOwnerBadge({ isOwner, franchiseName }: { isOwner?: bool
   if (!isOwner) return null
 
   return (
-    <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-md border border-red-400/40 shrink-0">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+    <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-md border border-red-400/40 shrink-0 animate-live-badge-alt">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-badge-shine">
         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
       </svg>
       <span>Franchise Owner{franchiseName ? `: ${franchiseName}` : ''}</span>
