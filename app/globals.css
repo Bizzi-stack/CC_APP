@@ -89,6 +89,22 @@ body {
 .animate-card-idle-5 { animation: cardFloat1 4.6s ease-in-out infinite 2.0s; }
 .animate-card-idle-6 { animation: cardFloat2 4.3s ease-in-out infinite 2.5s; }
 
+/* Bloomberg Stock Marquee Ticker */
+@keyframes marqueeLeft {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee-left {
+  display: flex;
+  width: max-content;
+  animation: marqueeLeft 20s linear infinite;
+}
+
+.animate-marquee-left:hover {
+  animation-play-state: paused;
+}
+
 /* Custom scrollbar for dark theme */
 ::-webkit-scrollbar {
   height: 6px;

@@ -132,20 +132,34 @@ export default function MarketPage() {
         </div>
       </div>
 
-      {/* Top Gainers Ticker */}
-      {players.length > 0 && (
-        <div className="bg-[#050505] border-b border-[#222] py-2.5 px-4 overflow-x-auto whitespace-nowrap flex items-center gap-6 no-scrollbar">
-          <div className="flex items-center gap-1 text-[10px] font-bold tracking-widest text-emerald-400 uppercase flex-shrink-0">
-            <span>🔥 TOP GAINERS</span>
-          </div>
-          {players.filter(p => (p.value || 0) > 0).sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 5).map(p => (
-            <div key={p.id} onClick={() => setSelectedPlayer(p)} className="inline-flex items-center gap-2 cursor-pointer text-[10px] flex-shrink-0 hover:opacity-80 bg-[#111] border border-[#222] px-2.5 py-1 rounded">
-              <span className="font-bold text-white">{p.name}</span>
-              <span className="font-mono text-emerald-400 font-bold">{(p.value || 0).toLocaleString()} CR</span>
+      {/* Bloomberg-Style Top Gainers Marquee Ticker */}
+      {players.length > 0 && (() => {
+        const topGainers = players.filter(p => (p.value || 0) > 0).sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 8)
+        if (topGainers.length === 0) return null
+        return (
+          <div className="bg-[#050505] border-b border-[#222] py-2.5 overflow-hidden relative flex items-center shadow-inner">
+            <div className="bg-[#050505] z-10 px-3 py-1 flex items-center gap-1.5 text-[10px] font-black tracking-widest text-emerald-400 uppercase border-r border-[#222] shrink-0 shadow-md">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span>🔥 TOP GAINERS</span>
             </div>
-          ))}
-        </div>
-      )}
+
+            <div className="overflow-hidden w-full relative">
+              <div className="animate-marquee-left flex items-center gap-3.5 pl-3.5">
+                {[...topGainers, ...topGainers, ...topGainers].map((p, idx) => (
+                  <div 
+                    key={`${p.id}-${idx}`} 
+                    onClick={() => setSelectedPlayer(p)} 
+                    className="inline-flex items-center gap-2 cursor-pointer text-[10px] shrink-0 bg-[#111] hover:bg-[#1a1a1a] border border-[#222] hover:border-emerald-500/50 px-3 py-1 rounded-full transition-all active:scale-95 shadow-sm group"
+                  >
+                    <span className="font-bold text-white group-hover:text-emerald-400 transition-colors">{p.name}</span>
+                    <span className="font-mono text-emerald-400 font-black">▲ {(p.value || 0).toLocaleString()} CR</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Filter Tabs */}
       <div className="flex border-b border-[#1a1a1a]">
