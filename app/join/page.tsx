@@ -241,12 +241,8 @@ export default function JoinPage() {
                       : 'bg-black/40 border-[#222] hover:border-[#444] opacity-75 hover:opacity-100'
                   }`}
                 >
-                  <div className="flex items-center gap-1.5">
-                    <div className={`w-3.5 h-3.5 rounded-sm bg-black border ${ps.borderColor} flex items-center justify-center rotate-45 shrink-0`}>
-                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`${ps.textColor} -rotate-45`}>
-                        <path d={ps.iconSvg} />
-                      </svg>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <img src={ps.imageUrl} alt={ps.name} className="w-5 h-5 object-contain shrink-0" />
                     <span className={`text-[10px] font-black uppercase ${isSelected ? 'text-amber-300' : 'text-white'}`}>
                       {ps.name}
                     </span>

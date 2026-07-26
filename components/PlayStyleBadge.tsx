@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { getPlayStyle, PlayStyleDef, PLAYSTYLES_LIST } from '@/lib/playstyles'
+import { getPlayStyle, PlayStyleDef } from '@/lib/playstyles'
 
 interface PlayStyleBadgeProps {
   styleNameOrId: string
@@ -18,7 +18,7 @@ export default function PlayStyleBadge({
 }: PlayStyleBadgeProps) {
   const playStyle = getPlayStyle(styleNameOrId)
 
-  // Fallback if not a mapped FIFA playstyle
+  // Fallback if not a mapped Playstyle
   if (!playStyle) {
     return (
       <span className={`inline-flex items-center text-[10px] font-bold text-white border border-[#444] bg-[#111] px-2 py-0.5 rounded shadow-sm ${className}`}>
@@ -29,39 +29,32 @@ export default function PlayStyleBadge({
 
   return (
     <div
-      className={`group relative inline-flex items-center gap-1.5 bg-gradient-to-r ${playStyle.bgGradient} ${playStyle.borderColor} border shadow-md rounded-md px-2 py-0.5 transition-all hover:scale-105 shrink-0 ${className}`}
+      className={`group relative inline-flex items-center gap-1.5 bg-black/80 border border-amber-500/30 shadow-md rounded-md px-2 py-0.5 transition-all hover:scale-105 shrink-0 ${className}`}
       title={showTooltip ? `${playStyle.name} (${playStyle.category}): ${playStyle.description}` : playStyle.name}
     >
-      {/* FIFA PlayStyle Diamond Icon */}
-      <div className={`w-3.5 h-3.5 rounded-sm bg-black/60 border ${playStyle.borderColor} flex items-center justify-center rotate-45 shrink-0 shadow-inner`}>
-        <svg
-          width="8"
-          height="8"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          className={`${playStyle.textColor} -rotate-45`}
-        >
-          <path d={playStyle.iconSvg} />
-        </svg>
-      </div>
+      {/* PlayStyle PNG Image Graphic */}
+      <img
+        src={playStyle.imageUrl}
+        alt={playStyle.name}
+        className="w-5 h-5 object-contain filter drop-shadow shrink-0"
+      />
 
       {/* Label */}
-      <span className={`text-[9px] font-extrabold uppercase tracking-wider ${playStyle.textColor}`}>
+      <span className="text-[9px] font-extrabold uppercase tracking-wider text-amber-300">
         {playStyle.name}
       </span>
 
       {/* Optional Hover Card Tooltip */}
       {showTooltip && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48 p-2.5 bg-black/95 border border-[#333] rounded-lg shadow-2xl backdrop-blur-md text-left pointer-events-none">
-          <div className="flex items-center justify-between border-b border-[#222] pb-1 mb-1">
-            <span className={`text-[10px] font-bold uppercase ${playStyle.textColor}`}>
-              {playStyle.name}
-            </span>
-            <span className="text-[8px] font-mono text-[#777] uppercase">{playStyle.category}</span>
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-52 p-2.5 bg-black/95 border border-amber-500/40 rounded-lg shadow-2xl backdrop-blur-md text-left pointer-events-none">
+          <div className="flex items-center gap-2 border-b border-[#222] pb-1.5 mb-1.5">
+            <img src={playStyle.imageUrl} alt="" className="w-6 h-6 object-contain" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-black uppercase text-amber-300 truncate">{playStyle.name}</p>
+              <p className="text-[8px] font-mono text-[#888] uppercase">{playStyle.category}</p>
+            </div>
           </div>
-          <p className="text-[9px] text-[#aaa] leading-tight font-normal">{playStyle.description}</p>
+          <p className="text-[9px] text-[#bbb] leading-tight font-normal">{playStyle.description}</p>
         </div>
       )}
     </div>
