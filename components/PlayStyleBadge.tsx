@@ -6,6 +6,7 @@ import { getPlayStyle, PlayStyleDef } from '@/lib/playstyles'
 interface PlayStyleBadgeProps {
   styleNameOrId: string
   compact?: boolean
+  graphicOnly?: boolean
   showTooltip?: boolean
   className?: string
 }
@@ -13,6 +14,7 @@ interface PlayStyleBadgeProps {
 export default function PlayStyleBadge({
   styleNameOrId,
   compact = false,
+  graphicOnly = false,
   showTooltip = true,
   className = ''
 }: PlayStyleBadgeProps) {
@@ -46,31 +48,45 @@ export default function PlayStyleBadge({
 
   return (
     <>
-      {/* Rectangular Clean Badge matching Country/Franchise/Position style */}
-      <button
-        type="button"
-        onClick={handleToggle}
-        onTouchEnd={handleToggle}
-        className={`inline-flex items-center gap-1.5 bg-black/60 border border-[#333] hover:border-amber-500/60 px-1.5 py-0.5 text-[10px] font-bold uppercase transition-all shrink-0 cursor-pointer active:scale-95 ${className}`}
-        title={`${playStyle.name}: Tap to view details`}
-      >
-        {/* PlayStyle PNG Image Graphic */}
-        <img
-          src={playStyle.imageUrl}
-          alt={playStyle.name}
-          className="w-3.5 h-3.5 object-contain filter drop-shadow shrink-0"
-        />
-
-        {/* Label */}
-        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
-          {playStyle.name}
-        </span>
-      </button>
+      {graphicOnly ? (
+        /* Standalone Graphic PNG Only (larger dimensions matching Market Value box height) */
+        <button
+          type="button"
+          onClick={handleToggle}
+          onTouchEnd={handleToggle}
+          className={`inline-flex items-center justify-center p-1 rounded-lg bg-black/40 border border-amber-500/30 hover:border-amber-400 hover:scale-105 active:scale-95 transition-all shrink-0 cursor-pointer shadow-lg ${className}`}
+          title={`${playStyle.name}: Tap to view PlayStyle details`}
+        >
+          <img
+            src={playStyle.imageUrl}
+            alt={playStyle.name}
+            className="w-10 h-10 object-contain filter drop-shadow-md shrink-0"
+          />
+        </button>
+      ) : (
+        /* Rectangular Clean Badge matching Country/Franchise/Position style */
+        <button
+          type="button"
+          onClick={handleToggle}
+          onTouchEnd={handleToggle}
+          className={`inline-flex items-center gap-1.5 bg-black/60 border border-[#333] hover:border-amber-500/60 px-1.5 py-0.5 text-[10px] font-bold uppercase transition-all shrink-0 cursor-pointer active:scale-95 ${className}`}
+          title={`${playStyle.name}: Tap to view PlayStyle details`}
+        >
+          <img
+            src={playStyle.imageUrl}
+            alt={playStyle.name}
+            className="w-3.5 h-3.5 object-contain filter drop-shadow shrink-0"
+          />
+          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
+            {playStyle.name}
+          </span>
+        </button>
+      )}
 
       {/* Interactive Modal Popover on Tap / Click */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn"
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
@@ -86,7 +102,7 @@ export default function PlayStyleBadge({
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[#222] pb-2">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-lg bg-black border border-amber-500/30 flex items-center justify-center p-1 shadow-inner">
+                <div className="w-10 h-10 rounded-lg bg-black border border-amber-500/40 flex items-center justify-center p-1 shadow-inner">
                   <img src={playStyle.imageUrl} alt={playStyle.name} className="w-full h-full object-contain" />
                 </div>
                 <div>
@@ -127,13 +143,26 @@ export default function PlayStyleBadge({
   )
 }
 
-export function PlayStylesList({ badges, compact = false }: { badges?: string[] | null; compact?: boolean }) {
+export function PlayStylesList({
+  badges,
+  compact = false,
+  graphicOnly = false
+}: {
+  badges?: string[] | null
+  compact?: boolean
+  graphicOnly?: boolean
+}) {
   if (!badges || badges.length === 0) return null
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+    <div className="flex flex-wrap items-center gap-2 shrink-0">
       {badges.map((badge, idx) => (
-        <PlayStyleBadge key={`${badge}-${idx}`} styleNameOrId={badge} compact={compact} />
+        <PlayStyleBadge
+          key={`${badge}-${idx}`}
+          styleNameOrId={badge}
+          compact={compact}
+          graphicOnly={graphicOnly}
+        />
       ))}
     </div>
   )

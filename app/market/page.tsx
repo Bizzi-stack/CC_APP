@@ -403,7 +403,7 @@ export default function MarketPage() {
                 </div>
               )}
 
-              <PlayStylesList badges={selectedPlayer.badges} />
+              <PlayStylesList badges={selectedPlayer.badges} graphicOnly={true} />
             </div>
 
             {/* IMVU Style Canvas */}
