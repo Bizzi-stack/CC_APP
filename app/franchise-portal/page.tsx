@@ -25,6 +25,9 @@ interface Franchise {
   name: string
   logo_url: string | null
   budget: number
+  wins?: number
+  draws?: number
+  losses?: number
 }
 
 interface Bid {
@@ -525,7 +528,7 @@ export default function FranchisePortalPage() {
           <div className="bg-black border border-[#222] p-4 rounded-lg">
             <p className="text-[9px] text-[#666] font-bold tracking-widest uppercase mb-1">Franchise Record</p>
             <p className="text-white text-lg font-mono font-bold">
-              {franchise.wins}W - {franchise.draws}D - {franchise.losses}L
+              {franchise.wins || 0}W - {franchise.draws || 0}D - {franchise.losses || 0}L
             </p>
           </div>
         </div>
