@@ -6,8 +6,23 @@ export const runtime = 'edge'
 // GET /api/franchise/shares - Fetch all franchise share valuations, listings, and user holdings
 export async function GET(request: NextRequest) {
   try {
-    const tokenCookie = request.cookies.get('player_token')
-    const playerId = tokenCookie?.value
+    const playerToken = request.cookies.get('player_token')?.value
+    const franchiseToken = request.cookies.get('franchise_token')?.value
+
+    let playerId = playerToken
+
+    if (!playerId && franchiseToken) {
+      const { data: ownerPlayer } = await supabase
+        .from('players')
+        .select('id')
+        .eq('owned_franchise_id', franchiseToken)
+        .eq('is_franchise_owner', true)
+        .single()
+
+      if (ownerPlayer) {
+        playerId = ownerPlayer.id
+      }
+    }
 
     // 1. Fetch franchises, players, and active listings
     const [fRes, pRes, lRes, sRes] = await Promise.all([
@@ -80,11 +95,27 @@ export async function GET(request: NextRequest) {
 // POST /api/franchise/shares - List shares for sale or Buy shares
 export async function POST(request: NextRequest) {
   try {
-    const tokenCookie = request.cookies.get('player_token')
-    if (!tokenCookie) {
-      return NextResponse.json({ error: 'Unauthorized. Please login as a player.' }, { status: 401 })
+    const playerToken = request.cookies.get('player_token')?.value
+    const franchiseToken = request.cookies.get('franchise_token')?.value
+
+    let playerId = playerToken
+
+    if (!playerId && franchiseToken) {
+      const { data: ownerPlayer } = await supabase
+        .from('players')
+        .select('id')
+        .eq('owned_franchise_id', franchiseToken)
+        .eq('is_franchise_owner', true)
+        .single()
+
+      if (ownerPlayer) {
+        playerId = ownerPlayer.id
+      }
     }
-    const playerId = tokenCookie.value
+
+    if (!playerId) {
+      return NextResponse.json({ error: 'Unauthorized. Please login.' }, { status: 401 })
+    }
 
     const body = await request.json()
     const { action } = body
@@ -96,16 +127,34 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Invalid share listing parameters' }, { status: 400 })
       }
 
-      // 1. Verify user owns enough shares in franchise
-      const { data: userShare, error: shareErr } = await supabase
+      // 1. Verify user owns enough shares in franchise (Auto-seed 100 shares if owner hasn't been seeded yet)
+      let { data: userShare } = await supabase
         .from('franchise_shares')
         .select('*')
         .eq('franchise_id', franchise_id)
         .eq('owner_id', playerId)
         .single()
 
-      if (shareErr || !userShare || userShare.shares_count < shares_count) {
-        return NextResponse.json({ error: 'Insufficient shares owned to list this amount.' }, { status: 400 })
+      if (!userShare) {
+        const { data: ownerCheck } = await supabase
+          .from('players')
+          .select('is_franchise_owner, owned_franchise_id')
+          .eq('id', playerId)
+          .single()
+
+        if (ownerCheck?.is_franchise_owner && ownerCheck.owned_franchise_id === franchise_id) {
+          const { data: newShare } = await supabase
+            .from('franchise_shares')
+            .insert([{ franchise_id, owner_id: playerId, shares_count: 100 }])
+            .select()
+            .single()
+
+          userShare = newShare
+        }
+      }
+
+      if (!userShare || userShare.shares_count < shares_count) {
+        return NextResponse.json({ error: `Insufficient shares owned. You currently have ${userShare?.shares_count || 0} shares.` }, { status: 400 })
       }
 
       // 2. Create listing
