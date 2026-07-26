@@ -73,12 +73,37 @@ export async function POST(request: NextRequest) {
           finalFranchisePayout = totalPot
         }
 
-        // 4. Payout franchise
+        // 4. Payout franchise & Shareholders (20% Dividends)
         if (winner) {
+          const dividendPool = Math.floor(finalFranchisePayout * 0.20)
+          const netFranchiseBudgetPayout = finalFranchisePayout - dividendPool
+
           await supabase
             .from('franchises')
-            .update({ budget: winner.budget + finalFranchisePayout })
+            .update({ budget: winner.budget + netFranchiseBudgetPayout })
             .eq('id', winner_id)
+
+          // Distribute Dividends to Shareholders
+          if (dividendPool > 0) {
+            const { data: shareholders } = await supabase
+              .from('franchise_shares')
+              .select('owner_id, shares_count')
+              .eq('franchise_id', winner_id)
+
+            if (shareholders && shareholders.length > 0) {
+              for (const sh of shareholders) {
+                if (sh.shares_count > 0) {
+                  const sharePayout = Math.floor(dividendPool * (sh.shares_count / 100))
+                  if (sharePayout > 0) {
+                    const { data: shPlayer } = await supabase.from('players').select('balance').eq('id', sh.owner_id).single()
+                    if (shPlayer) {
+                      await supabase.from('players').update({ balance: (shPlayer.balance || 0) + sharePayout }).eq('id', sh.owner_id)
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     } else {

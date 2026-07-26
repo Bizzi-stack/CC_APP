@@ -227,10 +227,41 @@ export default function FranchisePortalPage() {
       }
 
       await fetchPortalData()
+  const handleListShares = async () => {
+    if (!franchise) return
+    const sharesStr = await showDialog({ type: 'prompt', message: 'How many shares do you want to list for sale? (1-100):', placeholder: 'e.g. 10' })
+    if (!sharesStr) return
+    const sharesCount = parseInt(sharesStr as string)
+    if (isNaN(sharesCount) || sharesCount <= 0 || sharesCount > 100) {
+      await showDialog({ type: 'alert', message: 'Please enter a valid number of shares (1 to 100).' })
+      return
+    }
+
+    const priceStr = await showDialog({ type: 'prompt', message: 'Enter price per share (CR):', placeholder: 'e.g. 500' })
+    if (!priceStr) return
+    const pricePerShare = parseInt(priceStr as string)
+    if (isNaN(pricePerShare) || pricePerShare <= 0) {
+      await showDialog({ type: 'alert', message: 'Please enter a valid price per share.' })
+      return
+    }
+
+    try {
+      const res = await fetch('/api/franchise/shares', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'list',
+          franchise_id: franchise.id,
+          shares_count: sharesCount,
+          price_per_share: pricePerShare
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to list shares')
+      await showDialog({ type: 'alert', message: `Successfully listed ${sharesCount} shares for sale at ${pricePerShare.toLocaleString()} CR each!` })
+      await fetchPortalData()
     } catch (err: any) {
       await showDialog({ type: 'alert', message: err.message })
-    } finally {
-      setActioning(null)
     }
   }
 
@@ -476,22 +507,37 @@ export default function FranchisePortalPage() {
           </div>
         </div>
 
-        {/* Budget Cards */}
+        {/* Financial Info & Budget Cards */}
         <div className="grid grid-cols-2 gap-3 mt-6">
-          <div className="bg-black border border-[#222] p-4">
-            <p className="text-[9px] text-[#666] font-bold tracking-widest uppercase mb-1">Available Credits</p>
+          <div className="bg-black border border-[#222] p-4 rounded-lg">
+            <p className="text-[9px] text-[#666] font-bold tracking-widest uppercase mb-1">Franchise Budget</p>
             <p className="text-white text-lg font-mono font-bold">
               {franchise.budget.toLocaleString()} <span className="text-xs text-[#555] font-sans font-normal">CR</span>
             </p>
           </div>
-          <div className="bg-black border border-[#222] p-4">
-            <p className="text-[9px] text-[#666] font-bold tracking-widest uppercase mb-1">Roster Size</p>
+          <div className="bg-black border border-[#222] p-4 rounded-lg">
+            <p className="text-[9px] text-[#666] font-bold tracking-widest uppercase mb-1">Franchise Record</p>
             <p className="text-white text-lg font-mono font-bold">
-              {roster.length} <span className="text-xs text-[#555] font-sans font-normal">Players</span>
+              {franchise.wins}W - {franchise.draws}D - {franchise.losses}L
             </p>
           </div>
         </div>
-      </div>
+
+        {/* Equity & Share Capital Box */}
+        <div className="mt-4 bg-[#080808] border border-amber-500/30 p-4 rounded-xl flex items-center justify-between">
+          <div>
+            <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span>🏛️</span> Equity & Share Capital
+            </h3>
+            <p className="text-[10px] text-[#888] mt-0.5">List shares on the Stock Exchange to raise budget capital</p>
+          </div>
+          <button
+            onClick={handleListShares}
+            className="bg-amber-500 text-black font-bold text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-lg hover:bg-amber-400 transition-colors"
+          >
+            + Sell Shares
+          </button>
+        </div>
 
       {/* Tabs */}
       <div className="flex border-b border-[#1a1a1a]">

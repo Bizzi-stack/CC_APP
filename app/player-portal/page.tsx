@@ -611,6 +611,22 @@ export default function PlayerPortalPage() {
             </p>
           </div>
         </div>
+
+        {/* Stock Portfolio Banner */}
+        <div className="mt-3 bg-[#080808] border border-emerald-500/30 p-3.5 rounded-xl flex items-center justify-between">
+          <div>
+            <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span>🏛️</span> Franchise Stock Exchange
+            </h3>
+            <p className="text-[10px] text-[#888] mt-0.5">Trade franchise equity & earn 20% match dividends</p>
+          </div>
+          <Link
+            href="/market?tab=stocks"
+            className="bg-emerald-500 text-black font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 rounded hover:bg-emerald-400 transition-colors shrink-0"
+          >
+            Trade Stocks →
+          </Link>
+        </div>
       </div>
 
       <div className="p-4 space-y-6">
