@@ -227,6 +227,13 @@ export default function FranchisePortalPage() {
       }
 
       await fetchPortalData()
+    } catch (err: any) {
+      await showDialog({ type: 'alert', message: err.message })
+    } finally {
+      setActioning(null)
+    }
+  }
+
   const handleListShares = async () => {
     if (!franchise) return
     const sharesStr = await showDialog({ type: 'prompt', message: 'How many shares do you want to list for sale? (1-100):', placeholder: 'e.g. 10' })
