@@ -76,6 +76,19 @@ body {
   animation: badgeShine 4.5s ease-in-out infinite;
 }
 
+/* Home Screen Card Idle Float Animations */
+@keyframes cardFloat1 { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-4px); } }
+@keyframes cardFloat2 { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(1px); } }
+@keyframes cardFloat3 { 0%, 100% { transform: translateY(1px); } 50% { transform: translateY(-4px); } }
+@keyframes cardFloat4 { 0%, 100% { transform: translateY(-4px); } 50% { transform: translateY(0px); } }
+
+.animate-card-idle-1 { animation: cardFloat1 4.2s ease-in-out infinite; }
+.animate-card-idle-2 { animation: cardFloat2 4.8s ease-in-out infinite 0.5s; }
+.animate-card-idle-3 { animation: cardFloat3 4.4s ease-in-out infinite 1.0s; }
+.animate-card-idle-4 { animation: cardFloat4 5.0s ease-in-out infinite 1.5s; }
+.animate-card-idle-5 { animation: cardFloat1 4.6s ease-in-out infinite 2.0s; }
+.animate-card-idle-6 { animation: cardFloat2 4.3s ease-in-out infinite 2.5s; }
+
 /* Custom scrollbar for dark theme */
 ::-webkit-scrollbar {
   height: 6px;

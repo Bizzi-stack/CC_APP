@@ -121,7 +121,7 @@ export default function HomePage() {
             {/* 1. View Sessions */}
             <Link 
               href={isAdmin ? "/sessions" : "/calendar"} 
-              className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden"
+              className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden animate-card-idle-1"
             >
               <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-white/10 to-transparent rounded-tr-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-[#444] group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
@@ -138,19 +138,19 @@ export default function HomePage() {
             {/* 2. Player Market */}
             <Link 
               href={isAdmin ? "/players" : "/market"} 
-              className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden"
+              className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden animate-card-idle-2"
             >
               {isAdmin && pendingCount > 0 ? (
                 <div className="absolute top-2.5 right-2.5 bg-[#f44336] text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-lg animate-bounce">
                   {pendingCount} Pending
                 </div>
               ) : (
-                <div className="absolute top-2.5 right-2.5 text-[8px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-900/60 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                <div className="absolute top-2.5 right-2.5 text-[8px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-900/60 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 animate-pulse">
                   <span>🔥</span> Stock Ticker
                 </div>
               )}
               <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-[#444] group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform duration-300">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform duration-300 animate-pulse">
                   <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
                 </svg>
               </div>
@@ -163,7 +163,7 @@ export default function HomePage() {
             {isAdmin && (
               <Link 
                 href="/badges" 
-                className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden"
+                className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden animate-card-idle-3"
               >
                 <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-[#444] group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-12 transition-transform duration-300">
@@ -184,7 +184,7 @@ export default function HomePage() {
                 {/* 3. Submit Profile */}
                 <Link 
                   href="/join" 
-                  className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden"
+                  className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden animate-card-idle-3"
                 >
                   <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-[#444] group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-90 transition-transform duration-500">
@@ -200,10 +200,10 @@ export default function HomePage() {
                 {/* 4. Franchise Portal */}
                 <Link 
                   href="/franchise-portal" 
-                  className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-red-900/60 hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(220,38,38,0.15)] overflow-hidden"
+                  className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-red-900/60 hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(220,38,38,0.15)] overflow-hidden animate-card-idle-4"
                 >
                   <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-red-800 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 group-hover:stroke-red-500 transition-all duration-300">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 group-hover:stroke-red-500 transition-all duration-300 animate-pulse">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
                   </div>
@@ -216,13 +216,13 @@ export default function HomePage() {
                 {/* 5. Player Portal */}
                 <Link 
                   href="/player-portal" 
-                  className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-amber-900/60 hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(245,158,11,0.15)] overflow-hidden"
+                  className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-amber-900/60 hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(245,158,11,0.15)] overflow-hidden animate-card-idle-5"
                 >
-                  <div className="absolute top-2.5 right-2.5 text-[8px] font-bold text-amber-400 bg-amber-950/60 border border-amber-900/60 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                  <div className="absolute top-2.5 right-2.5 text-[8px] font-bold text-amber-400 bg-amber-950/60 border border-amber-900/60 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 animate-pulse">
                     <span>🎰</span> Daily Wage
                   </div>
                   <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-amber-800 group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 group-hover:stroke-amber-400 transition-all duration-300">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 group-hover:stroke-amber-400 transition-all duration-300 animate-badge-shine">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                       <circle cx="12" cy="7" r="4"/>
                     </svg>
@@ -236,10 +236,10 @@ export default function HomePage() {
                 {/* 6. League & Stats */}
                 <Link 
                   href="/league" 
-                  className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden"
+                  className="group relative border border-[#222] bg-[#070707] p-5 flex flex-col gap-2.5 items-center justify-center text-center rounded-2xl transition-all duration-300 hover:border-[#444] hover:bg-[#0d0d0d] active:scale-[0.95] hover:shadow-[0_8px_25px_rgba(0,0,0,0.8)] overflow-hidden animate-card-idle-6"
                 >
                   <div className="p-2.5 rounded-xl bg-[#111] border border-[#222] group-hover:border-[#444] group-hover:-translate-y-1 transition-all duration-300 shadow-inner">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform duration-300">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform duration-300 animate-pulse">
                       <line x1="18" y1="20" x2="18" y2="10"/>
                       <line x1="12" y1="20" x2="12" y2="4"/>
                       <line x1="6" y1="20" x2="6" y2="14"/>
