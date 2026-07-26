@@ -8,6 +8,7 @@ import VerificationBadge from '@/components/VerificationBadge'
 import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseOwnerBadge } from '@/components/ProfileBanner'
 import { useCustomDialog } from '@/components/CustomDialog'
 import { requestNotificationPermission, sendNativeNotification } from '@/lib/notifications'
+import { COUNTRY_LIST, getCountryFlag } from '@/lib/countries'
 
 interface CanvasBadge {
   id: string
@@ -100,6 +101,7 @@ export default function PlayerPortalPage() {
   const [spotifyTrackUrl, setSpotifyTrackUrl] = useState('')
   const [isBusiness, setIsBusiness] = useState(false)
   const [businessName, setBusinessName] = useState('')
+  const [country, setCountry] = useState('Barbados')
   const [savingProfile, setSavingProfile] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
 
@@ -154,6 +156,7 @@ export default function PlayerPortalPage() {
       setSpotifyTrackUrl(curPlayer.spotify_track_url || '')
       setIsBusiness(Boolean(curPlayer.is_business))
       setBusinessName(curPlayer.business_name || '')
+      setCountry(curPlayer.country || 'Barbados')
       setIncomingOffers(offersData.offers || [])
       setActiveMatches(matchesData.matches || [])
       setMyWagers(wagersData.wagers || [])
@@ -273,7 +276,8 @@ export default function PlayerPortalPage() {
           instagram_url: instagramUrl || null,
           spotify_track_url: spotifyTrackUrl || null,
           is_business: isBusiness,
-          business_name: businessName || null
+          business_name: businessName || null,
+          country: country || 'Barbados'
         })
       })
       const data = await res.json()
@@ -543,6 +547,10 @@ export default function PlayerPortalPage() {
               <FranchiseOwnerBadge isOwner={player?.is_franchise_owner} franchiseName={player?.owned_franchise?.name} />
               <BusinessBadge isBusiness={isBusiness} businessName={businessName || player?.business_name} />
               <InstagramBadge url={instagramUrl || player?.instagram_url} />
+              <span className="text-[10px] font-bold text-white border border-[#2a2a2a] bg-black/60 px-1.5 py-0.5 uppercase flex items-center gap-1 rounded shadow-sm">
+                <span>{getCountryFlag(country || player?.country)}</span>
+                <span>{country || player?.country || 'Barbados'}</span>
+              </span>
               <span className="text-[9px] font-bold text-[#888] border border-[#2a2a2a] px-1 py-0.5 uppercase">
                 {player?.position || 'Unassigned'}
               </span>
@@ -845,6 +853,24 @@ export default function PlayerPortalPage() {
             <p className="text-[8px] text-[#555]">
               Copy link to track from Spotify. Visitors can play your track preview directly from your banner!
             </p>
+          </div>
+
+          {/* Nationality / Country Flag */}
+          <div className="pt-2 border-t border-[#1a1a1a] space-y-1.5">
+            <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block">
+              Nationality / Country Flag
+            </label>
+            <select
+              value={country}
+              onChange={e => setCountry(e.target.value)}
+              className="w-full h-10 px-3 bg-black border border-[#333] text-white text-xs outline-none focus:border-white transition-colors cursor-pointer uppercase font-bold"
+            >
+              {COUNTRY_LIST.map(c => (
+                <option key={c.code} value={c.name} className="bg-[#111] text-white">
+                  {c.flag} {c.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Business Owner Toggle */}

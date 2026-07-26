@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import PublicNav from '@/components/PublicNav'
+import { COUNTRY_LIST } from '@/lib/countries'
 
 const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST', 'CF']
 
@@ -20,6 +20,7 @@ export default function JoinPage() {
     name: '',
     position: '',
     notes: '',
+    country: 'Barbados',
   })
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,6 +62,7 @@ export default function JoinPage() {
           position: form.position || null,
           photo_url: uploadData.url,
           notes: form.notes.trim() || null,
+          country: form.country || 'Barbados',
         }),
       })
       const joinData = await joinRes.json()
@@ -177,6 +179,23 @@ export default function JoinPage() {
             className={inputClass}
             placeholder="e.g. Marcus Reid"
           />
+        </div>
+
+        {/* Country / Flag */}
+        <div>
+          <label className={labelClass}>Nationality / Country Flag</label>
+          <select
+            name="country"
+            value={form.country}
+            onChange={e => setForm(p => ({ ...p, country: e.target.value }))}
+            className={inputClass + ' cursor-pointer uppercase font-bold text-white bg-black'}
+          >
+            {COUNTRY_LIST.map(c => (
+              <option key={c.code} value={c.name} className="bg-[#111] text-white">
+                {c.flag} {c.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Position */}

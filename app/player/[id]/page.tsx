@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
+import { getCountryFlag } from '@/lib/countries'
 
 interface Player {
   id: string
@@ -15,6 +16,7 @@ interface Player {
   goals: number
   assists: number
   value?: number
+  country?: string | null
   verification_badge?: string | null
   franchises?: {
     name: string
@@ -114,6 +116,10 @@ export default function PlayerStatsPage() {
               <VerificationBadge type={player.verification_badge} className="w-6 h-6 sm:w-8 sm:h-8" />
             </h1>
             <div className="flex flex-wrap items-center gap-3">
+              <span className="text-xs font-bold text-white tracking-widest uppercase border border-[#333] bg-[#111] px-3 py-1.5 flex items-center gap-1.5">
+                <span>{getCountryFlag(player.country)}</span>
+                <span>{player.country || 'Barbados'}</span>
+              </span>
               {player.franchises && (
                 <div className="flex items-center gap-2 bg-[#111] border border-[#333] px-3 py-1.5">
                   {player.franchises.logo_url && (

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import BadgeCanvasEditor, { BadgePosition } from '@/components/BadgeCanvasEditor'
+import { COUNTRY_LIST } from '@/lib/countries'
 
 const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST', 'CF']
 
@@ -37,6 +38,7 @@ export default function NewPlayerPage() {
     value: '',
     franchise_id: '',
     badges: '',
+    country: 'Barbados',
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -141,6 +143,23 @@ export default function NewPlayerPage() {
         <div>
           <label className={labelClass}>Full Name</label>
           <input name="name" value={form.name} onChange={handleChange} required className={inputClass} placeholder="e.g. Marcus Reid" />
+        </div>
+
+        {/* Country / Flag */}
+        <div>
+          <label className={labelClass}>Nationality / Country Flag</label>
+          <select
+            name="country"
+            value={form.country}
+            onChange={handleChange}
+            className="w-full h-11 px-3 bg-black border border-[#333] text-white text-sm outline-none focus:border-white transition-colors cursor-pointer uppercase font-bold"
+          >
+            {COUNTRY_LIST.map(c => (
+              <option key={c.code} value={c.name} className="bg-[#111] text-white">
+                {c.flag} {c.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Position */}

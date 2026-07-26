@@ -5,6 +5,7 @@ import Link from 'next/link'
 import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
 import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseOwnerBadge } from '@/components/ProfileBanner'
+import { getCountryFlag } from '@/lib/countries'
 
 interface Player {
   id: string
@@ -16,6 +17,7 @@ interface Player {
   value?: number
   goals?: number
   assists?: number
+  country?: string | null
   status: string
   franchise_id?: string
   verification_badge?: string | null
@@ -493,6 +495,10 @@ function PublicPlayerRow({ player }: { player: Player }) {
           <VerificationBadge type={player.verification_badge} className="w-[20px] h-[20px] ml-0.5" />
         </p>
         <div className="flex flex-wrap items-center gap-2 mt-0.5">
+          <span className="text-[10px] font-bold text-white border border-[#2a2a2a] bg-black px-1.5 py-0.5 flex items-center gap-1">
+            <span>{getCountryFlag(player.country)}</span>
+            <span>{player.country || 'Barbados'}</span>
+          </span>
           <FranchiseOwnerBadge isOwner={player.is_franchise_owner} franchiseName={player.owned_franchise?.name} />
           <BusinessBadge isBusiness={player.is_business} businessName={player.business_name} />
           <InstagramBadge url={player.instagram_url} />

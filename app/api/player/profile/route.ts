@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { banner_url, instagram_url, spotify_track_url, is_business, business_name } = body
+    const { banner_url, instagram_url, spotify_track_url, is_business, business_name, country } = body
 
     // Format Instagram URL if provided as handle
     let formattedIg = instagram_url ? instagram_url.trim() : null
@@ -22,15 +22,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const updateData: any = {
+      banner_url: banner_url !== undefined ? banner_url : null,
+      instagram_url: formattedIg,
+      spotify_track_url: spotify_track_url !== undefined ? spotify_track_url : null,
+      is_business: Boolean(is_business),
+      business_name: business_name ? business_name.trim() : null,
+    }
+
+    if (country) {
+      updateData.country = country
+    }
+
     const { error } = await supabase
       .from('players')
-      .update({
-        banner_url: banner_url !== undefined ? banner_url : null,
-        instagram_url: formattedIg,
-        spotify_track_url: spotify_track_url !== undefined ? spotify_track_url : null,
-        is_business: Boolean(is_business),
-        business_name: business_name ? business_name.trim() : null,
-      })
+      .update(updateData)
       .eq('id', playerId)
 
     if (error) {
