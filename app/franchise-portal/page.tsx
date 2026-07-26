@@ -83,6 +83,8 @@ export default function FranchisePortalPage() {
   const [customBidAmount, setCustomBidAmount] = useState('')
 
   const [contractOffers, setContractOffers] = useState<any[]>([])
+  const [shareListings, setShareListings] = useState<any[]>([])
+  const [shareInfo, setShareInfo] = useState<any>(null)
 
   useEffect(() => {
     fetchPortalData()
@@ -90,13 +92,14 @@ export default function FranchisePortalPage() {
 
   const fetchPortalData = async () => {
     try {
-      const [meRes, playersRes, bidsRes, offersRes, challengesRes, franchisesRes] = await Promise.all([
+      const [meRes, playersRes, bidsRes, offersRes, challengesRes, franchisesRes, sharesRes] = await Promise.all([
         fetch('/api/franchise/me'),
         fetch('/api/players'),
         fetch('/api/franchise/bids'),
         fetch('/api/franchise/offer'),
         fetch('/api/franchise/challenges'),
-        fetch('/api/franchises')
+        fetch('/api/franchises'),
+        fetch('/api/franchise/shares')
       ])
 
       if (!meRes.ok) {
@@ -113,6 +116,7 @@ export default function FranchisePortalPage() {
       const offersData = await offersRes.json()
       const challengesData = await challengesRes.json()
       const franchisesData = await franchisesRes?.json() || { franchises: [] }
+      const sharesData = await sharesRes?.json() || { franchises: [], listings: [] }
 
       const currentFranchise = meData.franchise
       setFranchise(currentFranchise)
@@ -127,10 +131,31 @@ export default function FranchisePortalPage() {
       setContractOffers(offersData.offers || [])
       setChallenges(challengesData.challenges || [])
       setAllFranchises(franchisesData.franchises || [])
+
+      const myFranchiseShares = (sharesData.franchises || []).find((f: any) => f.id === currentFranchise.id)
+      setShareInfo(myFranchiseShares || null)
+      const myActiveListings = (sharesData.listings || []).filter((l: any) => l.franchise_id === currentFranchise.id)
+      setShareListings(myActiveListings)
     } catch (err: any) {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleCancelListing = async (listingId: string) => {
+    try {
+      const res = await fetch('/api/franchise/shares', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cancel', listing_id: listingId })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to cancel listing')
+      await showDialog({ type: 'alert', message: data.message || 'Listing cancelled!' })
+      await fetchPortalData()
+    } catch (err: any) {
+      await showDialog({ type: 'alert', message: err.message })
     }
   }
 
@@ -534,19 +559,56 @@ export default function FranchisePortalPage() {
         </div>
 
         {/* Equity & Share Capital Box */}
-        <div className="mt-4 bg-[#080808] border border-amber-500/30 p-4 rounded-xl flex items-center justify-between">
-          <div>
-            <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span>🏛️</span> Equity & Share Capital
-            </h3>
-            <p className="text-[10px] text-[#888] mt-0.5">List shares on the Stock Exchange to raise budget capital</p>
+        <div className="mt-4 bg-[#080808] border border-amber-500/30 p-4 rounded-xl space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                <span>🏛️</span> Equity & Share Capital
+              </h3>
+              <p className="text-[10px] text-[#888] mt-0.5">List shares on the Stock Exchange to raise budget capital</p>
+            </div>
+            <button
+              onClick={handleListShares}
+              className="bg-amber-500 text-black font-bold text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-lg hover:bg-amber-400 transition-colors shadow-md shrink-0"
+            >
+              + Sell Shares
+            </button>
           </div>
-          <button
-            onClick={handleListShares}
-            className="bg-amber-500 text-black font-bold text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-lg hover:bg-amber-400 transition-colors"
-          >
-            + Sell Shares
-          </button>
+
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#1a1a1a] text-[10px]">
+            <div className="bg-black/50 p-2 rounded border border-[#1a1a1a]">
+              <span className="text-[#666] block uppercase font-bold">Your Owned Equity</span>
+              <span className="text-white font-mono font-bold text-xs">{shareInfo?.user_shares_count ?? 100} / 100 Shares ({shareInfo?.user_shares_count ?? 100}%)</span>
+            </div>
+            <div className="bg-black/50 p-2 rounded border border-[#1a1a1a]">
+              <span className="text-[#666] block uppercase font-bold">Market Share Valuation</span>
+              <span className="text-emerald-400 font-mono font-bold text-xs">{(shareInfo?.share_price || 100).toLocaleString()} CR / share</span>
+            </div>
+          </div>
+
+          {/* Active Listings List */}
+          {shareListings.length > 0 && (
+            <div className="pt-2 border-t border-[#1a1a1a] space-y-2">
+              <p className="text-[9px] font-bold text-[#aaa] uppercase tracking-wider">Your Active Stock Listings on Market:</p>
+              {shareListings.map((l: any) => (
+                <div key={l.id} className="flex items-center justify-between bg-black border border-[#222] p-2.5 rounded text-[10px]">
+                  <div>
+                    <span className="font-bold text-white block">{l.shares_count} Shares ({l.shares_count}% Equity)</span>
+                    <span className="text-[#666] font-mono">{l.price_per_share.toLocaleString()} CR / share</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-emerald-400 font-bold">{(l.shares_count * l.price_per_share).toLocaleString()} CR</span>
+                    <button
+                      onClick={() => handleCancelListing(l.id)}
+                      className="text-[#ff4444] border border-[#ff4444]/40 hover:bg-[#ff4444]/10 text-[9px] font-bold uppercase px-2 py-1 rounded transition-colors"
+                    >
+                      Delist
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

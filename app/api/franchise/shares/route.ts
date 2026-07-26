@@ -270,6 +270,50 @@ export async function POST(request: NextRequest) {
         .eq('id', listing_id)
 
       return NextResponse.json({ success: true, message: `Successfully purchased ${listing.shares_count} shares for ${totalCost.toLocaleString()} CR!` })
+    } else if (action === 'cancel') {
+      const { listing_id } = body
+
+      if (!listing_id) {
+        return NextResponse.json({ error: 'Missing listing_id' }, { status: 400 })
+      }
+
+      const { data: listing, error: listErr } = await supabase
+        .from('franchise_share_listings')
+        .select('*')
+        .eq('id', listing_id)
+        .eq('seller_id', playerId)
+        .single()
+
+      if (listErr || !listing || listing.status !== 'active') {
+        return NextResponse.json({ error: 'Listing not found or already inactive.' }, { status: 404 })
+      }
+
+      // Mark listing as cancelled
+      await supabase
+        .from('franchise_share_listings')
+        .update({ status: 'cancelled' })
+        .eq('id', listing_id)
+
+      // Return shares to seller's balance
+      const { data: userShare } = await supabase
+        .from('franchise_shares')
+        .select('*')
+        .eq('franchise_id', listing.franchise_id)
+        .eq('owner_id', playerId)
+        .single()
+
+      if (userShare) {
+        await supabase
+          .from('franchise_shares')
+          .update({ shares_count: userShare.shares_count + listing.shares_count })
+          .eq('id', userShare.id)
+      } else {
+        await supabase
+          .from('franchise_shares')
+          .insert([{ franchise_id: listing.franchise_id, owner_id: playerId, shares_count: listing.shares_count }])
+      }
+
+      return NextResponse.json({ success: true, message: 'Share listing cancelled and shares returned to your portfolio!' })
     } else {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
