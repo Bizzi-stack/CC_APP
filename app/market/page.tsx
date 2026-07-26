@@ -14,6 +14,8 @@ interface Player {
   available: boolean
   notes?: string
   value?: number
+  goals?: number
+  assists?: number
   status: string
   franchise_id?: string
   verification_badge?: string | null
@@ -145,16 +147,27 @@ export default function MarketPage() {
 
             <div className="overflow-hidden w-full relative">
               <div className="animate-marquee-left flex items-center gap-3.5 pl-3.5">
-                {[...topGainers, ...topGainers, ...topGainers].map((p, idx) => (
-                  <div 
-                    key={`${p.id}-${idx}`} 
-                    onClick={() => setSelectedPlayer(p)} 
-                    className="inline-flex items-center gap-2 cursor-pointer text-[10px] shrink-0 bg-[#111] hover:bg-[#1a1a1a] border border-[#222] hover:border-emerald-500/50 px-3 py-1 rounded-full transition-all active:scale-95 shadow-sm group"
-                  >
-                    <span className="font-bold text-white group-hover:text-emerald-400 transition-colors">{p.name}</span>
-                    <span className="font-mono text-emerald-400 font-black">▲ {(p.value || 0).toLocaleString()} CR</span>
-                  </div>
-                ))}
+                {[...topGainers, ...topGainers, ...topGainers].map((p, idx) => {
+                  const hasGained = (p.goals && p.goals > 0) || (p.assists && p.assists > 0) || (p.value && p.value > 1000)
+                  return (
+                    <div 
+                      key={`${p.id}-${idx}`} 
+                      onClick={() => setSelectedPlayer(p)} 
+                      className="inline-flex items-center gap-2 cursor-pointer text-[10px] shrink-0 bg-[#111] hover:bg-[#1a1a1a] border border-[#222] hover:border-emerald-500/50 px-3 py-1 rounded-full transition-all active:scale-95 shadow-sm group"
+                    >
+                      <span className="font-bold text-white group-hover:text-emerald-400 transition-colors">{p.name}</span>
+                      {hasGained ? (
+                        <span className="font-mono text-emerald-400 font-black flex items-center gap-1">
+                          <span className="text-[10px]">▲</span> {(p.value || 0).toLocaleString()} CR
+                        </span>
+                      ) : (
+                        <span className="font-mono text-[#777] font-semibold flex items-center gap-1">
+                          <span className="text-[#555] font-bold">-</span> {(p.value || 0).toLocaleString()} CR
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
