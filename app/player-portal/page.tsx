@@ -51,6 +51,7 @@ interface Player {
   wages: number
   balance: number
   available: boolean
+  country?: string | null
   last_wage_collection?: string | null
   verification_badge?: string | null
   banner_url?: string | null
