@@ -6,6 +6,8 @@ import BottomNav from '@/components/BottomNav'
 import BadgeCanvasEditor, { BadgePosition } from '@/components/BadgeCanvasEditor'
 import VerificationBadge from '@/components/VerificationBadge'
 import { FranchiseOwnerBadge } from '@/components/ProfileBanner'
+import { getCountryFlag } from '@/lib/countries'
+import { PlayStylesList } from '@/components/PlayStyleBadge'
 
 interface Player {
   id: string
@@ -816,6 +818,7 @@ function ActivePlayerRow({ player, onToggle, onEdit, onDelete, actioning }: {
           {player.position && (
             <span className="text-[10px] font-bold text-[#888] border border-[#333] px-1.5 py-0.5">{player.position}</span>
           )}
+          <PlayStylesList badges={player.badges} />
           {player.notes && <span className="text-[11px] text-[#555] truncate">{player.notes}</span>}
         </div>
         {player.value !== undefined && player.value > 0 && (

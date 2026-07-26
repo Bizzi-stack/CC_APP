@@ -5,10 +5,17 @@ import { supabase } from '@/lib/supabase'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, position, photo_url, notes, country } = body
+    const { name, position, photo_url, notes, country, playstyle, badges } = body
 
     if (!name) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+    }
+
+    const initialBadges: string[] = []
+    if (Array.isArray(badges)) {
+      initialBadges.push(...badges)
+    } else if (playstyle) {
+      initialBadges.push(playstyle)
     }
 
     const { data, error } = await supabase
@@ -19,6 +26,7 @@ export async function POST(request: NextRequest) {
         photo_url: photo_url || null,
         notes: notes || null,
         country: country || 'Barbados',
+        badges: initialBadges.length > 0 ? initialBadges : null,
         available: true,
         value: 0,
         status: 'pending', // always pending — admin approves and sets value

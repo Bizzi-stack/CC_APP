@@ -7,6 +7,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
 import { getCountryFlag } from '@/lib/countries'
+import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
 
 interface Player {
   id: string
@@ -17,6 +18,7 @@ interface Player {
   assists: number
   value?: number
   country?: string | null
+  badges?: string[] | null
   verification_badge?: string | null
   franchises?: {
     name: string
@@ -133,6 +135,7 @@ export default function PlayerStatsPage() {
                   {player.position}
                 </span>
               )}
+              <PlayStylesList badges={player.badges} />
             </div>
           </div>
         </div>

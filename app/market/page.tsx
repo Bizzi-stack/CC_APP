@@ -6,6 +6,7 @@ import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
 import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseOwnerBadge } from '@/components/ProfileBanner'
 import { getCountryFlag } from '@/lib/countries'
+import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
 
 interface Player {
   id: string
@@ -517,11 +518,7 @@ function PublicPlayerRow({ player }: { player: Player }) {
               {player.position}
             </span>
           )}
-          {player.badges && player.badges.map(badge => (
-            <span key={badge} className="text-[10px] font-bold text-white border border-[#555] px-1.5 py-0.5">
-              {badge}
-            </span>
-          ))}
+          <PlayStylesList badges={player.badges} />
         </div>
         {player.value !== undefined && player.value > 0 && (
           <p className="text-[#aaa] text-xs font-bold mt-1">

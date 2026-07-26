@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { name, photo_url, position, notes, banner_url, instagram_url, spotify_track_url, is_business, business_name, country } = body
+    const { name, photo_url, position, notes, banner_url, instagram_url, spotify_track_url, is_business, business_name, country, playstyle, badges } = body
 
     // Format Instagram URL if provided as handle
     let formattedIg = instagram_url ? instagram_url.trim() : null
@@ -35,6 +35,15 @@ export async function POST(request: NextRequest) {
     if (position !== undefined) updateData.position = position || null
     if (notes !== undefined) updateData.notes = notes || null
     if (country) updateData.country = country
+    if (Array.isArray(badges)) {
+      updateData.badges = badges
+    } else if (playstyle) {
+      // Get existing player badges and update primary playstyle
+      const { data: existingPlayer } = await supabase.from('players').select('badges').eq('id', playerId).single()
+      const currentBadges: string[] = existingPlayer?.badges || []
+      const restBadges = currentBadges.filter(b => b !== playstyle)
+      updateData.badges = [playstyle, ...restBadges]
+    }
 
     const { error } = await supabase
       .from('players')
