@@ -262,24 +262,38 @@ export default function FranchisePortalPage() {
     }
   }
 
-  const handleListShares = async () => {
+  // Sell Stock Modal State
+  const [isListStockModalOpen, setIsListStockModalOpen] = useState(false)
+  const [listSharesCount, setListSharesCount] = useState('10')
+  const [listPricePerShare, setListPricePerShare] = useState('')
+
+  const openListStockModal = () => {
     if (!franchise) return
-    const sharesStr = await showDialog({ type: 'prompt', message: 'How many shares do you want to list for sale? (1-100):', placeholder: 'e.g. 10' })
-    if (!sharesStr) return
-    const sharesCount = parseInt(sharesStr as string)
-    if (isNaN(sharesCount) || sharesCount <= 0 || sharesCount > 100) {
-      await showDialog({ type: 'alert', message: 'Please enter a valid number of shares (1 to 100).' })
+    const defaultPrice = (shareInfo?.share_price || 100).toString()
+    setListPricePerShare(defaultPrice)
+    setListSharesCount('10')
+    setIsListStockModalOpen(true)
+  }
+
+  const handleListSharesSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!franchise) return
+    const sharesCount = parseInt(listSharesCount)
+    const pricePerShare = parseInt(listPricePerShare)
+
+    const availableShares = shareInfo?.user_shares_count ?? 100
+
+    if (isNaN(sharesCount) || sharesCount <= 0 || sharesCount > availableShares) {
+      await showDialog({ type: 'alert', message: `Please enter a valid number of shares (1 to ${availableShares}).` })
       return
     }
 
-    const priceStr = await showDialog({ type: 'prompt', message: 'Enter price per share (CR):', placeholder: 'e.g. 500' })
-    if (!priceStr) return
-    const pricePerShare = parseInt(priceStr as string)
     if (isNaN(pricePerShare) || pricePerShare <= 0) {
       await showDialog({ type: 'alert', message: 'Please enter a valid price per share.' })
       return
     }
 
+    setActioning('list-shares')
     try {
       const res = await fetch('/api/franchise/shares', {
         method: 'POST',
@@ -293,10 +307,14 @@ export default function FranchisePortalPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to list shares')
+
+      setIsListStockModalOpen(false)
       await showDialog({ type: 'alert', message: `Successfully listed ${sharesCount} shares for sale at ${pricePerShare.toLocaleString()} CR each!` })
       await fetchPortalData()
     } catch (err: any) {
       await showDialog({ type: 'alert', message: err.message })
+    } finally {
+      setActioning(null)
     }
   }
 
@@ -568,7 +586,7 @@ export default function FranchisePortalPage() {
               <p className="text-[10px] text-[#888] mt-0.5">List shares on the Stock Exchange to raise budget capital</p>
             </div>
             <button
-              onClick={handleListShares}
+              onClick={openListStockModal}
               className="bg-amber-500 text-black font-bold text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-lg hover:bg-amber-400 transition-colors shadow-md shrink-0"
             >
               + Sell Shares
@@ -1216,7 +1234,85 @@ export default function FranchisePortalPage() {
           </div>
         </div>
       )}
-      <DialogComponent />
+
+      {/* Sell Stock Modal */}
+      {isListStockModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0a0a0a] border border-amber-500/40 p-6 w-full max-w-sm rounded-2xl shadow-2xl space-y-5">
+            <div>
+              <h2 className="text-lg font-bold uppercase tracking-wide text-amber-400 flex items-center gap-2">
+                <span>🏛️</span> Sell Equity Shares
+              </h2>
+              <p className="text-xs text-[#888] mt-1">
+                List shares on the Stock Exchange to raise budget capital for {franchise?.name}.
+              </p>
+            </div>
+
+            <form onSubmit={handleListSharesSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold tracking-widest uppercase text-[#666]">
+                  Shares to Sell (Available: {shareInfo?.user_shares_count ?? 100})
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  max={shareInfo?.user_shares_count ?? 100}
+                  value={listSharesCount}
+                  onChange={e => setListSharesCount(e.target.value)}
+                  placeholder="e.g. 10"
+                  className="w-full bg-[#111] border border-[#333] p-3 rounded-lg text-white focus:outline-none focus:border-amber-400 text-sm font-bold font-mono"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold tracking-widest uppercase text-[#666]">
+                  Price Per Share (CR)
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={listPricePerShare}
+                  onChange={e => setListPricePerShare(e.target.value)}
+                  placeholder="e.g. 500"
+                  className="w-full bg-[#111] border border-[#333] p-3 rounded-lg text-white focus:outline-none focus:border-amber-400 text-sm font-bold font-mono"
+                />
+                <p className="text-[10px] text-[#666]">Suggested Valuation: {(shareInfo?.share_price || 100).toLocaleString()} CR/share</p>
+              </div>
+
+              {/* Total Revenue Preview Box */}
+              {parseInt(listSharesCount) > 0 && parseInt(listPricePerShare) > 0 && (
+                <div className="bg-amber-950/40 border border-amber-500/30 p-3 rounded-lg flex items-center justify-between text-xs">
+                  <span className="text-amber-200 font-bold">Total Capital Raised:</span>
+                  <span className="font-mono font-bold text-amber-400 text-sm">
+                    {(parseInt(listSharesCount) * parseInt(listPricePerShare)).toLocaleString()} CR
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsListStockModalOpen(false)}
+                  className="flex-1 border border-[#333] text-[#aaa] font-bold tracking-widest uppercase p-3 rounded-lg hover:bg-[#111] transition-colors text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={actioning !== null}
+                  className="flex-1 bg-amber-500 text-black font-bold tracking-widest uppercase p-3 rounded-lg hover:bg-amber-400 transition-colors disabled:opacity-50 text-xs shadow-lg"
+                >
+                  {actioning === 'list-shares' ? 'Listing...' : 'List Stock'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {DialogComponent}
     </div>
   )
 }
