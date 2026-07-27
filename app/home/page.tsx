@@ -137,8 +137,8 @@ export default function HomePage() {
 
               {/* BTC side */}
               <div className="flex items-center gap-1.5">
-                <span className="text-amber-300 font-mono font-black text-lg sm:text-xl tracking-tight flex items-center gap-1">
-                  <span>₿</span> $50.00 USD
+                <span className="text-amber-300 font-mono font-black text-lg sm:text-xl tracking-tight">
+                  $50.00 USD
                 </span>
                 <span className="text-[10px] font-bold text-amber-400/90 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/30">
                   in BTC
