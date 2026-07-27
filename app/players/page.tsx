@@ -276,9 +276,14 @@ export default function AdminPlayersPage() {
             <p className="text-[#f44336] text-xs mt-0.5 font-bold">{pending.length} pending approval</p>
           )}
         </div>
-        <Link href="/players/new" className="bg-white text-black text-xs font-bold tracking-widest uppercase px-4 py-2 active:bg-gray-200 transition-colors">
-          + Add
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/admin-cashouts" className="bg-amber-500/10 border border-amber-500/40 text-amber-300 hover:bg-amber-500/20 text-xs font-bold tracking-wider uppercase px-3 py-2 transition-colors flex items-center gap-1.5">
+            <span>₿</span> Cashouts
+          </Link>
+          <Link href="/players/new" className="bg-white text-black text-xs font-bold tracking-widest uppercase px-4 py-2 active:bg-gray-200 transition-colors">
+            + Add
+          </Link>
+        </div>
       </div>
 
       {/* Tab Bar */}
