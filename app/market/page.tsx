@@ -93,6 +93,16 @@ export default function MarketPage() {
       .finally(() => setLoading(false))
   }, [])
 
+  const fetchStockShares = async () => {
+    try {
+      const sharesRes = await fetch('/api/franchise/shares')
+      const sharesData = await sharesRes.json()
+      setStockFranchises(sharesData.franchises || [])
+      setStockListings(sharesData.listings || [])
+      setUserPortfolio(sharesData.userPortfolio || [])
+    } catch {}
+  }
+
   const handleBuyShare = async (listingId: string) => {
     setBuyingShare(listingId)
     try {
@@ -104,12 +114,7 @@ export default function MarketPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to buy shares')
       alert(data.message || 'Share purchase successful!')
-      // Refresh shares
-      const sharesRes = await fetch('/api/franchise/shares')
-      const sharesData = await sharesRes.json()
-      setStockFranchises(sharesData.franchises || [])
-      setStockListings(sharesData.listings || [])
-      setUserPortfolio(sharesData.userPortfolio || [])
+      await fetchStockShares()
     } catch (err: any) {
       alert(err.message)
     } finally {
