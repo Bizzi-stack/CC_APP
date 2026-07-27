@@ -391,6 +391,61 @@ export async function POST(request: NextRequest) {
         success: true,
         message: `Successfully bought ${shares_count} shares of ${franchise.name} for ${totalCost.toLocaleString()} CR!`
       })
+    } else if (action === 'sell_instant') {
+      const { franchise_id, shares_count } = body
+
+      if (!franchise_id || !shares_count || shares_count <= 0) {
+        return NextResponse.json({ error: 'Invalid franchise_id or shares_count' }, { status: 400 })
+      }
+
+      // Check owned shares
+      const { data: userShare, error: shareErr } = await supabase
+        .from('franchise_shares')
+        .select('*')
+        .eq('franchise_id', franchise_id)
+        .eq('owner_id', playerId)
+        .single()
+
+      if (shareErr || !userShare || userShare.shares_count < shares_count) {
+        return NextResponse.json({
+          error: `Insufficient shares. You currently own ${userShare?.shares_count || 0} shares.`
+        }, { status: 400 })
+      }
+
+      // Fetch franchise for current valuation
+      const { data: franchise, error: fErr } = await supabase
+        .from('franchises')
+        .select('*')
+        .eq('id', franchise_id)
+        .single()
+
+      if (fErr || !franchise) {
+        return NextResponse.json({ error: 'Franchise not found' }, { status: 404 })
+      }
+
+      // Calculate share price
+      const { data: roster } = await supabase.from('players').select('value').eq('franchise_id', franchise_id)
+      const totalRosterValue = (roster || []).reduce((sum, p) => sum + (p.value || 0), 0)
+      const valuation = (franchise.budget || 0) + totalRosterValue + ((franchise.wins || 0) * 2500)
+      const sharePrice = Math.max(100, Math.floor(valuation / 100))
+      const totalPayout = shares_count * sharePrice
+
+      // 1. Deduct shares from user
+      await supabase
+        .from('franchise_shares')
+        .update({ shares_count: userShare.shares_count - shares_count })
+        .eq('id', userShare.id)
+
+      // 2. Add CR payout to user balance
+      const { data: userPlayer } = await supabase.from('players').select('balance').eq('id', playerId).single()
+      const newBalance = (userPlayer?.balance || 0) + totalPayout
+      await supabase.from('players').update({ balance: newBalance }).eq('id', playerId)
+
+      return NextResponse.json({
+        success: true,
+        new_balance: newBalance,
+        message: `Successfully sold ${shares_count} shares of ${franchise.name} for ${totalPayout.toLocaleString()} CR!`
+      })
     } else {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
