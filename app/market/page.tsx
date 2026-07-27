@@ -8,6 +8,7 @@ import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseO
 import { getCountryFlag } from '@/lib/countries'
 import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
 import BtcTicker from '@/components/BtcTicker'
+import FranchiseStockChart from '@/components/FranchiseStockChart'
 
 interface Player {
   id: string
@@ -223,73 +224,17 @@ export default function MarketPage() {
               </div>
             )}
 
-            {/* Franchise Stock Valuations & Market Listings */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold text-[#888] tracking-widest uppercase">Franchise Valuations & Shares</h3>
+            {/* Franchise Stock Valuations & Price Charts */}
+            <div className="space-y-5">
+              <h3 className="text-xs font-bold text-[#888] tracking-widest uppercase">Franchise Valuations & Live Price Charts</h3>
 
               {stockFranchises.map(f => (
-                <div key={f.id} className="bg-[#050505] border border-[#222] p-4 rounded-xl space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {f.logo_url ? (
-                        <img src={f.logo_url} alt="" className="w-10 h-10 rounded-full object-cover border border-[#333]" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-[#111] border border-[#333] flex items-center justify-center font-bold text-[#888]">
-                          {f.name.substring(0, 2)}
-                        </div>
-                      )}
-                      <div>
-                        <h4 className="text-sm font-bold text-white">{f.name}</h4>
-                        <p className="text-[10px] text-[#666] uppercase">{f.wins} Wins · {f.roster_count} Players</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-[#666] font-bold uppercase tracking-wider">Share Price</p>
-                      <p className="text-lg font-mono font-bold text-emerald-400">{f.share_price.toLocaleString()} CR</p>
-                    </div>
-                  </div>
-
-                  {/* Valuation Breakdown */}
-                  <div className="grid grid-cols-2 gap-2 bg-[#090909] p-3 rounded border border-[#1a1a1a] text-[10px]">
-                    <div>
-                      <span className="text-[#555] block uppercase">Market Valuation:</span>
-                      <span className="text-white font-mono font-bold">{f.total_valuation.toLocaleString()} CR</span>
-                    </div>
-                    <div>
-                      <span className="text-[#555] block uppercase">20% Match Dividend:</span>
-                      <span className="text-amber-400 font-mono font-bold">Active</span>
-                    </div>
-                  </div>
-
-                  {/* Available Share Listings */}
-                  {f.listings && f.listings.length > 0 ? (
-                    <div className="space-y-2 pt-2 border-t border-[#1a1a1a]">
-                      <p className="text-[10px] font-bold text-[#aaa] uppercase tracking-wider">Available Shares for Sale:</p>
-                      {f.listings.map((l: any) => (
-                        <div key={l.id} className="flex items-center justify-between bg-black border border-[#222] p-2.5 rounded">
-                          <div>
-                            <p className="text-xs font-bold text-white">{l.shares_count} Shares ({l.shares_count}% Equity)</p>
-                            <p className="text-[9px] text-[#666]">Seller: {l.seller?.name || 'Franchise Vault'}</p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs font-mono font-bold text-emerald-400">
-                              {(l.shares_count * l.price_per_share).toLocaleString()} CR
-                            </span>
-                            <button
-                              disabled={buyingShare === l.id}
-                              onClick={() => handleBuyShare(l.id)}
-                              className="bg-emerald-500 text-black text-[10px] font-bold uppercase px-3 py-1.5 rounded hover:bg-emerald-400 transition-colors"
-                            >
-                              {buyingShare === l.id ? 'Buying...' : 'Buy Shares'}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-[10px] text-[#444] uppercase text-center pt-2">No shares currently listed for sale by owner</p>
-                  )}
-                </div>
+                <FranchiseStockChart
+                  key={f.id}
+                  franchise={f}
+                  userBalance={userBalance}
+                  onBuySuccess={fetchStockShares}
+                />
               ))}
             </div>
           </div>

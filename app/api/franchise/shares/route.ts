@@ -314,6 +314,83 @@ export async function POST(request: NextRequest) {
       }
 
       return NextResponse.json({ success: true, message: 'Share listing cancelled and shares returned to your portfolio!' })
+    } else if (action === 'buy_primary') {
+      const { franchise_id, shares_count } = body
+
+      if (!franchise_id || !shares_count || shares_count <= 0) {
+        return NextResponse.json({ error: 'Invalid franchise_id or shares_count' }, { status: 400 })
+      }
+
+      // Fetch franchise
+      const { data: franchise, error: fErr } = await supabase
+        .from('franchises')
+        .select('*')
+        .eq('id', franchise_id)
+        .single()
+
+      if (fErr || !franchise) {
+        return NextResponse.json({ error: 'Franchise not found' }, { status: 404 })
+      }
+
+      // Calculate share price
+      const { data: roster } = await supabase.from('players').select('value').eq('franchise_id', franchise_id)
+      const totalRosterValue = (roster || []).reduce((sum, p) => sum + (p.value || 0), 0)
+      const valuation = (franchise.budget || 0) + totalRosterValue + ((franchise.wins || 0) * 2500)
+      const sharePrice = Math.max(100, Math.floor(valuation / 100))
+      const totalCost = shares_count * sharePrice
+
+      // Check buyer balance
+      const { data: buyer, error: buyerErr } = await supabase
+        .from('players')
+        .select('balance')
+        .eq('id', playerId)
+        .single()
+
+      if (buyerErr || !buyer || (buyer.balance || 0) < totalCost) {
+        return NextResponse.json({
+          error: `Insufficient balance. You need ${totalCost.toLocaleString()} CR to buy ${shares_count} shares (Your balance: ${(buyer?.balance || 0).toLocaleString()} CR).`
+        }, { status: 400 })
+      }
+
+      // Deduct buyer balance
+      await supabase
+        .from('players')
+        .update({ balance: (buyer.balance || 0) - totalCost })
+        .eq('id', playerId)
+
+      // Add funds to franchise budget
+      await supabase
+        .from('franchises')
+        .update({ budget: (franchise.budget || 0) + totalCost })
+        .eq('id', franchise_id)
+
+      // Assign shares to buyer
+      const { data: buyerShares } = await supabase
+        .from('franchise_shares')
+        .select('*')
+        .eq('franchise_id', franchise_id)
+        .eq('owner_id', playerId)
+        .single()
+
+      if (buyerShares) {
+        await supabase
+          .from('franchise_shares')
+          .update({ shares_count: buyerShares.shares_count + shares_count })
+          .eq('id', buyerShares.id)
+      } else {
+        await supabase
+          .from('franchise_shares')
+          .insert([{
+            franchise_id,
+            owner_id: playerId,
+            shares_count
+          }])
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Successfully bought ${shares_count} shares of ${franchise.name} for ${totalCost.toLocaleString()} CR!`
+      })
     } else {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
