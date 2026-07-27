@@ -57,7 +57,7 @@ export default function BtcTicker({ className = '', showConversionHint = true }:
             <span>₿</span> BTC Live:
           </span>
           <span className="text-white font-mono font-bold text-xs">
-            ${priceUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+            ${priceUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         </div>
       </div>
@@ -66,7 +66,7 @@ export default function BtcTicker({ className = '', showConversionHint = true }:
         <div className="text-[9px] text-[#aaa] font-mono flex items-center gap-1">
           <span className="text-amber-300 font-bold">1,000,000 CR</span>
           <span>=</span>
-          <span className="text-emerald-400 font-bold">$50 USD</span>
+          <span className="text-emerald-400 font-bold">$50</span>
           <span>(≈ {btcFor1m.toFixed(6)} BTC)</span>
         </div>
       )}

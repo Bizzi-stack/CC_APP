@@ -80,7 +80,7 @@ export default function BtcCashoutModal({ playerBalance, onSuccess }: BtcCashout
                 Bitcoin (BTC) Cash Out
               </h3>
               <p className="text-[9px] text-[#aaa] font-mono">
-                1,000,000 CR = $50.00 USD in BTC
+                1,000,000 CR = $50.00 in BTC
               </p>
             </div>
           </div>
@@ -119,7 +119,7 @@ export default function BtcCashoutModal({ playerBalance, onSuccess }: BtcCashout
           }`}
         >
           <span>₿</span>
-          <span>{canCashout ? 'Cash Out BTC ($50 USD)' : 'View BTC Cash Out Details'}</span>
+          <span>{canCashout ? 'Cash Out BTC ($50)' : 'View BTC Cash Out Details'}</span>
         </button>
       </div>
 
