@@ -66,23 +66,28 @@ export default function MarketPage() {
   const [stockListings, setStockListings] = useState<any[]>([])
   const [userPortfolio, setUserPortfolio] = useState<any[]>([])
   const [buyingShare, setBuyingShare] = useState<string | null>(null)
+  const [currentUser, setCurrentUser] = useState<any>(null)
 
   useEffect(() => {
     Promise.all([
       fetch('/api/players?status=active'),
       fetch('/api/canvas-badges'),
-      fetch('/api/franchise/shares')
+      fetch('/api/franchise/shares'),
+      fetch('/api/player/me')
     ])
-      .then(async ([resPlayers, resBadges, resShares]) => {
+      .then(async ([resPlayers, resBadges, resShares, resMe]) => {
         if (!resPlayers.ok) throw new Error('Failed to fetch')
         const data = await resPlayers.json()
         const badgeData = await resBadges.json()
         const sharesData = await resShares.json()
+        const meData = await resMe.json().catch(() => ({}))
+
         setPlayers(data.players || [])
         setCanvasBadges(badgeData.badges || [])
         setStockFranchises(sharesData.franchises || [])
         setStockListings(sharesData.listings || [])
         setUserPortfolio(sharesData.userPortfolio || [])
+        if (meData?.player) setCurrentUser(meData.player)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -232,7 +237,7 @@ export default function MarketPage() {
                 <FranchiseStockChart
                   key={f.id}
                   franchise={f}
-                  userBalance={userBalance}
+                  userBalance={currentUser?.balance || 0}
                   onBuySuccess={fetchStockShares}
                 />
               ))}
