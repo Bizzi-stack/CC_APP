@@ -11,6 +11,8 @@ import { requestNotificationPermission, sendNativeNotification } from '@/lib/not
 import { COUNTRY_LIST, getCountryFlag } from '@/lib/countries'
 import { PLAYSTYLES_LIST } from '@/lib/playstyles'
 import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
+import BtcCashoutModal from '@/components/BtcCashoutModal'
+import BtcTicker from '@/components/BtcTicker'
 
 interface CanvasBadge {
   id: string
@@ -666,6 +668,14 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
               {player?.wages.toLocaleString()} <span className="text-xs text-[#555] font-sans font-normal">CR/Day</span>
             </p>
           </div>
+        </div>
+
+        {/* BTC Cash Out Widget */}
+        <div className="mt-4">
+          <BtcCashoutModal
+            playerBalance={player?.balance || 0}
+            onSuccess={(newBal) => setPlayer(prev => prev ? { ...prev, balance: newBal } : null)}
+          />
         </div>
 
         {/* Stock Portfolio Banner */}

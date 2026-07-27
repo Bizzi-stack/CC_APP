@@ -7,6 +7,7 @@ import VerificationBadge from '@/components/VerificationBadge'
 import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseOwnerBadge } from '@/components/ProfileBanner'
 import { getCountryFlag } from '@/lib/countries'
 import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
+import BtcTicker from '@/components/BtcTicker'
 
 interface Player {
   id: string
@@ -135,6 +136,8 @@ export default function MarketPage() {
             {players.length - availableCount} Signed
           </span>
         </div>
+
+        <BtcTicker showConversionHint={true} className="mt-3" />
       </div>
 
       {/* Bloomberg-Style Top Gainers Marquee Ticker */}

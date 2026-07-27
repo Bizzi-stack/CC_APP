@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
 import PublicNav from '@/components/PublicNav'
+import BtcTicker from '@/components/BtcTicker'
 
 interface Session {
   id: string
@@ -107,21 +108,21 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* Currency Exchange Value Graphic */}
-        <section className="relative overflow-hidden bg-gradient-to-r from-[#0c0c0d] via-[#161208] to-[#0c0c0d] border border-amber-500/30 rounded-xl p-4 shadow-xl text-center group">
-          {/* Subtle Ambient Shimmer Effect */}
+        {/* Currency Exchange Value & BTC Spot Price Ticker */}
+        <section className="relative overflow-hidden bg-gradient-to-r from-[#0c0c0d] via-[#161208] to-[#0c0c0d] border border-amber-500/40 rounded-2xl p-4 shadow-xl text-center group space-y-3">
+          {/* Ambient Shimmer */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent animate-badge-shine pointer-events-none" />
 
           <div className="relative z-10 flex flex-col items-center gap-2">
             <span className="text-[9px] font-extrabold tracking-[0.25em] text-amber-400 uppercase flex items-center gap-1.5">
-              <span>⚡</span> OFFICIAL LEAGUE CURRENCY EXCHANGE <span>⚡</span>
+              <span>⚡</span> LEAGUE BTC CASHOUT RATE <span>⚡</span>
             </span>
 
             {/* Graphic Exchange Pill Container */}
-            <div className="flex items-center justify-center gap-3 mt-1 py-2.5 px-4 bg-black/80 border border-[#262215] rounded-lg shadow-inner w-full">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-1 py-3 px-4 bg-black/80 border border-[#262215] rounded-xl shadow-inner w-full">
               {/* CR side */}
               <div className="flex items-center gap-1.5">
-                <span className="text-emerald-400 font-mono font-black text-base sm:text-lg tracking-tight">
+                <span className="text-emerald-400 font-mono font-black text-lg sm:text-xl tracking-tight">
                   1,000,000
                 </span>
                 <span className="text-[10px] font-bold text-emerald-500/80 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/30">
@@ -134,20 +135,18 @@ export default function HomePage() {
                 =
               </div>
 
-              {/* BDD side */}
+              {/* BTC side */}
               <div className="flex items-center gap-1.5">
-                <span className="text-amber-300 font-mono font-black text-base sm:text-lg tracking-tight flex items-center gap-1">
-                  <span>🇧🇧</span> 100
+                <span className="text-amber-300 font-mono font-black text-lg sm:text-xl tracking-tight flex items-center gap-1">
+                  <span>₿</span> $50.00 USD
                 </span>
                 <span className="text-[10px] font-bold text-amber-400/90 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/30">
-                  BDD
+                  in BTC
                 </span>
               </div>
             </div>
 
-            <p className="text-[9px] text-[#888] font-mono tracking-wider uppercase mt-0.5">
-              10,000 CR = 1 BDD (Barbados Dollars)
-            </p>
+            <BtcTicker showConversionHint={true} className="mt-1" />
           </div>
         </section>
 
