@@ -156,8 +156,10 @@ export default function AdminPlayersPage() {
     setActioning(approving.id)
     
     const approveBadgeIds = approveCanvasBadgesData.map(b => b.id)
+    const isAssigned = Boolean(approveFranchiseId || approveOwnedFranchiseId || approveIsFranchiseOwner)
     const patchData = {
       status: 'active',
+      available: !isAssigned,
       value: approveValue ? parseInt(approveValue) : 0,
       franchise_id: approveFranchiseId || null,
       wages: approveWages ? parseInt(approveWages) : 0,
@@ -210,7 +212,9 @@ export default function AdminPlayersPage() {
     setActioning(editingPlayer.id)
 
     const editBadgeIds = editCanvasBadgesData.map(b => b.id)
+    const isAssigned = Boolean(editFranchiseId || editOwnedFranchiseId || editIsFranchiseOwner)
     const patchData = {
+      available: isAssigned ? false : true,
       value: editValue ? parseInt(editValue) : 0,
       franchise_id: editFranchiseId || null,
       wages: editWages ? parseInt(editWages) : 0,

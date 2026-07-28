@@ -122,13 +122,18 @@ export default function MarketPage() {
     }
   }
 
+  const isPlayerAvailable = (p: Player) => {
+    // A player is available ONLY if they are not assigned to any franchise and available is true
+    return !p.franchise_id && p.available !== false
+  }
+
   const filtered = players.filter(p => {
-    if (filter === 'available') return p.available
-    if (filter === 'unavailable') return !p.available
+    if (filter === 'available') return isPlayerAvailable(p)
+    if (filter === 'unavailable') return !isPlayerAvailable(p)
     return true
   })
 
-  const availableCount = players.filter(p => p.available).length
+  const availableCount = players.filter(isPlayerAvailable).length
 
   return (
     <div className="min-h-screen bg-black text-white">

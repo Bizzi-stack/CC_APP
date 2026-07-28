@@ -64,11 +64,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, position, photo_url, available, notes, value, status, badges, canvas_badge_ids, canvas_badges_data, verification_badge } = body
+    const { name, position, photo_url, available, notes, value, status, badges, canvas_badge_ids, canvas_badges_data, verification_badge, franchise_id } = body
 
     if (!name) {
       return NextResponse.json({ error: 'name is required' }, { status: 400 })
     }
+
+    // A player assigned to a franchise is signed and unavailable for free-agency
+    const isAssigned = Boolean(franchise_id || body.owned_franchise_id || body.is_franchise_owner)
+    const finalAvailable = isAssigned ? false : (available !== undefined ? available : true)
 
     const { data, error } = await supabase
       .from('players')
@@ -76,11 +80,11 @@ export async function POST(request: NextRequest) {
         name,
         position: position || null,
         photo_url: photo_url || null,
-        available: available !== undefined ? available : true,
+        available: finalAvailable,
         notes: notes || null,
         value: value || 0,
         status: status || 'active',
-        franchise_id: body.franchise_id || null,
+        franchise_id: franchise_id || null,
         badges: badges || [],
         canvas_badge_ids: canvas_badge_ids || [],
         canvas_badges_data: canvas_badges_data || [],
@@ -110,11 +114,17 @@ export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json()
 
-    // Enforce franchise owner rules
-    if (body.is_franchise_owner && body.owned_franchise_id) {
+    // If player has a franchise assigned, force available to false (they are signed to a team)
+    if (body.franchise_id || body.is_franchise_owner || body.owned_franchise_id) {
       body.available = false
-      // Do not change status to 'signed', status is 'active' or 'pending' for the whole system
-      body.franchise_id = body.owned_franchise_id
+      if (body.is_franchise_owner && body.owned_franchise_id) {
+        body.franchise_id = body.owned_franchise_id
+      }
+    } else if (body.franchise_id === null || body.franchise_id === '') {
+      // If franchise is unassigned, make available true unless explicitly set
+      if (body.available === undefined) {
+        body.available = true
+      }
     }
 
     const { data, error } = await supabase
