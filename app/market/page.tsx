@@ -326,7 +326,7 @@ export default function MarketPage() {
                   {selectedPlayer.franchises && (
                     <button
                       type="button"
-                      onClick={() => setViewRosterFranchise({ id: selectedPlayer.franchise_id, name: selectedPlayer.franchises.name })}
+                      onClick={() => setViewRosterFranchise({ id: selectedPlayer.franchise_id, name: selectedPlayer.franchises?.name })}
                       className="flex items-center gap-1.5 bg-[#111] border border-[#333] hover:border-amber-500/50 px-2 py-1 transition-colors group cursor-pointer"
                       title={`View ${selectedPlayer.franchises.name} Roster`}
                     >
