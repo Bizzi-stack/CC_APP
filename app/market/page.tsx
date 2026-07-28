@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
-import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseOwnerBadge } from '@/components/ProfileBanner'
+import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseOwnerBadge, VerificationBadge } from '@/components/ProfileBanner'
 import { getCountryFlag } from '@/lib/countries'
 import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
 import BtcTicker from '@/components/BtcTicker'
 import FranchiseStockChart from '@/components/FranchiseStockChart'
+import FranchiseRosterModal from '@/components/FranchiseRosterModal'
 
 interface Player {
   id: string
@@ -60,6 +61,7 @@ export default function MarketPage() {
   const [filter, setFilter] = useState<Filter>('all')
   const [loading, setLoading] = useState(true)
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
+  const [viewRosterFranchise, setViewRosterFranchise] = useState<{ id?: string, name?: string } | null>(null)
   
   // Stocks state
   const [stockFranchises, setStockFranchises] = useState<any[]>([])
@@ -322,14 +324,22 @@ export default function MarketPage() {
                   <BusinessBadge isBusiness={selectedPlayer.is_business} businessName={selectedPlayer.business_name} />
                   <InstagramBadge url={selectedPlayer.instagram_url} />
                   {selectedPlayer.franchises && (
-                    <div className="flex items-center gap-1.5 bg-[#111] border border-[#333] px-2 py-1" title={selectedPlayer.franchises.name}>
+                    <button
+                      type="button"
+                      onClick={() => setViewRosterFranchise({ id: selectedPlayer.franchise_id, name: selectedPlayer.franchises.name })}
+                      className="flex items-center gap-1.5 bg-[#111] border border-[#333] hover:border-amber-500/50 px-2 py-1 transition-colors group cursor-pointer"
+                      title={`View ${selectedPlayer.franchises.name} Roster`}
+                    >
                       {selectedPlayer.franchises.logo_url ? (
                         <img src={selectedPlayer.franchises.logo_url} alt="" className="w-4 h-4 rounded-full object-cover" />
                       ) : (
                         <span className="text-[10px] font-bold text-[#888]">{selectedPlayer.franchises.name.substring(0, 1)}</span>
                       )}
-                      <span className="text-[11px] font-bold text-white">{selectedPlayer.franchises.name}</span>
-                    </div>
+                      <span className="text-[11px] font-bold text-white group-hover:text-amber-300 transition-colors flex items-center gap-1">
+                        <span>{selectedPlayer.franchises.name}</span>
+                        <span className="text-[9px] text-amber-400 font-mono">👥</span>
+                      </span>
+                    </button>
                   )}
                   {selectedPlayer.position && (
                     <span className="text-[11px] font-bold text-[#888] border border-[#2a2a2a] px-2 py-1">
@@ -430,6 +440,21 @@ export default function MarketPage() {
           </div>
         </div>
       )}
+
+      {/* Franchise Roster Modal */}
+      {viewRosterFranchise && (
+        <FranchiseRosterModal
+          franchiseId={viewRosterFranchise.id}
+          franchiseName={viewRosterFranchise.name}
+          onClose={() => setViewRosterFranchise(null)}
+          onSelectPlayer={(p: any) => {
+            setViewRosterFranchise(null)
+            setSelectedPlayer(p)
+          }}
+        />
+      )}
+
+      <PublicNav />
     </div>
   )
 }

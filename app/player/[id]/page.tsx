@@ -8,6 +8,7 @@ import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
 import { getCountryFlag } from '@/lib/countries'
 import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
+import FranchiseRosterModal from '@/components/FranchiseRosterModal'
 
 interface Player {
   id: string
@@ -33,6 +34,7 @@ export default function PlayerStatsPage() {
   const [history, setHistory] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [viewRosterFranchise, setViewRosterFranchise] = useState<{ id?: string, name?: string } | null>(null)
   const chartRef = useRef<HTMLDivElement>(null)
 
   const scrollToChart = () => {
@@ -123,12 +125,20 @@ export default function PlayerStatsPage() {
                 <span>{player.country || 'Barbados'}</span>
               </span>
               {player.franchises && (
-                <div className="flex items-center gap-2 bg-[#111] border border-[#333] px-3 py-1.5">
+                <button
+                  type="button"
+                  onClick={() => setViewRosterFranchise({ name: player.franchises?.name })}
+                  className="flex items-center gap-2 bg-[#111] border border-[#333] hover:border-amber-500/50 px-3 py-1.5 transition-colors group cursor-pointer"
+                  title={`View ${player.franchises.name} Roster`}
+                >
                   {player.franchises.logo_url && (
                     <img src={player.franchises.logo_url} alt="" className="w-5 h-5 rounded-full object-cover" />
                   )}
-                  <span className="text-xs font-bold tracking-widest uppercase">{player.franchises.name}</span>
-                </div>
+                  <span className="text-xs font-bold tracking-widest uppercase text-white group-hover:text-amber-300 transition-colors flex items-center gap-1">
+                    <span>{player.franchises.name}</span>
+                    <span className="text-[10px] text-amber-400 font-mono">👥</span>
+                  </span>
+                </button>
               )}
               {player.position && (
                 <span className="text-xs font-bold text-[#888] tracking-widest uppercase border border-[#222] px-3 py-1.5">
@@ -230,6 +240,18 @@ export default function PlayerStatsPage() {
           </div>
         )}
       </div>
+
+      {/* Franchise Roster Modal */}
+      {viewRosterFranchise && (
+        <FranchiseRosterModal
+          franchiseName={viewRosterFranchise.name}
+          onClose={() => setViewRosterFranchise(null)}
+          onSelectPlayer={(p: any) => {
+            setViewRosterFranchise(null)
+            window.location.href = `/player/${p.id}`
+          }}
+        />
+      )}
 
       <PublicNav />
     </div>
