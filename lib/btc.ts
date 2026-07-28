@@ -5,50 +5,66 @@ export interface BtcPriceInfo {
   lastUpdated: string
 }
 
-const FALLBACK_BTC_PRICE = 96500 // Fallback spot price in USD if API fails
+const FALLBACK_BTC_PRICE = 96500
+
+// Ultra-fast in-memory cache (15 seconds TTL)
+let cachedBtcInfo: BtcPriceInfo | null = null
+let cacheTimestamp = 0
 
 export async function fetchLiveBtcPrice(): Promise<BtcPriceInfo> {
+  const now = Date.now()
+  if (cachedBtcInfo && (now - cacheTimestamp < 15000)) {
+    return cachedBtcInfo
+  }
+
   try {
     const res = await fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot', {
-      next: { revalidate: 60 }, // Cache for 60 seconds
-      headers: { 'User-Agent': 'TheCircleFC/1.0' }
+      headers: { 'User-Agent': 'TheCircleFC/1.0' },
+      signal: AbortSignal.timeout(3500)
     })
     
-    if (!res.ok) throw new Error('Coinbase API error')
-    const data = await res.json()
-    const priceUsd = parseFloat(data?.data?.amount) || FALLBACK_BTC_PRICE
-    const usdValue = 50.00
-    const btcFor1mCr = usdValue / priceUsd
-
-    return {
-      priceUsd,
-      usdValue,
-      btcFor1mCr,
-      lastUpdated: new Date().toISOString()
+    if (res.ok) {
+      const data = await res.json()
+      const priceUsd = parseFloat(data?.data?.amount) || FALLBACK_BTC_PRICE
+      cachedBtcInfo = {
+        priceUsd,
+        usdValue: 50.00,
+        btcFor1mCr: 50.00 / priceUsd,
+        lastUpdated: new Date().toISOString()
+      }
+      cacheTimestamp = now
+      return cachedBtcInfo
     }
   } catch (err) {
-    // Secondary fallback fetch via Binance or default
+    // Secondary fallback fetch via Binance
     try {
-      const res2 = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT')
+      const res2 = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT', {
+        signal: AbortSignal.timeout(3500)
+      })
       if (res2.ok) {
         const data2 = await res2.json()
         const priceUsd = parseFloat(data2?.price) || FALLBACK_BTC_PRICE
-        return {
+        cachedBtcInfo = {
           priceUsd,
           usdValue: 50.00,
           btcFor1mCr: 50.00 / priceUsd,
           lastUpdated: new Date().toISOString()
         }
+        cacheTimestamp = now
+        return cachedBtcInfo
       }
     } catch {
-      // Fallback
+      // Ignore
     }
+  }
 
-    return {
-      priceUsd: FALLBACK_BTC_PRICE,
-      usdValue: 50.00,
-      btcFor1mCr: 50.00 / FALLBACK_BTC_PRICE,
-      lastUpdated: new Date().toISOString()
-    }
+  // Return last cached or default fallback
+  if (cachedBtcInfo) return cachedBtcInfo
+
+  return {
+    priceUsd: FALLBACK_BTC_PRICE,
+    usdValue: 50.00,
+    btcFor1mCr: 50.00 / FALLBACK_BTC_PRICE,
+    lastUpdated: new Date().toISOString()
   }
 }

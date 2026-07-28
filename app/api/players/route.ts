@@ -34,17 +34,28 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // Enrich with owned_franchise data for franchise owners
-  const enriched = await Promise.all((data || []).map(async (player) => {
-    if (player.owned_franchise_id) {
-      const { data: ownedFranchise } = await supabase
-        .from('franchises')
-        .select('id, name, logo_url')
-        .eq('id', player.owned_franchise_id)
-        .single()
-      return { ...player, owned_franchise: ownedFranchise || null }
+  const playersList = data || []
+  
+  // Extract unique owned franchise IDs for bulk lookup (Eliminating N+1 query problem)
+  const ownedFranchiseIds = Array.from(new Set(playersList.map(p => p.owned_franchise_id).filter(Boolean)))
+  
+  let ownedFranchisesMap: Record<string, { id: string, name: string, logo_url: string | null }> = {}
+  if (ownedFranchiseIds.length > 0) {
+    const { data: franchisesData } = await supabase
+      .from('franchises')
+      .select('id, name, logo_url')
+      .in('id', ownedFranchiseIds)
+    
+    if (franchisesData) {
+      franchisesData.forEach(f => {
+        ownedFranchisesMap[f.id] = f
+      })
     }
-    return { ...player, owned_franchise: null }
+  }
+
+  const enriched = playersList.map(player => ({
+    ...player,
+    owned_franchise: player.owned_franchise_id ? (ownedFranchisesMap[player.owned_franchise_id] || null) : null
   }))
 
   return NextResponse.json({ players: enriched })

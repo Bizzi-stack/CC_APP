@@ -9,8 +9,16 @@ interface BtcTickerProps {
 }
 
 export default function BtcTicker({ className = '', showConversionHint = true }: BtcTickerProps) {
-  const [btcData, setBtcData] = useState<BtcPriceInfo | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [btcData, setBtcData] = useState<BtcPriceInfo | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('circle_btc_price')
+        if (saved) return JSON.parse(saved)
+      } catch {}
+    }
+    return null
+  })
+  const [loading, setLoading] = useState(!btcData)
 
   useEffect(() => {
     let isMounted = true
@@ -19,7 +27,10 @@ export default function BtcTicker({ className = '', showConversionHint = true }:
         const res = await fetch('/api/btc-price')
         if (res.ok) {
           const data = await res.json()
-          if (isMounted) setBtcData(data)
+          if (isMounted) {
+            setBtcData(data)
+            try { localStorage.setItem('circle_btc_price', JSON.stringify(data)) } catch {}
+          }
         }
       } catch (err) {
         console.error('BTC price fetch error', err)
@@ -29,7 +40,7 @@ export default function BtcTicker({ className = '', showConversionHint = true }:
     }
 
     loadBtc()
-    const interval = setInterval(loadBtc, 30000) // Poll every 30 seconds
+    const interval = setInterval(loadBtc, 30000)
     return () => {
       isMounted = false
       clearInterval(interval)
