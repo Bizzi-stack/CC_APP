@@ -211,7 +211,7 @@ export default function FranchiseRosterModal({
                     </div>
                     {player.badges && player.badges.length > 0 && (
                       <div className="flex justify-end">
-                        <PlayStyleBadge badgeName={player.badges[0]} graphicOnly={true} className="w-5 h-5" />
+                        <PlayStyleBadge styleNameOrId={player.badges[0]} graphicOnly={true} className="w-5 h-5" />
                       </div>
                     )}
                   </div>
