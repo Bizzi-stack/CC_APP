@@ -17,6 +17,10 @@ interface Session {
   notes?: string
   max_players: number
   created_at: string
+  image_url?: string
+  has_team_selection?: boolean
+  team_a_name?: string
+  team_b_name?: string
 }
 
 function formatDate(dateStr: string) {
