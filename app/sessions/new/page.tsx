@@ -17,10 +17,20 @@ export default function NewSessionPage() {
     location: '',
     notes: '',
     max_players: '999',
+    image_url: '',
+    has_team_selection: true,
+    team_a_name: 'Red Team',
+    team_b_name: 'Blue Team',
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    const { name, value, type } = e.target
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked
+      setForm(prev => ({ ...prev, [name]: checked }))
+    } else {
+      setForm(prev => ({ ...prev, [name]: value }))
+    }
     setError(null)
   }
 
@@ -35,7 +45,7 @@ export default function NewSessionPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
-          max_players: parseInt(form.max_players) || 10,
+          max_players: parseInt(form.max_players) || 999,
         }),
       })
 
@@ -53,7 +63,7 @@ export default function NewSessionPage() {
   const labelClass = "block text-[10px] font-bold text-[#555] tracking-widest uppercase mb-1.5"
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white pb-12">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-12 pb-4 border-b border-[#1a1a1a]">
         <Link href="/sessions" className="text-[#666] active:text-white transition-colors">
@@ -61,13 +71,13 @@ export default function NewSessionPage() {
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </Link>
-        <h1 className="text-lg font-bold tracking-wide uppercase">New Session</h1>
+        <h1 className="text-lg font-bold tracking-wide uppercase">Add New Event & Session</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="page-content px-4 pt-6 space-y-5">
+      <form onSubmit={handleSubmit} className="page-content max-w-lg mx-auto px-4 pt-6 space-y-5 text-left">
         {/* Type Toggle */}
         <div>
-          <label className={labelClass}>Type</label>
+          <label className={labelClass}>Session Type</label>
           <div className="flex border border-[#333]">
             {(['free_session', '5v5_match'] as const).map(t => (
               <button
@@ -76,7 +86,7 @@ export default function NewSessionPage() {
                 onClick={() => setForm(p => ({ ...p, type: t }))}
                 className={`flex-1 py-3 text-xs font-bold tracking-widest uppercase transition-colors ${form.type === t ? 'bg-white text-black' : 'text-[#555] hover:text-white'}`}
               >
-                {t === 'free_session' ? 'Free Session' : '5v5 Match'}
+                {t === 'free_session' ? 'Pickup Session' : '5v5 Match'}
               </button>
             ))}
           </div>
@@ -84,8 +94,22 @@ export default function NewSessionPage() {
 
         {/* Title */}
         <div>
-          <label className={labelClass}>Title</label>
-          <input name="title" value={form.title} onChange={handleChange} required className={inputClass} placeholder="e.g. Friday Night 5v5" />
+          <label className={labelClass}>Event Title</label>
+          <input name="title" value={form.title} onChange={handleChange} required className={inputClass} placeholder="e.g. Friday Night Ball ⚽" />
+        </div>
+
+        {/* Graphic / Poster Image URL */}
+        <div>
+          <label className={labelClass}>Event Graphic / Poster Image URL</label>
+          <input name="image_url" value={form.image_url} onChange={handleChange} className={inputClass} placeholder="Paste graphic URL (e.g. https://... or /poster.png)" />
+          {form.image_url && (
+            <div className="mt-2 w-full h-44 rounded-xl border border-[#333] overflow-hidden bg-[#070707] flex items-center justify-center relative">
+              <img src={form.image_url} alt="Poster preview" className="w-full h-full object-cover" />
+              <div className="absolute top-2 right-2 bg-black/80 px-2 py-1 text-[9px] font-mono text-emerald-400 border border-emerald-500/30 rounded">
+                Graphic Preview
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Date & Time */}
@@ -102,31 +126,60 @@ export default function NewSessionPage() {
 
         {/* Location */}
         <div>
-          <label className={labelClass}>Location</label>
-          <input name="location" value={form.location} onChange={handleChange} required className={inputClass} placeholder="e.g. Wildey Gymnasium" />
+          <label className={labelClass}>Location / Pitch</label>
+          <input name="location" value={form.location} onChange={handleChange} required className={inputClass} placeholder="e.g. Wildey Turf / Gymnasium" />
+        </div>
+
+        {/* Team Selection Customization */}
+        <div className="bg-[#0a0a0c] border border-amber-500/30 p-4 rounded-xl space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span>⚽</span> Enable Team Selection (Red vs Blue)
+            </span>
+            <input
+              type="checkbox"
+              name="has_team_selection"
+              checked={form.has_team_selection}
+              onChange={handleChange}
+              className="w-4 h-4 accent-amber-500 cursor-pointer"
+            />
+          </div>
+
+          {form.has_team_selection && (
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div>
+                <label className="block text-[9px] font-mono text-[#888] uppercase mb-1">Team A Name</label>
+                <input name="team_a_name" value={form.team_a_name} onChange={handleChange} className={inputClass} placeholder="Red Team 🔴" />
+              </div>
+              <div>
+                <label className="block text-[9px] font-mono text-[#888] uppercase mb-1">Team B Name</label>
+                <input name="team_b_name" value={form.team_b_name} onChange={handleChange} className={inputClass} placeholder="Blue Team 🔵" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Max Players */}
         <div>
-          <label className={labelClass}>Max Players (Default Unlimited)</label>
+          <label className={labelClass}>Max Players Capacity</label>
           <input name="max_players" type="number" min="2" max="999" value={form.max_players} onChange={handleChange} className={inputClass} placeholder="999 for Unlimited" />
         </div>
 
         {/* Notes */}
         <div>
-          <label className={labelClass}>Notes (optional)</label>
+          <label className={labelClass}>Event Description / Notes</label>
           <textarea
             name="notes"
             value={form.notes}
             onChange={handleChange}
             rows={3}
             className="w-full px-3 py-2.5 bg-transparent border border-[#333] text-white text-sm outline-none focus:border-white transition-colors placeholder-[#555] resize-none"
-            placeholder="Any extra info..."
+            placeholder="Details about Friday's match, gear needed, wages..."
           />
         </div>
 
         {error && (
-          <div className="border border-red-900 bg-red-900/10 text-red-400 text-xs px-3 py-2.5">
+          <div className="border border-red-900 bg-red-900/10 text-red-400 text-xs px-3 py-2.5 rounded">
             {error}
           </div>
         )}
@@ -134,9 +187,9 @@ export default function NewSessionPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full h-12 bg-white text-black text-sm font-bold tracking-widest uppercase transition-opacity disabled:opacity-40 active:bg-gray-200"
+          className="w-full h-12 bg-gradient-to-r from-amber-500 to-amber-400 text-black text-sm font-black tracking-widest uppercase rounded-xl transition-all disabled:opacity-40 hover:brightness-110 active:scale-95 shadow-lg"
         >
-          {submitting ? 'Saving...' : 'Add Session'}
+          {submitting ? 'Creating Event...' : 'Publish Event & Graphic'}
         </button>
       </form>
     </div>

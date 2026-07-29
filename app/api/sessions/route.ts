@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from('sessions')
-    .select('*')
+    .select('*, signups:session_signups(*, player:players(*))')
     .order('date', { ascending: true })
     .order('time', { ascending: true })
 
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { title, type, date, time, location, notes, max_players } = body
+    const { title, type, date, time, location, notes, max_players, image_url, has_team_selection, team_a_name, team_b_name } = body
 
     if (!title || !type || !date || !time || !location) {
       return NextResponse.json({ error: 'title, type, date, time, and location are required' }, { status: 400 })
@@ -35,8 +35,20 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('sessions')
-      .insert([{ title, type, date, time, location, notes: notes || null, max_players: max_players || 10 }])
-      .select()
+      .insert([{
+        title,
+        type,
+        date,
+        time,
+        location,
+        notes: notes || null,
+        max_players: max_players || 999,
+        image_url: image_url || null,
+        has_team_selection: has_team_selection !== undefined ? has_team_selection : true,
+        team_a_name: team_a_name || 'Red Team',
+        team_b_name: team_b_name || 'Blue Team',
+      }])
+      .select('*, signups:session_signups(*, player:players(*))')
       .single()
 
     if (error) {
