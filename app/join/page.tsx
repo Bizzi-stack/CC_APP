@@ -221,9 +221,6 @@ export default function JoinPage() {
           </div>
         </div>
 
-          </div>
-        </div>
-
         {/* Notes / About */}
         <div>
           <label className={labelClass}>About (optional)</label>

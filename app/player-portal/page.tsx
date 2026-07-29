@@ -1032,8 +1032,6 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
             />
           </div>
 
-          </div>
-
           {/* Nationality / Country Flag */}
           <div className="pt-2 border-t border-[#1a1a1a] space-y-1.5">
             <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block">
