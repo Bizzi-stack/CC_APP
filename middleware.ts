@@ -20,13 +20,6 @@ const communityUIRoutes = [
   '/player-portal'
 ]
 
-// API routes that require admin authentication to modify data (POST, PATCH, DELETE)
-const adminApiRoutes = [
-  '/api/players',
-  '/api/franchises',
-  '/api/sessions'
-]
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const hasAdminToken = request.cookies.has('admin_token')
@@ -63,8 +56,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Check API routes (only block mutating requests, GET is usually public)
-  const isAdminApi = adminApiRoutes.some(route => pathname.startsWith(route))
+  // Check Admin API routes for POST/PATCH/DELETE (excluding player signup)
+  const isAdminApi = (
+    pathname === '/api/players' ||
+    pathname.startsWith('/api/players/') ||
+    pathname === '/api/franchises' ||
+    pathname.startsWith('/api/franchises/') ||
+    (pathname === '/api/sessions' && !pathname.startsWith('/api/sessions/signup'))
+  )
   const isMutatingRequest = ['POST', 'PATCH', 'DELETE'].includes(request.method)
   
   if (isAdminApi && isMutatingRequest && !hasAdminToken) {
