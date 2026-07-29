@@ -163,7 +163,9 @@ function SessionRow({ session, onDelete, deleting }: {
           <span className={`text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 ${type === '5v5_match' ? 'bg-white text-black' : 'border border-[#444] text-[#888]'}`}>
             {type === '5v5_match' ? '5v5' : 'Free'}
           </span>
-          <span className="text-[10px] text-[#666]">Max {max_players}</span>
+          <span className="text-[10px] text-[#666] font-mono">
+            {max_players >= 100 ? 'Unlimited Spots' : `Max ${max_players}`}
+          </span>
         </div>
         <p className="text-white font-semibold text-sm truncate">{title}</p>
         <p className="text-[#888] text-xs mt-0.5">{formatDate(date)}</p>

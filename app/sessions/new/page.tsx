@@ -16,7 +16,7 @@ export default function NewSessionPage() {
     time: '',
     location: '',
     notes: '',
-    max_players: '10',
+    max_players: '999',
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -108,8 +108,8 @@ export default function NewSessionPage() {
 
         {/* Max Players */}
         <div>
-          <label className={labelClass}>Max Players</label>
-          <input name="max_players" type="number" min="2" max="50" value={form.max_players} onChange={handleChange} className={inputClass} />
+          <label className={labelClass}>Max Players (Default Unlimited)</label>
+          <input name="max_players" type="number" min="2" max="999" value={form.max_players} onChange={handleChange} className={inputClass} placeholder="999 for Unlimited" />
         </div>
 
         {/* Notes */}
