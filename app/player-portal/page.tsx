@@ -185,6 +185,8 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
     } finally {
       setLoading(false)
     }
+  }
+
   const handleLogout = async () => {
     await fetch('/api/player/logout', { method: 'POST' })
     localStorage.removeItem('player_token')
