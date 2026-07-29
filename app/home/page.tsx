@@ -5,6 +5,7 @@ import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
 import PublicNav from '@/components/PublicNav'
 import BtcTicker from '@/components/BtcTicker'
+import SessionGraphicModal from '@/components/SessionGraphicModal'
 
 interface Session {
   id: string
@@ -35,7 +36,17 @@ export default function HomePage() {
   const [nextSession, setNextSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [pendingCount, setPendingCount] = useState(0)
-  const today = new Date().toISOString().split('T')[0]
+  const [showSessionModal, setShowSessionModal] = useState(false)
+
+  const refetchSession = () => {
+    fetch('/api/sessions')
+      .then(r => r.json())
+      .then(data => {
+        const upcoming = (data.sessions || []).find((s: Session) => s.date >= today)
+        setNextSession(upcoming || null)
+      })
+      .catch(() => {})
+  }
 
   const [isAdmin, setIsAdmin] = useState(false)
 
@@ -83,13 +94,28 @@ export default function HomePage() {
               <div className="h-3 w-48 bg-[#1a1a1a] rounded" />
             </div>
           ) : nextSession ? (
-            <Link href={isAdmin ? "/sessions" : "/calendar"}>
-              {new Date(nextSession.date + 'T00:00:00').getDay() === 5 ? (
-                <div className="active:opacity-80 transition-opacity flex justify-center">
-                  <img src="/schedule_graphic.png" alt="Friday Ball" className="w-full max-w-[500px] h-auto object-contain" />
+            <div
+              onClick={() => setShowSessionModal(true)}
+              className="cursor-pointer group active:scale-95 transition-all"
+            >
+              {nextSession.image_url ? (
+                <div className="relative w-full max-w-[500px] mx-auto rounded-2xl overflow-hidden border border-amber-500/40 shadow-2xl bg-black">
+                  <img src={nextSession.image_url} alt={nextSession.title} className="w-full h-auto object-contain group-hover:scale-105 transition-transform" />
+                  <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-md px-3 py-1 text-[10px] font-mono text-amber-400 border border-amber-500/40 rounded-xl shadow font-extrabold flex items-center gap-1.5">
+                    <span>⚽</span>
+                    <span>Tap to Join Team</span>
+                  </div>
+                </div>
+              ) : new Date(nextSession.date + 'T00:00:00').getDay() === 5 ? (
+                <div className="relative w-full max-w-[500px] mx-auto rounded-2xl overflow-hidden border border-amber-500/40 shadow-2xl bg-black">
+                  <img src="/schedule_graphic.png" alt="Friday Ball" className="w-full h-auto object-contain group-hover:scale-105 transition-transform" />
+                  <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-md px-3 py-1 text-[10px] font-mono text-amber-400 border border-amber-500/40 rounded-xl shadow font-extrabold flex items-center gap-1.5">
+                    <span>⚽</span>
+                    <span>Tap to Join Team</span>
+                  </div>
                 </div>
               ) : (
-                <div className="border border-[#333] bg-[#0a0a0a] p-5 active:bg-[#111] transition-colors">
+                <div className="border border-[#333] bg-[#0a0a0a] p-5 hover:border-amber-500/50 transition-colors rounded-xl">
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 ${nextSession.type === '5v5_match' ? 'bg-white text-black' : 'border border-[#444] text-[#aaa]'}`}>
                       {nextSession.type === '5v5_match' ? '5v5 MATCH' : 'FREE SESSION'}
@@ -98,11 +124,12 @@ export default function HomePage() {
                   <p className="text-white font-semibold text-base mt-2">{nextSession.title}</p>
                   <p className="text-[#888] text-sm mt-1">{formatDate(nextSession.date)} · {formatTime(nextSession.time)}</p>
                   <p className="text-[#666] text-sm mt-0.5">{nextSession.location}</p>
+                  <p className="text-amber-400 text-xs font-bold uppercase mt-2">Tap to join team →</p>
                 </div>
               )}
-            </Link>
+            </div>
           ) : (
-            <div className="border border-[#1a1a1a] p-5 text-center">
+            <div className="border border-[#1a1a1a] p-5 text-center rounded-xl">
               <p className="text-[#555] text-sm">No upcoming sessions</p>
             </div>
           )}
@@ -314,6 +341,15 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      {/* Interactive Session Poster & Team Selection Modal */}
+      {showSessionModal && nextSession && (
+        <SessionGraphicModal
+          session={nextSession}
+          onClose={() => setShowSessionModal(false)}
+          onSignupSuccess={refetchSession}
+        />
+      )}
 
       {isAdmin ? <BottomNav /> : <PublicNav />}
     </div>

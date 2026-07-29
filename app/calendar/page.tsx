@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import PublicNav from '@/components/PublicNav'
+import SessionGraphicModal from '@/components/SessionGraphicModal'
 
 interface Session {
   id: string
@@ -12,8 +13,9 @@ interface Session {
 }
 
 export default function PublicCalendarPage() {
-  const [sessions, setSessions] = useState<Session[]>([])
+  const [sessions, setSessions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedSession, setSelectedSession] = useState<any | null>(null)
 
   useEffect(() => {
     fetch('/api/sessions')
@@ -88,31 +90,49 @@ export default function PublicCalendarPage() {
           <>
             {/* Next Session Highlight */}
             {nextSession && (
-              new Date(nextSession.date + 'T00:00:00').getDay() === 5 ? (
-                <div className="flex justify-center mb-6">
-                  <img src="/schedule_graphic.png" alt="Friday Ball" className="w-full max-w-[600px] h-auto object-contain" />
-                </div>
-              ) : (
-                <div className="bg-[#111] border border-white p-5 text-center">
-                  <p className="text-[10px] text-[#888] font-bold tracking-widest uppercase mb-3">Next Session</p>
-                  <p className="text-2xl font-bold uppercase tracking-wide mb-1">
-                    {formatDateDay(nextSession.date)}
-                  </p>
-                  <p className="text-[#aaa] text-sm tracking-widest uppercase mb-4">
-                    {formatFullDateTime(nextSession.date)}
-                  </p>
-                  <div className="inline-flex items-center gap-2 bg-[#222] px-3 py-1.5 border border-[#333]">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
-                    <span className="text-xs font-bold tracking-wider uppercase">{nextSession.location}</span>
+              <div
+                onClick={() => setSelectedSession(nextSession)}
+                className="cursor-pointer group active:scale-95 transition-all mb-6"
+              >
+                {nextSession.image_url ? (
+                  <div className="relative w-full max-w-[600px] mx-auto rounded-2xl overflow-hidden border border-amber-500/40 shadow-2xl bg-black">
+                    <img src={nextSession.image_url} alt={nextSession.title} className="w-full h-auto object-contain group-hover:scale-105 transition-transform" />
+                    <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-md px-3 py-1 text-[10px] font-mono text-amber-400 border border-amber-500/40 rounded-xl shadow font-extrabold flex items-center gap-1.5">
+                      <span>⚽</span>
+                      <span>Tap to Join Team</span>
+                    </div>
                   </div>
-                  {nextSession.notes && (
-                    <p className="text-[#666] text-xs mt-4 italic">{nextSession.notes}</p>
-                  )}
-                </div>
-              )
+                ) : new Date(nextSession.date + 'T00:00:00').getDay() === 5 ? (
+                  <div className="relative w-full max-w-[600px] mx-auto rounded-2xl overflow-hidden border border-amber-500/40 shadow-2xl bg-black">
+                    <img src="/schedule_graphic.png" alt="Friday Ball" className="w-full h-auto object-contain group-hover:scale-105 transition-transform" />
+                    <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-md px-3 py-1 text-[10px] font-mono text-amber-400 border border-amber-500/40 rounded-xl shadow font-extrabold flex items-center gap-1.5">
+                      <span>⚽</span>
+                      <span>Tap to Join Team</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-[#111] border border-white p-5 text-center hover:border-amber-400 transition-colors">
+                    <p className="text-[10px] text-[#888] font-bold tracking-widest uppercase mb-3">Next Session</p>
+                    <p className="text-2xl font-bold uppercase tracking-wide mb-1">
+                      {formatDateDay(nextSession.date)}
+                    </p>
+                    <p className="text-[#aaa] text-sm tracking-widest uppercase mb-4">
+                      {formatFullDateTime(nextSession.date)}
+                    </p>
+                    <div className="inline-flex items-center gap-2 bg-[#222] px-3 py-1.5 border border-[#333]">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      <span className="text-xs font-bold tracking-wider uppercase">{nextSession.location}</span>
+                    </div>
+                    {nextSession.notes && (
+                      <p className="text-[#666] text-xs mt-4 italic">{nextSession.notes}</p>
+                    )}
+                    <p className="text-amber-400 text-xs font-bold uppercase mt-3">Tap to join team →</p>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Other Upcoming Sessions */}
@@ -141,6 +161,20 @@ export default function PublicCalendarPage() {
           </>
         )}
       </div>
+
+      {/* Session Graphic Poster & Team Selection Modal */}
+      {selectedSession && (
+        <SessionGraphicModal
+          session={selectedSession}
+          onClose={() => setSelectedSession(null)}
+          onSignupSuccess={() => {
+            fetch('/api/sessions')
+              .then(res => res.json())
+              .then(data => setSessions(data.sessions || []))
+              .catch(() => {})
+          }}
+        />
+      )}
 
       <PublicNav />
     </div>
