@@ -426,10 +426,10 @@ export default function MarketPage() {
             )}
 
             {/* View Stats Button */}
-            <div className="mt-8">
+            <div className="mt-8 mb-4">
               <Link 
                 href={`/player/${selectedPlayer.id}`}
-                className="block w-full text-center bg-white text-black font-bold tracking-widest uppercase py-4 rounded-xl hover:bg-gray-200 transition-colors"
+                className="block w-full text-center bg-white text-black font-bold tracking-widest uppercase py-4 rounded-xl hover:bg-gray-200 transition-colors shadow-lg"
               >
                 View Player Stats
               </Link>

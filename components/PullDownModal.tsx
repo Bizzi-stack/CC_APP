@@ -118,7 +118,7 @@ export default function PullDownModal({ isOpen, onClose, children }: PullDownMod
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col justify-end transition-opacity duration-200"
+      className="fixed inset-0 z-[100] flex flex-col justify-end transition-opacity duration-200"
       style={{
         backgroundColor: `rgba(0, 0, 0, ${0.85 * backdropOpacity})`,
         backdropFilter: 'blur(8px)'
@@ -127,7 +127,7 @@ export default function PullDownModal({ isOpen, onClose, children }: PullDownMod
     >
       <div
         ref={sheetRef}
-        className={`w-full max-w-[440px] mx-auto bg-[#0a0a0c] border-t border-[#222] rounded-t-3xl p-6 pb-12 relative overflow-y-auto max-h-[90vh] shadow-2xl ${
+        className={`w-full max-w-[440px] mx-auto bg-[#0a0a0c] border-t border-[#222] rounded-t-3xl p-6 pb-14 relative overflow-y-auto max-h-[88vh] shadow-2xl ${
           isDragging ? '' : 'transition-transform duration-200 ease-out'
         }`}
         style={{
