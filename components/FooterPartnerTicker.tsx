@@ -2,13 +2,15 @@
 
 import React from 'react'
 
-// Automatically mapped partners from the public/partners folder
+// All partners from the public/partners folder
 const PARTNERS = [
   { name: 'Polygon', logo: '/partners/polygon-logo.svg' },
   { name: 'Miami FC', logo: '/partners/cropped-logo_Miami-FC.webp' },
   { name: 'Brooklyn FC', logo: '/partners/cropped-Brooklyn-FC-crest.webp' },
   { name: 'San Antonio FC', logo: '/partners/cropped-SAFC_PrimaryLogo_FullColor_LBg_RGB.webp' },
+  { name: 'SushiSwap', logo: '/partners/full-SushiSwap-logo.png' },
   { name: 'OKC United', logo: '/partners/OKCUnitedLogo.webp' },
+  { name: 'Partner', logo: '/partners/MCP2SJDCMKXRHOHJEGOLQTHP3VEQ.svg' },
   { name: 'Corporate', logo: '/partners/Corporate-Abbrev-RGB.png' },
 ]
 
@@ -70,7 +72,7 @@ export default function FooterPartnerTicker() {
           }
         }
         .animate-ticker {
-          animation: ticker 22s linear infinite;
+          animation: ticker 26s linear infinite;
         }
         .animate-ticker:hover {
           animation-play-state: paused;
