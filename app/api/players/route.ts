@@ -53,9 +53,15 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Calculate max goals and max assists for Top Scorer & Top Assister badges
+  const maxGoals = Math.max(...playersList.map(p => p.goals || 0), 0)
+  const maxAssists = Math.max(...playersList.map(p => p.assists || 0), 0)
+
   const enriched = playersList.map(player => ({
     ...player,
-    owned_franchise: player.owned_franchise_id ? (ownedFranchisesMap[player.owned_franchise_id] || null) : null
+    owned_franchise: player.owned_franchise_id ? (ownedFranchisesMap[player.owned_franchise_id] || null) : null,
+    is_top_scorer: Boolean(maxGoals > 0 && player.goals === maxGoals),
+    is_top_assister: Boolean(maxAssists > 0 && player.assists === maxAssists)
   }))
 
   return NextResponse.json({ players: enriched })

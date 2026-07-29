@@ -10,6 +10,7 @@ import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
 import BtcTicker from '@/components/BtcTicker'
 import FranchiseStockChart from '@/components/FranchiseStockChart'
 import FranchiseRosterModal from '@/components/FranchiseRosterModal'
+import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
 
 interface Player {
   id: string
@@ -37,6 +38,8 @@ interface Player {
     name: string
     logo_url: string | null
   } | null
+  is_top_scorer?: boolean
+  is_top_assister?: boolean
   franchises?: {
     id: string
     name: string
@@ -315,9 +318,11 @@ export default function MarketPage() {
 
               {/* Info */}
               <div className="flex-1 pt-1">
-                <h2 className="text-2xl font-bold text-white mb-1 flex items-center gap-1 flex-wrap">
+                <h2 className="text-2xl font-bold text-white mb-1 flex items-center gap-1.5 flex-wrap">
                   <span>{selectedPlayer.name}</span>
                   <VerificationBadge type={selectedPlayer.verification_badge} className="w-[28px] h-[28px] ml-0.5" />
+                  {selectedPlayer.is_top_scorer && <TopScorerBadge className="w-7 h-7" />}
+                  {selectedPlayer.is_top_assister && <TopAssisterBadge className="w-7 h-7" />}
                 </h2>
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <FranchiseOwnerBadge isOwner={selectedPlayer.is_franchise_owner} franchiseName={selectedPlayer.owned_franchise?.name} />
@@ -475,9 +480,11 @@ function PublicPlayerRow({ player }: { player: Player }) {
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-white font-semibold text-sm flex items-center min-w-0">
+        <p className="text-white font-semibold text-sm flex items-center gap-1.5 min-w-0">
           <span className="truncate">{player.name}</span>
           <VerificationBadge type={player.verification_badge} className="w-[20px] h-[20px] ml-0.5" />
+          {player.is_top_scorer && <TopScorerBadge className="w-5 h-5" />}
+          {player.is_top_assister && <TopAssisterBadge className="w-5 h-5" />}
         </p>
         <div className="flex flex-wrap items-center gap-2 mt-0.5">
           <span className="text-[10px] font-bold text-white border border-[#2a2a2a] bg-black px-1.5 py-0.5 flex items-center gap-1">

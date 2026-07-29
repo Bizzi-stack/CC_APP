@@ -9,6 +9,7 @@ import VerificationBadge from '@/components/VerificationBadge'
 import { getCountryFlag } from '@/lib/countries'
 import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
 import FranchiseRosterModal from '@/components/FranchiseRosterModal'
+import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
 
 interface Player {
   id: string
@@ -21,6 +22,8 @@ interface Player {
   country?: string | null
   badges?: string[] | null
   verification_badge?: string | null
+  is_top_scorer?: boolean
+  is_top_assister?: boolean
   franchises?: {
     name: string
     logo_url: string | null
@@ -118,6 +121,8 @@ export default function PlayerStatsPage() {
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight uppercase flex items-center gap-2 flex-wrap mb-2">
               {player.name}
               <VerificationBadge type={player.verification_badge} className="w-6 h-6 sm:w-8 sm:h-8" />
+              {player.is_top_scorer && <TopScorerBadge className="w-7 h-7 sm:w-8 sm:h-8" />}
+              {player.is_top_assister && <TopAssisterBadge className="w-7 h-7 sm:w-8 sm:h-8" />}
             </h1>
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-xs font-bold text-white tracking-widest uppercase border border-[#333] bg-[#111] px-3 py-1.5 flex items-center gap-1.5">
