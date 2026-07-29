@@ -172,17 +172,16 @@ export default function SessionGraphicModal({ session, onClose, onSignupSuccess 
             <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center justify-center gap-1.5 font-mono">
               SELECT YOUR TEAM FOR FRIDAY
             </h4>
-
             <div className="grid grid-cols-2 gap-3 pt-1">
               <button
                 type="button"
                 disabled={signingUp}
                 onClick={() => handleJoinTeam(teamAName)}
-                className={`h-12 bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider rounded-none transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-white ${
+                className={`h-12 bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider rounded-none transition-all active:scale-95 flex items-center justify-center gap-2 border border-white ${
                   userCurrentSignup?.selected_team === teamAName ? 'ring-2 ring-white' : ''
                 }`}
               >
-                <span>🔴</span>
+                <img src="/red_team.png" alt="Red Team" className="w-6 h-6 object-contain shrink-0" />
                 <span>JOIN {teamAName}</span>
               </button>
 
@@ -190,11 +189,11 @@ export default function SessionGraphicModal({ session, onClose, onSignupSuccess 
                 type="button"
                 disabled={signingUp}
                 onClick={() => handleJoinTeam(teamBName)}
-                className={`h-12 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-none transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-white ${
+                className={`h-12 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-none transition-all active:scale-95 flex items-center justify-center gap-2 border border-white ${
                   userCurrentSignup?.selected_team === teamBName ? 'ring-2 ring-white' : ''
                 }`}
               >
-                <span>🔵</span>
+                <img src="/blue_team.png" alt="Blue Team" className="w-6 h-6 object-contain shrink-0" />
                 <span>JOIN {teamBName}</span>
               </button>
             </div>
@@ -213,7 +212,10 @@ export default function SessionGraphicModal({ session, onClose, onSignupSuccess 
               {/* Team A Roster */}
               <div className="bg-[#0a0a0a] border border-red-500/50 p-3 rounded-none space-y-2 text-left">
                 <h5 className="text-[11px] font-bold text-red-400 uppercase tracking-wide border-b border-red-500/30 pb-1 flex items-center justify-between font-mono">
-                  <span>🔴 {teamAName}</span>
+                  <span className="flex items-center gap-1.5">
+                    <img src="/red_team.png" alt="" className="w-4 h-4 object-contain shrink-0" />
+                    <span>{teamAName}</span>
+                  </span>
                   <span className="text-[9px] font-mono text-[#888]">{teamASignups.length}</span>
                 </h5>
                 <div className="space-y-1 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
@@ -232,7 +234,10 @@ export default function SessionGraphicModal({ session, onClose, onSignupSuccess 
               {/* Team B Roster */}
               <div className="bg-[#0a0a0a] border border-blue-500/50 p-3 rounded-none space-y-2 text-left">
                 <h5 className="text-[11px] font-bold text-blue-400 uppercase tracking-wide border-b border-blue-500/30 pb-1 flex items-center justify-between font-mono">
-                  <span>🔵 {teamBName}</span>
+                  <span className="flex items-center gap-1.5">
+                    <img src="/blue_team.png" alt="" className="w-4 h-4 object-contain shrink-0" />
+                    <span>{teamBName}</span>
+                  </span>
                   <span className="text-[9px] font-mono text-[#888]">{teamBSignups.length}</span>
                 </h5>
                 <div className="space-y-1 max-h-40 overflow-y-auto pr-1 custom-scrollbar">

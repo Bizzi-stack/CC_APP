@@ -289,9 +289,9 @@ export default function SessionsPage() {
                       type="button"
                       disabled={signingUp}
                       onClick={() => handleJoinTeam(activeModalSession.id, activeModalSession.team_a_name || 'Red Team')}
-                      className="h-12 bg-gradient-to-r from-red-600 to-red-500 hover:brightness-110 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                      className="h-12 bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider rounded-none transition-all active:scale-95 flex items-center justify-center gap-2 border border-white"
                     >
-                      <span>🔴</span>
+                      <img src="/red_team.png" alt="Red Team" className="w-6 h-6 object-contain shrink-0" />
                       <span>Join {activeModalSession.team_a_name || 'Red Team'}</span>
                     </button>
 
@@ -299,9 +299,9 @@ export default function SessionsPage() {
                       type="button"
                       disabled={signingUp}
                       onClick={() => handleJoinTeam(activeModalSession.id, activeModalSession.team_b_name || 'Blue Team')}
-                      className="h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:brightness-110 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                      className="h-12 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-none transition-all active:scale-95 flex items-center justify-center gap-2 border border-white"
                     >
-                      <span>🔵</span>
+                      <img src="/blue_team.png" alt="Blue Team" className="w-6 h-6 object-contain shrink-0" />
                       <span>Join {activeModalSession.team_b_name || 'Blue Team'}</span>
                     </button>
                   </div>
@@ -309,7 +309,7 @@ export default function SessionsPage() {
               )}
 
               {/* Registered Team Rosters */}
-              <div className="space-y-3 border-t border-[#1a1a1a] pt-3">
+              <div className="space-y-3 border-t border-[#333] pt-3">
                 <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center justify-between">
                   <span>👥 Event Rosters</span>
                   <span className="text-[10px] text-emerald-400 font-mono">
@@ -319,9 +319,12 @@ export default function SessionsPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   {/* Team A Roster */}
-                  <div className="bg-[#0c0c0e] border border-red-500/30 p-3 rounded-xl space-y-2 text-left">
-                    <h5 className="text-[11px] font-black text-red-400 uppercase tracking-wide border-b border-red-500/20 pb-1 flex items-center justify-between">
-                      <span>🔴 {activeModalSession.team_a_name || 'Red Team'}</span>
+                  <div className="bg-[#0c0c0e] border border-red-500/30 p-3 rounded-none space-y-2 text-left">
+                    <h5 className="text-[11px] font-bold text-red-400 uppercase tracking-wide border-b border-red-500/20 pb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <img src="/red_team.png" alt="" className="w-4 h-4 object-contain shrink-0" />
+                        <span>{activeModalSession.team_a_name || 'Red Team'}</span>
+                      </span>
                       <span className="text-[9px] font-mono text-[#888]">
                         {(activeModalSession.signups || []).filter(s => s.selected_team === (activeModalSession.team_a_name || 'Red Team')).length}
                       </span>
@@ -342,9 +345,12 @@ export default function SessionsPage() {
                   </div>
 
                   {/* Team B Roster */}
-                  <div className="bg-[#0c0c0e] border border-blue-500/30 p-3 rounded-xl space-y-2 text-left">
-                    <h5 className="text-[11px] font-black text-blue-400 uppercase tracking-wide border-b border-blue-500/20 pb-1 flex items-center justify-between">
-                      <span>🔵 {activeModalSession.team_b_name || 'Blue Team'}</span>
+                  <div className="bg-[#0c0c0e] border border-blue-500/30 p-3 rounded-none space-y-2 text-left">
+                    <h5 className="text-[11px] font-bold text-blue-400 uppercase tracking-wide border-b border-blue-500/20 pb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <img src="/blue_team.png" alt="" className="w-4 h-4 object-contain shrink-0" />
+                        <span>{activeModalSession.team_b_name || 'Blue Team'}</span>
+                      </span>
                       <span className="text-[9px] font-mono text-[#888]">
                         {(activeModalSession.signups || []).filter(s => s.selected_team === (activeModalSession.team_b_name || 'Blue Team')).length}
                       </span>
