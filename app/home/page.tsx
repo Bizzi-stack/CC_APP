@@ -105,23 +105,23 @@ export default function HomePage() {
               className="cursor-pointer group active:scale-95 transition-all"
             >
               {nextSession.image_url ? (
-                <div className="relative w-full max-w-[500px] mx-auto rounded-2xl overflow-hidden border border-amber-500/40 shadow-2xl bg-black">
+                <div className="relative w-full max-w-[500px] mx-auto rounded-none overflow-hidden border border-white shadow-2xl bg-black">
                   <img src={nextSession.image_url} alt={nextSession.title} className="w-full h-auto object-contain group-hover:scale-105 transition-transform" />
-                  <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-md px-3 py-1 text-[10px] font-mono text-amber-400 border border-amber-500/40 rounded-xl shadow font-extrabold flex items-center gap-1.5">
+                  <div className="absolute bottom-3 right-3 bg-black/90 px-3 py-1 text-[10px] font-mono text-white border border-white rounded-none shadow font-bold flex items-center gap-1.5 uppercase">
                     <span>⚽</span>
-                    <span>Tap to Join Team</span>
+                    <span>TAP TO JOIN TEAM</span>
                   </div>
                 </div>
               ) : new Date(nextSession.date + 'T00:00:00').getDay() === 5 ? (
-                <div className="relative w-full max-w-[500px] mx-auto rounded-2xl overflow-hidden border border-amber-500/40 shadow-2xl bg-black">
+                <div className="relative w-full max-w-[500px] mx-auto rounded-none overflow-hidden border border-white shadow-2xl bg-black">
                   <img src="/schedule_graphic.png" alt="Friday Ball" className="w-full h-auto object-contain group-hover:scale-105 transition-transform" />
-                  <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-md px-3 py-1 text-[10px] font-mono text-amber-400 border border-amber-500/40 rounded-xl shadow font-extrabold flex items-center gap-1.5">
+                  <div className="absolute bottom-3 right-3 bg-black/90 px-3 py-1 text-[10px] font-mono text-white border border-white rounded-none shadow font-bold flex items-center gap-1.5 uppercase">
                     <span>⚽</span>
-                    <span>Tap to Join Team</span>
+                    <span>TAP TO JOIN TEAM</span>
                   </div>
                 </div>
               ) : (
-                <div className="border border-[#333] bg-[#0a0a0a] p-5 hover:border-amber-500/50 transition-colors rounded-xl">
+                <div className="border border-white bg-[#0a0a0a] p-5 transition-colors rounded-none">
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 ${nextSession.type === '5v5_match' ? 'bg-white text-black' : 'border border-[#444] text-[#aaa]'}`}>
                       {nextSession.type === '5v5_match' ? '5v5 MATCH' : 'FREE SESSION'}
@@ -130,7 +130,7 @@ export default function HomePage() {
                   <p className="text-white font-semibold text-base mt-2">{nextSession.title}</p>
                   <p className="text-[#888] text-sm mt-1">{formatDate(nextSession.date)} · {formatTime(nextSession.time)}</p>
                   <p className="text-[#666] text-sm mt-0.5">{nextSession.location}</p>
-                  <p className="text-amber-400 text-xs font-bold uppercase mt-2">Tap to join team →</p>
+                  <p className="text-white text-xs font-bold uppercase mt-2">TAP TO JOIN TEAM →</p>
                 </div>
               )}
             </div>

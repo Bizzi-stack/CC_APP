@@ -72,6 +72,7 @@ export default function LandingPage() {
         localStorage.setItem('player_name', data.player.name)
       }
 
+      // Directly take to Home Feed after login
       window.location.href = '/home'
     } catch (err: any) {
       setError(err.message || 'Login failed')
@@ -92,81 +93,70 @@ export default function LandingPage() {
     <main className="relative min-h-screen w-full overflow-hidden bg-black flex flex-col items-center justify-between p-6">
 
       {/* Background GIF Layer */}
-      <div className="absolute inset-0 z-0 opacity-55">
+      <div className="absolute inset-0 z-0 opacity-60">
         <img
           src="https://ayxcbvzeptwplidkwmob.supabase.co/storage/v1/object/public/assets/background.gif.gif"
           alt="Background"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black" />
+        <div className="absolute inset-0 bg-black/40" />
       </div>
 
       {/* Top Header Logo */}
-      <div className="relative z-10 flex flex-col items-center pt-8">
-        <img src="/logo.png" alt="ARTIC" className="h-20 md:h-28 object-contain scale-[1.8] md:scale-[2.5] mb-2" />
-        <p className="text-[10px] text-amber-400 font-mono tracking-[0.3em] uppercase mt-4">
-          The Circle Football Community
-        </p>
+      <div className="relative z-10 flex flex-col items-center pt-12">
+        <img src="/logo.png" alt="ARTIC" className="h-20 md:h-28 object-contain scale-[1.8] md:scale-[2.5]" />
       </div>
 
-      {/* Foreground Content Card */}
-      <div className="relative z-10 w-full max-w-[420px] mx-auto my-auto pt-4">
+      {/* Foreground Content Card - Pure Square IMVU Minimalist Style */}
+      <div className="relative z-10 w-full max-w-[400px] mx-auto my-auto">
         {checkingAuth ? (
-          <div className="bg-black/80 backdrop-blur-xl border border-[#333] p-8 text-center rounded-2xl animate-pulse">
+          <div className="bg-black border border-[#333] p-8 text-center rounded-none animate-pulse">
             <p className="text-xs text-[#888] font-mono uppercase tracking-widest">Checking saved session...</p>
           </div>
         ) : activePlayer ? (
-          /* Logged In Card (Instagram Style Persistence) */
-          <div className="bg-black/85 backdrop-blur-xl border border-amber-500/40 p-6 rounded-2xl shadow-2xl text-center space-y-5 animate-fadeIn">
-            <div className="flex flex-col items-center space-y-2">
+          /* Logged In Card (Square IMVU Style) */
+          <div className="bg-black border border-white p-8 rounded-none shadow-2xl text-center space-y-6 animate-fadeIn">
+            <div className="flex flex-col items-center space-y-3">
               {activePlayer.photo_url ? (
-                <img src={activePlayer.photo_url} alt="" className="w-20 h-20 rounded-full object-cover border-2 border-amber-400 shadow-lg" />
+                <img src={activePlayer.photo_url} alt="" className="w-20 h-20 rounded-none object-cover border border-white shadow" />
               ) : (
-                <div className="w-20 h-20 rounded-full bg-[#1c1c1c] border-2 border-amber-400 flex items-center justify-center text-2xl font-black text-amber-400 shadow-lg">
+                <div className="w-20 h-20 rounded-none bg-[#111] border border-white flex items-center justify-center text-2xl font-bold text-white shadow">
                   {activePlayer.name.charAt(0)}
                 </div>
               )}
-              <h2 className="text-lg font-black text-white uppercase tracking-wide">
-                Welcome back, {activePlayer.name}! ⚽
+              <h2 className="text-base font-bold text-white uppercase tracking-widest">
+                Welcome back, {activePlayer.name}!
               </h2>
-              <span className="text-[10px] text-emerald-400 font-mono bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-0.5 rounded-full uppercase">
-                ✓ Logged In Persistent Session
-              </span>
             </div>
 
             <div className="space-y-3 pt-2">
               <Link
-                href="/player-portal"
-                className="w-full h-12 bg-gradient-to-r from-amber-500 to-amber-400 text-black text-xs font-black uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-lg"
+                href="/home"
+                className="w-full h-12 bg-white text-black text-xs font-bold uppercase tracking-widest rounded-none flex items-center justify-center hover:bg-gray-200 active:opacity-60 transition-all shadow"
               >
-                <span>👤</span>
-                <span>Open Player Portal</span>
+                ENTER HOME FEED →
               </Link>
 
               <Link
-                href="/home"
-                className="w-full h-12 bg-[#18181c] border border-[#333] hover:border-white text-white text-xs font-bold uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all"
+                href="/player-portal"
+                className="w-full h-12 bg-black border border-[#444] hover:border-white text-white text-xs font-bold uppercase tracking-widest rounded-none flex items-center justify-center transition-all"
               >
-                <span>🏆</span>
-                <span>Community Home Feed</span>
+                PLAYER PORTAL 👤
               </Link>
             </div>
 
             <button
               onClick={handleLogout}
-              className="text-[10px] text-[#777] hover:text-red-400 font-mono uppercase tracking-wider pt-2 block mx-auto underline transition-colors"
+              className="text-[10px] text-[#777] hover:text-white font-mono uppercase tracking-widest pt-2 block mx-auto transition-colors"
             >
-              🚪 Switch Account / Log Out
+              LOG OUT / SWITCH ACCOUNT 🚪
             </button>
           </div>
         ) : (
-          /* Login Form for New / Unauthenticated Devices */
-          <div className="bg-black/85 backdrop-blur-xl border border-[#333] p-7 rounded-2xl shadow-2xl space-y-6">
+          /* Login Form for New / Unauthenticated Devices (Square IMVU Style) */
+          <div className="bg-black border border-white p-8 rounded-none shadow-2xl space-y-6">
             <div className="text-center space-y-1">
-              <h1 className="text-lg font-black text-white uppercase tracking-widest">Player Access</h1>
-              <p className="text-[10px] text-[#888] font-mono tracking-wider">
-                Select your name & passcode to enter
-              </p>
+              <h1 className="text-lg font-bold text-white uppercase tracking-widest">PLAYER LOGIN</h1>
             </div>
 
             {loading ? (
@@ -176,9 +166,9 @@ export default function LandingPage() {
             ) : (
               <form onSubmit={handlePlayerLogin} className={`space-y-5 ${shaking ? 'animate-shake' : ''}`}>
                 {/* Select Player Name */}
-                <div className="space-y-1.5 text-left">
-                  <label className="text-[10px] font-bold tracking-widest uppercase text-[#888] block font-mono">
-                    Select Your Player Name
+                <div className="space-y-2 text-left">
+                  <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block font-mono">
+                    SELECT PLAYER NAME
                   </label>
                   <select
                     required
@@ -187,9 +177,9 @@ export default function LandingPage() {
                       setSelectedPlayerId(e.target.value)
                       setError('')
                     }}
-                    className="w-full h-12 px-4 bg-[#111] border border-[#333] text-white text-sm outline-none focus:border-amber-400 transition-colors rounded-xl cursor-pointer"
+                    className="w-full h-12 px-4 bg-black border border-[#444] text-white text-sm outline-none focus:border-white transition-colors rounded-none cursor-pointer appearance-none"
                   >
-                    <option value="">-- Select Player Account --</option>
+                    <option value="">-- Select Player --</option>
                     {players.map(player => (
                       <option key={player.id} value={player.id} className="bg-black text-white">
                         {player.name}
@@ -199,9 +189,9 @@ export default function LandingPage() {
                 </div>
 
                 {/* Passcode */}
-                <div className="space-y-1.5 text-left">
-                  <label className="text-[10px] font-bold tracking-widest uppercase text-[#888] block font-mono">
-                    Enter Passcode
+                <div className="space-y-2 text-left">
+                  <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block font-mono">
+                    ENTER PASSCODE
                   </label>
                   <input
                     type="password"
@@ -212,12 +202,12 @@ export default function LandingPage() {
                       setError('')
                     }}
                     placeholder="••••"
-                    className="w-full h-12 px-4 bg-[#111] border border-[#333] text-white text-sm outline-none focus:border-amber-400 transition-colors text-center tracking-widest font-mono rounded-xl placeholder-[#444]"
+                    className="w-full h-12 px-4 bg-black border border-[#444] text-white text-sm outline-none focus:border-white transition-colors text-center tracking-widest font-mono rounded-none placeholder-[#444]"
                   />
                 </div>
 
                 {error && (
-                  <div className="bg-red-950/60 border border-red-500 text-red-400 p-3 text-xs text-center font-mono rounded-xl">
+                  <div className="bg-[#ff4444]/10 border border-[#ff4444] text-[#ff4444] p-3 text-xs text-center font-mono rounded-none">
                     {error}
                   </div>
                 )}
@@ -225,9 +215,9 @@ export default function LandingPage() {
                 <button
                   type="submit"
                   disabled={submitting || !selectedPlayerId}
-                  className="w-full h-12 bg-gradient-to-r from-amber-500 to-amber-400 text-black font-black uppercase tracking-widest text-xs hover:brightness-110 active:scale-95 transition-all rounded-xl disabled:opacity-40 shadow-lg"
+                  className="w-full h-12 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-gray-200 active:opacity-60 transition-all rounded-none disabled:opacity-40"
                 >
-                  {submitting ? 'Authenticating...' : 'LOG IN & ENTER SITE'}
+                  {submitting ? '...' : 'ENTER'}
                 </button>
               </form>
             )}
@@ -237,8 +227,8 @@ export default function LandingPage() {
 
       {/* Bottom Footer Admin Link */}
       <div className="relative z-10 pb-4 text-center">
-        <Link href="/login" className="text-[10px] text-[#555] hover:text-white font-mono uppercase tracking-widest transition-colors">
-          Admin Portal Login →
+        <Link href="/login" className="text-[9px] text-[#555] hover:text-white font-mono uppercase tracking-widest transition-colors">
+          ADMIN LOGIN →
         </Link>
       </div>
 

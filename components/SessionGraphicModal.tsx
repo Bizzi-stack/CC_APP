@@ -120,13 +120,13 @@ export default function SessionGraphicModal({ session, onClose, onSignupSuccess 
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg bg-[#0a0a0c] border border-amber-500/40 p-6 rounded-2xl shadow-2xl space-y-4 text-left max-h-[92vh] flex flex-col overflow-hidden"
+        className="relative w-full max-w-lg bg-black border border-white p-6 rounded-none shadow-2xl space-y-4 text-left max-h-[92vh] flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#222] pb-3 shrink-0">
+        <div className="flex items-center justify-between border-b border-[#333] pb-3 shrink-0">
           <div>
-            <h3 className="text-base font-black text-white uppercase tracking-wide flex items-center gap-2">
+            <h3 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <span>⚽</span> {session.title || 'Friday Ball'}
             </h3>
             <p className="text-[10px] text-[#888] font-mono mt-0.5">
@@ -136,7 +136,7 @@ export default function SessionGraphicModal({ session, onClose, onSignupSuccess 
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#1c1c1c] text-[#aaa] hover:text-white flex items-center justify-center text-xs font-bold shrink-0"
+            className="w-8 h-8 rounded-none bg-[#1c1c1c] text-[#aaa] hover:text-white flex items-center justify-center text-xs font-bold shrink-0 border border-[#444]"
           >
             ✕
           </button>
@@ -144,78 +144,75 @@ export default function SessionGraphicModal({ session, onClose, onSignupSuccess 
 
         <div className="overflow-y-auto space-y-4 pr-1 flex-1 custom-scrollbar">
           {/* Full Graphic Poster */}
-          <div className="relative w-full rounded-xl overflow-hidden border border-[#333] shadow-2xl bg-black flex justify-center">
+          <div className="relative w-full rounded-none overflow-hidden border border-[#333] shadow-2xl bg-black flex justify-center">
             <img src={posterImage} alt={session.title} className="w-full max-h-80 object-contain" />
           </div>
 
           {/* User Status / Notification */}
           {userCurrentSignup && (
-            <div className="bg-emerald-950/40 border border-emerald-500/40 p-3 rounded-xl text-center text-xs text-emerald-400 font-bold uppercase tracking-wider">
-              ✓ You are currently signed up for <span className="underline">{userCurrentSignup.selected_team}</span>
+            <div className="bg-[#111] border border-emerald-500 p-3 rounded-none text-center text-xs text-emerald-400 font-bold uppercase tracking-wider">
+              ✓ SIGNED UP FOR <span className="underline">{userCurrentSignup.selected_team}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="bg-emerald-950/60 border border-emerald-500 text-emerald-300 text-xs p-3 rounded-xl text-center font-bold">
+            <div className="bg-[#111] border border-emerald-500 text-emerald-300 text-xs p-3 rounded-none text-center font-bold">
               {successMsg}
             </div>
           )}
 
           {errorMsg && (
-            <div className="bg-red-950/60 border border-red-500 text-red-300 text-xs p-3 rounded-xl text-center">
+            <div className="bg-[#111] border border-red-500 text-red-400 text-xs p-3 rounded-none text-center font-mono">
               {errorMsg}
             </div>
           )}
 
           {/* Interactive Team Selection Section */}
-          <div className="bg-black border border-amber-500/30 p-4 rounded-xl space-y-3 text-center shadow-lg">
-            <h4 className="text-xs font-extrabold text-amber-400 uppercase tracking-wider flex items-center justify-center gap-1.5">
-              <span>🔥</span> Pick Your Squad For Friday
+          <div className="bg-black border border-white p-4 rounded-none space-y-3 text-center shadow-lg">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center justify-center gap-1.5 font-mono">
+              SELECT YOUR TEAM FOR FRIDAY
             </h4>
-            <p className="text-[10px] text-[#888] font-mono">
-              Tap a team below to register your spot & get paid match wages
-            </p>
 
             <div className="grid grid-cols-2 gap-3 pt-1">
               <button
                 type="button"
                 disabled={signingUp}
                 onClick={() => handleJoinTeam(teamAName)}
-                className={`h-12 bg-gradient-to-r from-red-600 to-red-500 hover:brightness-110 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 ${
-                  userCurrentSignup?.selected_team === teamAName ? 'ring-2 ring-white scale-[1.02]' : ''
+                className={`h-12 bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider rounded-none transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-white ${
+                  userCurrentSignup?.selected_team === teamAName ? 'ring-2 ring-white' : ''
                 }`}
               >
                 <span>🔴</span>
-                <span>Join {teamAName}</span>
+                <span>JOIN {teamAName}</span>
               </button>
 
               <button
                 type="button"
                 disabled={signingUp}
                 onClick={() => handleJoinTeam(teamBName)}
-                className={`h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:brightness-110 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 ${
-                  userCurrentSignup?.selected_team === teamBName ? 'ring-2 ring-white scale-[1.02]' : ''
+                className={`h-12 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-none transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-white ${
+                  userCurrentSignup?.selected_team === teamBName ? 'ring-2 ring-white' : ''
                 }`}
               >
                 <span>🔵</span>
-                <span>Join {teamBName}</span>
+                <span>JOIN {teamBName}</span>
               </button>
             </div>
           </div>
 
           {/* Registered Team Rosters */}
-          <div className="space-y-3 border-t border-[#1a1a1a] pt-3">
+          <div className="space-y-3 border-t border-[#333] pt-3">
             <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center justify-between">
-              <span>👥 Signed Up Players</span>
+              <span>👥 SIGNED UP PLAYERS</span>
               <span className="text-[10px] text-emerald-400 font-mono">
-                {signups.length} Registered
+                {signups.length} REGISTERED
               </span>
             </h4>
 
             <div className="grid grid-cols-2 gap-3">
               {/* Team A Roster */}
-              <div className="bg-[#0c0c0e] border border-red-500/30 p-3 rounded-xl space-y-2 text-left">
-                <h5 className="text-[11px] font-black text-red-400 uppercase tracking-wide border-b border-red-500/20 pb-1 flex items-center justify-between">
+              <div className="bg-[#0a0a0a] border border-red-500/50 p-3 rounded-none space-y-2 text-left">
+                <h5 className="text-[11px] font-bold text-red-400 uppercase tracking-wide border-b border-red-500/30 pb-1 flex items-center justify-between font-mono">
                   <span>🔴 {teamAName}</span>
                   <span className="text-[9px] font-mono text-[#888]">{teamASignups.length}</span>
                 </h5>
@@ -233,8 +230,8 @@ export default function SessionGraphicModal({ session, onClose, onSignupSuccess 
               </div>
 
               {/* Team B Roster */}
-              <div className="bg-[#0c0c0e] border border-blue-500/30 p-3 rounded-xl space-y-2 text-left">
-                <h5 className="text-[11px] font-black text-blue-400 uppercase tracking-wide border-b border-blue-500/20 pb-1 flex items-center justify-between">
+              <div className="bg-[#0a0a0a] border border-blue-500/50 p-3 rounded-none space-y-2 text-left">
+                <h5 className="text-[11px] font-bold text-blue-400 uppercase tracking-wide border-b border-blue-500/30 pb-1 flex items-center justify-between font-mono">
                   <span>🔵 {teamBName}</span>
                   <span className="text-[9px] font-mono text-[#888]">{teamBSignups.length}</span>
                 </h5>
