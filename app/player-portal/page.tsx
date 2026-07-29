@@ -460,15 +460,7 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
     }
   }
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/player/logout', { method: 'POST' })
-      router.push('/home')
-      router.refresh()
-    } catch (err) {
-      console.error(err)
-    }
-  }
+
 
   const handleListBadge = async (badgeId: string, currentPrice: number) => {
     const priceStr = await showDialog({ type: 'prompt', message: 'Enter resale price (Credits) for this badge:', defaultValue: currentPrice.toString() })
