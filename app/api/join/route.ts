@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, position, photo_url, notes, country, playstyle, badges } = body
+    const { name, position, photo_url, notes, country, playstyle, badges, passcode } = body
 
     if (!name) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
         photo_url: photo_url || null,
         notes: notes || null,
         country: country || 'Barbados',
+        passcode: passcode ? passcode.toString().trim() : '1234',
         badges: initialBadges.length > 0 ? initialBadges : null,
         available: true,
         value: 0,

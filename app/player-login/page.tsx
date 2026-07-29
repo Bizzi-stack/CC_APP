@@ -13,6 +13,8 @@ export default function PlayerLoginPage() {
   const router = useRouter()
   const [players, setPlayers] = useState<Player[]>([])
   const [selectedPlayerId, setSelectedPlayerId] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showDropdown, setShowDropdown] = useState(false)
   const [passcode, setPasscode] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -37,7 +39,11 @@ export default function PlayerLoginPage() {
       const res = await fetch('/api/player/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId: selectedPlayerId, passcode })
+        body: JSON.stringify({
+          playerId: selectedPlayerId || undefined,
+          playerName: !selectedPlayerId ? searchQuery.trim() : undefined,
+          passcode
+        })
       })
 
       const data = await res.json()
@@ -85,26 +91,53 @@ export default function PlayerLoginPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
+            <div className="space-y-2 relative">
               <label className="text-[9px] font-bold tracking-widest uppercase text-[#555] block">
-                Select Your Player Name
+                Type Your Username / Player Name
               </label>
-              <select
+              <input
+                type="text"
                 required
-                value={selectedPlayerId}
+                value={searchQuery}
                 onChange={e => {
-                  setSelectedPlayerId(e.target.value)
+                  setSearchQuery(e.target.value)
+                  setSelectedPlayerId('')
                   setError('')
+                  setShowDropdown(true)
                 }}
-                className="w-full h-12 px-4 bg-[#111] border border-[#333] text-white text-sm outline-none focus:border-white transition-colors appearance-none cursor-pointer"
-              >
-                <option value="">-- Select Player --</option>
-                {players.map(player => (
-                  <option key={player.id} value={player.id} className="bg-black">
-                    {player.name}
-                  </option>
-                ))}
-              </select>
+                onFocus={() => setShowDropdown(true)}
+                placeholder="Type player username..."
+                className="w-full h-12 px-4 bg-[#111] border border-[#333] text-white text-sm outline-none focus:border-white transition-colors font-mono placeholder-[#555]"
+              />
+
+              {/* Filtered Autocomplete Dropdown Suggestions */}
+              {showDropdown && searchQuery.trim().length > 0 && (
+                <div className="absolute top-full left-0 right-0 z-50 bg-[#0a0a0c] border border-[#333] max-h-48 overflow-y-auto shadow-2xl mt-1">
+                  {players.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+                    <div className="p-3 text-[11px] text-[#777] font-mono text-center">
+                      No matching players — will try logging in as &quot;{searchQuery}&quot;
+                    </div>
+                  ) : (
+                    players
+                      .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                      .map(p => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedPlayerId(p.id)
+                            setSearchQuery(p.name)
+                            setShowDropdown(false)
+                            setError('')
+                          }}
+                          className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-[#1f1f1f] text-left transition-colors border-b border-[#1a1a1a] last:border-b-0 cursor-pointer"
+                        >
+                          <span className="text-xs font-bold text-white font-mono">{p.name}</span>
+                        </button>
+                      ))
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -132,7 +165,7 @@ export default function PlayerLoginPage() {
 
             <button
               type="submit"
-              disabled={submitting || !selectedPlayerId}
+              disabled={submitting || (!selectedPlayerId && !searchQuery.trim())}
               className="w-full h-12 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-gray-200 active:opacity-60 transition-all disabled:opacity-30 disabled:hover:bg-white"
             >
               {submitting ? 'Connecting...' : 'Access Portal'}

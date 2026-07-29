@@ -14,6 +14,8 @@ export default function LandingPage() {
   const router = useRouter()
   const [players, setPlayers] = useState<Player[]>([])
   const [selectedPlayerId, setSelectedPlayerId] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showDropdown, setShowDropdown] = useState(false)
   const [passcode, setPasscode] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -57,7 +59,11 @@ export default function LandingPage() {
       const res = await fetch('/api/player/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId: selectedPlayerId, passcode })
+        body: JSON.stringify({
+          playerId: selectedPlayerId || undefined,
+          playerName: !selectedPlayerId ? searchQuery.trim() : undefined,
+          passcode
+        })
       })
 
       const data = await res.json()
@@ -165,27 +171,61 @@ export default function LandingPage() {
               </div>
             ) : (
               <form onSubmit={handlePlayerLogin} className={`space-y-5 ${shaking ? 'animate-shake' : ''}`}>
-                {/* Select Player Name */}
-                <div className="space-y-2 text-left">
+                {/* Type Username / Select Player */}
+                <div className="space-y-2 text-left relative">
                   <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block font-mono">
-                    SELECT PLAYER NAME
+                    ENTER USERNAME / PLAYER NAME
                   </label>
-                  <select
+                  <input
+                    type="text"
                     required
-                    value={selectedPlayerId}
+                    value={searchQuery}
                     onChange={e => {
-                      setSelectedPlayerId(e.target.value)
+                      setSearchQuery(e.target.value)
+                      setSelectedPlayerId('')
                       setError('')
+                      setShowDropdown(true)
                     }}
-                    className="w-full h-12 px-4 bg-black border border-[#444] text-white text-sm outline-none focus:border-white transition-colors rounded-none cursor-pointer appearance-none"
-                  >
-                    <option value="">-- Select Player --</option>
-                    {players.map(player => (
-                      <option key={player.id} value={player.id} className="bg-black text-white">
-                        {player.name}
-                      </option>
-                    ))}
-                  </select>
+                    onFocus={() => setShowDropdown(true)}
+                    placeholder="Type player username..."
+                    className="w-full h-12 px-4 bg-black border border-[#444] text-white text-sm outline-none focus:border-white transition-colors rounded-none font-mono placeholder-[#555]"
+                  />
+
+                  {/* Filtered Autocomplete Dropdown Suggestions */}
+                  {showDropdown && searchQuery.trim().length > 0 && (
+                    <div className="absolute top-full left-0 right-0 z-50 bg-[#0a0a0c] border border-[#333] max-h-48 overflow-y-auto shadow-2xl mt-1">
+                      {players.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+                        <div className="p-3 text-[11px] text-[#777] font-mono text-center">
+                          No matching players — will try logging in as &quot;{searchQuery}&quot;
+                        </div>
+                      ) : (
+                        players
+                          .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                          .map(p => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedPlayerId(p.id)
+                                setSearchQuery(p.name)
+                                setShowDropdown(false)
+                                setError('')
+                              }}
+                              className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-[#1f1f1f] text-left transition-colors border-b border-[#1a1a1a] last:border-b-0 cursor-pointer"
+                            >
+                              {p.photo_url ? (
+                                <img src={p.photo_url} alt="" className="w-6 h-6 object-cover border border-[#333] shrink-0" />
+                              ) : (
+                                <div className="w-6 h-6 bg-[#222] text-[10px] font-bold flex items-center justify-center text-white shrink-0">
+                                  {p.name.charAt(0)}
+                                </div>
+                              )}
+                              <span className="text-xs font-bold text-white font-mono">{p.name}</span>
+                            </button>
+                          ))
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Passcode */}
@@ -214,7 +254,7 @@ export default function LandingPage() {
 
                 <button
                   type="submit"
-                  disabled={submitting || !selectedPlayerId}
+                  disabled={submitting || (!selectedPlayerId && !searchQuery.trim())}
                   className="w-full h-12 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-gray-200 active:opacity-60 transition-all rounded-none disabled:opacity-40"
                 >
                   {submitting ? '...' : 'ENTER'}

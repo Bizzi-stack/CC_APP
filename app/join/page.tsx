@@ -19,6 +19,7 @@ export default function JoinPage() {
 
   const [form, setForm] = useState({
     name: '',
+    passcode: '',
     position: '',
     notes: '',
     country: 'Barbados',
@@ -42,6 +43,7 @@ export default function JoinPage() {
     e.preventDefault()
     if (!file) { setError('A headshot photo is required'); return }
     if (!form.name.trim()) { setError('Name is required'); return }
+    if (!form.passcode.trim()) { setError('Passcode is required'); return }
 
     setStep('uploading')
     setError(null)
@@ -60,6 +62,7 @@ export default function JoinPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: form.name.trim(),
+          passcode: form.passcode.trim(),
           position: form.position || null,
           photo_url: uploadData.url,
           notes: form.notes.trim() || null,
@@ -180,6 +183,21 @@ export default function JoinPage() {
             className={inputClass}
             placeholder="e.g. Marcus Reid"
           />
+        </div>
+
+        {/* Secret Passcode / Password */}
+        <div>
+          <label className={labelClass}>Create Secret Passcode / Password *</label>
+          <input
+            type="password"
+            name="passcode"
+            value={form.passcode}
+            onChange={e => setForm(p => ({ ...p, passcode: e.target.value }))}
+            required
+            className={inputClass + ' font-mono tracking-widest'}
+            placeholder="Set a secret passcode to log in"
+          />
+          <p className="text-[10px] text-[#666] mt-1">You will use this passcode to log into your account.</p>
         </div>
 
         {/* Country / Flag */}

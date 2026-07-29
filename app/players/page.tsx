@@ -394,7 +394,7 @@ export default function AdminPlayersPage() {
                     setApproveFranchiseId('')
                     setApproveWages('')
                     setApproveBalance('')
-                    setApprovePasscode('1234')
+                    setApprovePasscode(player.passcode || '1234')
                     setApproveBadges('')
                     setApproveCanvasBadgesData(player.canvas_badges_data || (player.canvas_badge_ids?.map(id => ({ id, x: 50, y: 50 })) || []))
                     setApproveIsFranchiseOwner(player.is_franchise_owner || false)
