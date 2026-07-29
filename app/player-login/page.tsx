@@ -46,6 +46,11 @@ export default function PlayerLoginPage() {
         throw new Error(data.error || 'Failed to authenticate')
       }
 
+      if (data.player) {
+        localStorage.setItem('player_token', data.player.id)
+        localStorage.setItem('player_name', data.player.name)
+      }
+
       window.location.href = '/player-portal'
     } catch (err: any) {
       setError(err.message)

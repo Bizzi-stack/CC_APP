@@ -8,7 +8,7 @@ const adminUIRoutes = [
   '/sessions'
 ]
 
-// Routes that require at least community authentication to view
+// Routes that require at least community/player authentication to view
 const communityUIRoutes = [
   '/home',
   '/market',
@@ -30,7 +30,8 @@ const adminApiRoutes = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const hasAdminToken = request.cookies.has('admin_token')
-  const hasCommunityToken = request.cookies.has('community_token')
+  const hasPlayerToken = request.cookies.has('player_token')
+  const hasCommunityToken = request.cookies.has('community_token') || hasPlayerToken
 
   // Check Admin UI routes
   const isAdminUI = adminUIRoutes.some(route => pathname.startsWith(route))
@@ -56,9 +57,9 @@ export function middleware(request: NextRequest) {
   }
 
   // Check Player Portal protection (requires player_token)
-  if (pathname.startsWith('/player-portal') && !request.cookies.has('player_token')) {
+  if (pathname.startsWith('/player-portal') && !hasPlayerToken) {
     const url = request.nextUrl.clone()
-    url.pathname = '/player-login'
+    url.pathname = '/'
     return NextResponse.redirect(url)
   }
 
