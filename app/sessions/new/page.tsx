@@ -7,6 +7,7 @@ import Link from 'next/link'
 export default function NewSessionPage() {
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [form, setForm] = useState({
@@ -22,6 +23,35 @@ export default function NewSessionPage() {
     team_a_name: 'Red Team',
     team_b_name: 'Blue Team',
   })
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    setError(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Upload failed')
+
+      if (data.url) {
+        setForm(prev => ({ ...prev, image_url: data.url }))
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error uploading file')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
@@ -98,15 +128,41 @@ export default function NewSessionPage() {
           <input name="title" value={form.title} onChange={handleChange} required className={inputClass} placeholder="e.g. Friday Night Ball ⚽" />
         </div>
 
-        {/* Graphic / Poster Image URL */}
-        <div>
-          <label className={labelClass}>Event Graphic / Poster Image URL</label>
-          <input name="image_url" value={form.image_url} onChange={handleChange} className={inputClass} placeholder="Paste graphic URL (e.g. https://... or /poster.png)" />
+        {/* Graphic / Poster Image Upload */}
+        <div className="space-y-2">
+          <label className={labelClass}>Event Graphic / Poster Image</label>
+          
+          {/* Option A: Direct File Upload from Computer */}
+          <div className="flex items-center gap-3">
+            <label className="flex-1 h-11 px-4 bg-[#18181c] border border-[#333] hover:border-amber-500/50 text-amber-300 text-xs font-bold uppercase tracking-wider rounded-xl cursor-pointer flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md">
+              <span>📁</span>
+              <span>{uploading ? 'Uploading Graphic...' : 'Upload Image from Computer'}</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                disabled={uploading}
+                className="hidden"
+              />
+            </label>
+          </div>
+
+          <div className="text-[9px] text-[#666] font-mono text-center uppercase tracking-widest">— OR PASTE IMAGE URL BELOW —</div>
+
+          {/* Option B: Image URL */}
+          <input
+            name="image_url"
+            value={form.image_url}
+            onChange={handleChange}
+            className={inputClass}
+            placeholder="Paste Graphic URL (e.g. https://... or /poster.png)"
+          />
+
           {form.image_url && (
-            <div className="mt-2 w-full h-44 rounded-xl border border-[#333] overflow-hidden bg-[#070707] flex items-center justify-center relative">
+            <div className="mt-3 w-full h-52 rounded-xl border border-amber-500/30 overflow-hidden bg-black flex items-center justify-center relative shadow-xl">
               <img src={form.image_url} alt="Poster preview" className="w-full h-full object-cover" />
-              <div className="absolute top-2 right-2 bg-black/80 px-2 py-1 text-[9px] font-mono text-emerald-400 border border-emerald-500/30 rounded">
-                Graphic Preview
+              <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-2.5 py-1 text-[9px] font-mono text-emerald-400 border border-emerald-500/30 rounded-lg shadow">
+                ✓ Graphic Attached
               </div>
             </div>
           )}
