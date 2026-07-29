@@ -103,8 +103,8 @@ export default function LandingPage() {
       </div>
 
       {/* Top Header Logo */}
-      <div className="relative z-10 flex flex-col items-center pt-12">
-        <img src="/logo.png" alt="ARTIC" className="h-20 md:h-28 object-contain scale-[1.8] md:scale-[2.5]" />
+      <div className="relative z-10 flex flex-col items-center pt-8 pb-4">
+        <img src="/logo.png" alt="College Clubs FC" className="h-28 md:h-36 w-auto object-contain drop-shadow-xl" />
       </div>
 
       {/* Foreground Content Card - Pure Square IMVU Minimalist Style */}
