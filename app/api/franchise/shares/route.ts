@@ -269,6 +269,16 @@ export async function POST(request: NextRequest) {
         .update({ status: 'sold' })
         .eq('id', listing_id)
 
+      // 7. Record buy transaction for P&L tracking
+      await supabase.from('franchise_share_transactions').insert([{
+        player_id: playerId,
+        franchise_id: listing.franchise_id,
+        type: 'buy',
+        shares_count: listing.shares_count,
+        price_per_share: listing.price_per_share,
+        total_amount: totalCost
+      }])
+
       return NextResponse.json({ success: true, message: `Successfully purchased ${listing.shares_count} shares for ${totalCost.toLocaleString()} CR!` })
     } else if (action === 'cancel') {
       const { listing_id } = body
@@ -387,6 +397,16 @@ export async function POST(request: NextRequest) {
           }])
       }
 
+      // Record buy transaction for P&L tracking
+      await supabase.from('franchise_share_transactions').insert([{
+        player_id: playerId,
+        franchise_id,
+        type: 'buy',
+        shares_count,
+        price_per_share: sharePrice,
+        total_amount: totalCost
+      }])
+
       return NextResponse.json({
         success: true,
         message: `Successfully bought ${shares_count} shares of ${franchise.name} for ${totalCost.toLocaleString()} CR!`
@@ -440,6 +460,16 @@ export async function POST(request: NextRequest) {
       const { data: userPlayer } = await supabase.from('players').select('balance').eq('id', playerId).single()
       const newBalance = (userPlayer?.balance || 0) + totalPayout
       await supabase.from('players').update({ balance: newBalance }).eq('id', playerId)
+
+      // 3. Record sell transaction for P&L tracking
+      await supabase.from('franchise_share_transactions').insert([{
+        player_id: playerId,
+        franchise_id,
+        type: 'sell',
+        shares_count,
+        price_per_share: sharePrice,
+        total_amount: totalPayout
+      }])
 
       return NextResponse.json({
         success: true,

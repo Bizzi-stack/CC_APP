@@ -134,6 +134,7 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
   const [betAmount, setBetAmount] = useState('')
   const [betPick, setBetPick] = useState<string | null>(null) // null for draw, id for franchise
   const [respondingOffer, setRespondingOffer] = useState<string | null>(null)
+  const [sharePnl, setSharePnl] = useState<any[]>([])
 
   useEffect(() => {
     fetchPortalData()
@@ -141,12 +142,13 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
 
   const fetchPortalData = async () => {
     try {
-      const [meRes, badgesRes, offersRes, matchesRes, wagersRes] = await Promise.all([
+      const [meRes, badgesRes, offersRes, matchesRes, wagersRes, pnlRes] = await Promise.all([
         fetch('/api/player/me'),
         fetch('/api/canvas-badges'),
         fetch('/api/player/offers'),
         fetch('/api/player/matches'),
-        fetch('/api/player/wagers')
+        fetch('/api/player/wagers'),
+        fetch('/api/franchise/shares/pnl')
       ])
 
       if (!meRes.ok) {
@@ -162,6 +164,7 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
       const offersData = await offersRes.json()
       const matchesData = await matchesRes?.json() || { matches: [] }
       const wagersData = await wagersRes?.json() || { wagers: [] }
+      const pnlData = await pnlRes?.json().catch(() => ({ pnl: [] })) || { pnl: [] }
 
       const curPlayer = meData.player
       setPlayer(curPlayer)
@@ -181,6 +184,7 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
       setIncomingOffers(offersData.offers || [])
       setActiveMatches(matchesData.matches || [])
       setMyWagers(wagersData.wagers || [])
+      setSharePnl(pnlData.pnl || [])
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -693,6 +697,66 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
             Trade Stocks →
           </Link>
         </div>
+
+        {/* My Investments P&L Card */}
+        {sharePnl.length > 0 && (
+          <div className="mt-3 bg-[#060606] border border-[#1a1a1a] p-4">
+            <h3 className="text-[10px] font-bold text-white uppercase tracking-widest mb-3 flex items-center gap-2">
+              <span>📊</span> My Investments — P&amp;L
+            </h3>
+            <div className="space-y-3">
+              {sharePnl.map((item: any) => {
+                const unrealised = item.unrealised_pnl
+                const realised = item.realised_pnl
+                const totalPnl = unrealised + realised
+                const isUp = totalPnl >= 0
+                return (
+                  <div key={item.franchise_id} className="border border-[#1e1e1e] bg-[#0a0a0a] p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        {item.franchise_logo && (
+                          <img src={item.franchise_logo} alt={item.franchise_name} className="w-6 h-6 object-contain" />
+                        )}
+                        <span className="text-xs font-bold text-white">{item.franchise_name}</span>
+                      </div>
+                      <span className={`text-xs font-black font-mono ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {isUp ? '+' : ''}{totalPnl.toLocaleString()} CR
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1 text-[10px] text-[#666]">
+                      <div>
+                        <p className="text-[#555] uppercase tracking-wider">Held</p>
+                        <p className="text-white font-mono">{item.shares_held} shares</p>
+                      </div>
+                      <div>
+                        <p className="text-[#555] uppercase tracking-wider">Avg Buy</p>
+                        <p className="text-white font-mono">{item.avg_buy_price.toLocaleString()} CR</p>
+                      </div>
+                      <div>
+                        <p className="text-[#555] uppercase tracking-wider">Current</p>
+                        <p className="text-white font-mono">{item.current_price.toLocaleString()} CR</p>
+                      </div>
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-[#1a1a1a] grid grid-cols-2 gap-1 text-[10px]">
+                      <div>
+                        <p className="text-[#555] uppercase tracking-wider">Unrealised</p>
+                        <p className={`font-mono font-bold ${unrealised >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {unrealised >= 0 ? '+' : ''}{unrealised.toLocaleString()} CR
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[#555] uppercase tracking-wider">Realised</p>
+                        <p className={`font-mono font-bold ${realised >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {realised >= 0 ? '+' : ''}{realised.toLocaleString()} CR
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="p-4 space-y-6">
