@@ -2,18 +2,19 @@
 
 import React from 'react'
 
-// Only logos from the public/partners folder
+// Automatically mapped partners from the public/partners folder
 const PARTNERS = [
   { name: 'Polygon', logo: '/partners/polygon-logo.svg' },
   { name: 'Miami FC', logo: '/partners/cropped-logo_Miami-FC.webp' },
+  { name: 'Brooklyn FC', logo: '/partners/cropped-Brooklyn-FC-crest.webp' },
+  { name: 'San Antonio FC', logo: '/partners/cropped-SAFC_PrimaryLogo_FullColor_LBg_RGB.webp' },
+  { name: 'OKC United', logo: '/partners/OKCUnitedLogo.webp' },
   { name: 'Corporate', logo: '/partners/Corporate-Abbrev-RGB.png' },
 ]
 
 export default function FooterPartnerTicker() {
-  // Loop partners array 6 times for smooth infinite marquee animation
+  // Loop partners array for smooth infinite marquee animation
   const loopedPartners = [
-    ...PARTNERS,
-    ...PARTNERS,
     ...PARTNERS,
     ...PARTNERS,
     ...PARTNERS,
@@ -42,7 +43,7 @@ export default function FooterPartnerTicker() {
           WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)'
         }}
       >
-        <div className="flex w-max animate-ticker items-center gap-12 sm:gap-20">
+        <div className="flex w-max animate-ticker items-center gap-10 sm:gap-16">
           {loopedPartners.map((partner, idx) => (
             <div
               key={`${partner.name}-${idx}`}
@@ -69,7 +70,7 @@ export default function FooterPartnerTicker() {
           }
         }
         .animate-ticker {
-          animation: ticker 18s linear infinite;
+          animation: ticker 22s linear infinite;
         }
         .animate-ticker:hover {
           animation-play-state: paused;
