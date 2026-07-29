@@ -13,6 +13,7 @@ import { PLAYSTYLES_LIST } from '@/lib/playstyles'
 import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
 import BtcCashoutModal from '@/components/BtcCashoutModal'
 import BtcTicker from '@/components/BtcTicker'
+import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
 
 interface CanvasBadge {
   id: string
@@ -617,12 +618,12 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
           </div>
 
           {/* Dynamic Badges */}
-          <div className="flex flex-col gap-1 ml-auto shrink-0">
+          <div className="flex flex-col gap-1.5 ml-auto shrink-0">
             {player?.is_top_scorer && (
-              <img src="/top-scorer.png" alt="Top Scorer" className="w-8 h-8 object-contain drop-shadow-lg" title="Current Top Scorer" />
+              <TopScorerBadge className="w-8 h-8" />
             )}
             {player?.is_top_assister && (
-              <img src="/top-assists.png" alt="Top Assists" className="w-8 h-8 object-contain drop-shadow-lg" title="Current Top Assists" />
+              <TopAssisterBadge className="w-8 h-8" />
             )}
           </div>
         </div>
