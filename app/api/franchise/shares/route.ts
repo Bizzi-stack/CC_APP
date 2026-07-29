@@ -3,6 +3,57 @@ import { supabase } from '@/lib/supabase'
 
 export const runtime = 'edge'
 
+// Helper: check if buyer now owns majority and transfer ownership if so
+async function checkMajorityTakeover(buyerId: string, franchiseId: string): Promise<string | null> {
+  // Sum all shares in circulation for this franchise
+  const { data: allShares } = await supabase
+    .from('franchise_shares')
+    .select('owner_id, shares_count')
+    .eq('franchise_id', franchiseId)
+
+  if (!allShares || allShares.length === 0) return null
+
+  const totalShares = allShares.reduce((s, r) => s + (r.shares_count || 0), 0)
+  const buyerRow = allShares.find(r => r.owner_id === buyerId)
+  const buyerShares = buyerRow?.shares_count || 0
+
+  if (totalShares === 0 || buyerShares <= totalShares / 2) return null
+
+  // Buyer has majority — check who the current owner is
+  const { data: currentOwner } = await supabase
+    .from('players')
+    .select('id, name, is_franchise_owner, owned_franchise_id')
+    .eq('owned_franchise_id', franchiseId)
+    .eq('is_franchise_owner', true)
+    .single()
+
+  // Don't transfer if already the owner
+  if (currentOwner?.id === buyerId) return null
+
+  // Demote old owner
+  if (currentOwner) {
+    await supabase
+      .from('players')
+      .update({ is_franchise_owner: false, owned_franchise_id: null })
+      .eq('id', currentOwner.id)
+  }
+
+  // Promote buyer
+  await supabase
+    .from('players')
+    .update({ is_franchise_owner: true, owned_franchise_id: franchiseId })
+    .eq('id', buyerId)
+
+  // Fetch franchise name for the message
+  const { data: franchise } = await supabase
+    .from('franchises')
+    .select('name')
+    .eq('id', franchiseId)
+    .single()
+
+  return franchise?.name || 'the franchise'
+}
+
 // GET /api/franchise/shares - Fetch all franchise share valuations, listings, and user holdings
 export async function GET(request: NextRequest) {
   try {
@@ -279,7 +330,13 @@ export async function POST(request: NextRequest) {
         total_amount: totalCost
       }])
 
-      return NextResponse.json({ success: true, message: `Successfully purchased ${listing.shares_count} shares for ${totalCost.toLocaleString()} CR!` })
+      // 8. Check for majority takeover
+      const takenOver = await checkMajorityTakeover(playerId, listing.franchise_id)
+      const takeoverMsg = takenOver
+        ? ` 🏆 You now own the majority of ${takenOver} — you are the new franchise owner!`
+        : ''
+
+      return NextResponse.json({ success: true, takeover: !!takenOver, message: `Successfully purchased ${listing.shares_count} shares for ${totalCost.toLocaleString()} CR!${takeoverMsg}` })
     } else if (action === 'cancel') {
       const { listing_id } = body
 
@@ -407,9 +464,16 @@ export async function POST(request: NextRequest) {
         total_amount: totalCost
       }])
 
+      // Check for majority takeover
+      const takenOver = await checkMajorityTakeover(playerId, franchise_id)
+      const takeoverMsg = takenOver
+        ? ` 🏆 You now own the majority of ${takenOver} — you are the new franchise owner!`
+        : ''
+
       return NextResponse.json({
         success: true,
-        message: `Successfully bought ${shares_count} shares of ${franchise.name} for ${totalCost.toLocaleString()} CR!`
+        takeover: !!takenOver,
+        message: `Successfully bought ${shares_count} shares of ${franchise.name} for ${totalCost.toLocaleString()} CR!${takeoverMsg}`
       })
     } else if (action === 'sell_instant') {
       const { franchise_id, shares_count } = body
