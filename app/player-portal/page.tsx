@@ -9,8 +9,6 @@ import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseO
 import { useCustomDialog } from '@/components/CustomDialog'
 import { requestNotificationPermission, sendNativeNotification } from '@/lib/notifications'
 import { COUNTRY_LIST, getCountryFlag } from '@/lib/countries'
-import { PLAYSTYLES_LIST } from '@/lib/playstyles'
-import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
 import BtcCashoutModal from '@/components/BtcCashoutModal'
 import BtcTicker from '@/components/BtcTicker'
 import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
@@ -115,7 +113,6 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
   const [isBusiness, setIsBusiness] = useState(false)
   const [businessName, setBusinessName] = useState('')
   const [country, setCountry] = useState('Barbados')
-  const [primaryPlaystyle, setPrimaryPlaystyle] = useState('Finesse Shot')
   const [savingProfile, setSavingProfile] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
@@ -180,7 +177,6 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
       setIsBusiness(Boolean(curPlayer.is_business))
       setBusinessName(curPlayer.business_name || '')
       setCountry(curPlayer.country || 'Barbados')
-      setPrimaryPlaystyle(curPlayer.badges?.[0] || 'Finesse Shot')
       setIncomingOffers(offersData.offers || [])
       setActiveMatches(matchesData.matches || [])
       setMyWagers(wagersData.wagers || [])
@@ -337,8 +333,7 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
           spotify_track_url: spotifyTrackUrl || null,
           is_business: isBusiness,
           business_name: businessName || null,
-          country: country || 'Barbados',
-          playstyle: primaryPlaystyle
+          country: country || 'Barbados'
         })
       })
       const data = await res.json()
@@ -607,7 +602,6 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
               <span className="text-[9px] font-bold text-[#888] border border-[#2a2a2a] px-1 py-0.5 uppercase">
                 {player?.position || 'Unassigned'}
               </span>
-              <PlayStylesList badges={player?.badges} />
               {player?.franchises && (
                 <span className="text-[9px] text-[#555] border border-[#111] px-1 py-0.5 uppercase">
                   Signed: {player.franchises.name}
@@ -1038,37 +1032,6 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
             />
           </div>
 
-          {/* Primary EA FC PlayStyle Selection */}
-          <div className="space-y-2 pt-2 border-t border-[#1a1a1a]">
-            <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block">
-              Primary FIFA / EA FC PlayStyle Badge
-            </label>
-            <p className="text-[8px] text-[#666]">Choose your starting PlayStyle badge. (Admin can award additional PlayStyles over time):</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1 border border-[#222] p-2 bg-[#080808] rounded-lg">
-              {PLAYSTYLES_LIST.map(ps => {
-                const isSelected = primaryPlaystyle === ps.id || primaryPlaystyle === ps.name
-                return (
-                  <button
-                    key={ps.id}
-                    type="button"
-                    onClick={() => setPrimaryPlaystyle(ps.name)}
-                    className={`p-2 rounded border text-left flex flex-col gap-1 transition-all ${
-                      isSelected
-                        ? `bg-black border-amber-400 ring-1 ring-amber-400 shadow-md`
-                        : 'bg-black/40 border-[#222] hover:border-[#444] opacity-75 hover:opacity-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <img src={ps.imageUrl} alt={ps.name} className="w-5 h-5 object-contain shrink-0" />
-                      <span className={`text-[9px] font-extrabold uppercase ${isSelected ? 'text-amber-300' : 'text-white'}`}>
-                        {ps.name}
-                      </span>
-                    </div>
-                    <span className="text-[8px] text-[#777] line-clamp-1">{ps.description}</span>
-                  </button>
-                )
-              })}
-            </div>
           </div>
 
           {/* Nationality / Country Flag */}

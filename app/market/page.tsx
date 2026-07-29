@@ -6,7 +6,6 @@ import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
 import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseOwnerBadge } from '@/components/ProfileBanner'
 import { getCountryFlag } from '@/lib/countries'
-import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
 import BtcTicker from '@/components/BtcTicker'
 import FranchiseStockChart from '@/components/FranchiseStockChart'
 import FranchiseRosterModal from '@/components/FranchiseRosterModal'
@@ -365,18 +364,16 @@ export default function MarketPage() {
               </div>
             )}
 
-            {/* Value & Text Badges */}
+            {/* Value Badges */}
             <div className="mt-6 flex flex-wrap items-center gap-3">
               {selectedPlayer.value !== undefined && selectedPlayer.value > 0 && (
                 <div className="border border-[#222] bg-[#111] px-4 py-2">
                   <p className="text-[9px] text-[#666] font-bold tracking-widest uppercase mb-0.5">Market Value</p>
-                  <p className="text-white text-base font-bold">
+                  <p className="text-[#4caf50] text-base font-bold">
                     {selectedPlayer.value.toLocaleString()} <span className="text-[#555] font-normal text-sm">CR</span>
                   </p>
                 </div>
               )}
-
-              <PlayStylesList badges={selectedPlayer.badges} graphicOnly={true} />
             </div>
 
             {/* IMVU Style Canvas */}
@@ -504,7 +501,6 @@ function PublicPlayerRow({ player }: { player: Player }) {
               {player.position}
             </span>
           )}
-          <PlayStylesList badges={player.badges} />
         </div>
         {player.value !== undefined && player.value > 0 && (
           <p className="text-[#aaa] text-xs font-bold mt-1">

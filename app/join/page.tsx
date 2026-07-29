@@ -4,7 +4,6 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import PublicNav from '@/components/PublicNav'
 import { COUNTRY_LIST } from '@/lib/countries'
-import { PLAYSTYLES_LIST } from '@/lib/playstyles'
 
 const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST', 'CF']
 
@@ -23,7 +22,6 @@ export default function JoinPage() {
     position: '',
     notes: '',
     country: 'Barbados',
-    playstyle: 'finesse_shot',
   })
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -223,34 +221,6 @@ export default function JoinPage() {
           </div>
         </div>
 
-        {/* Primary EA FC PlayStyle Badge */}
-        <div>
-          <label className={labelClass}>Primary FIFA / EA FC PlayStyle Badge *</label>
-          <p className="text-[10px] text-[#666] mb-2">Select your signature starting PlayStyle badge for your player profile:</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-56 overflow-y-auto pr-1 border border-[#222] p-2 bg-[#080808]">
-            {PLAYSTYLES_LIST.map(ps => {
-              const isSelected = form.playstyle === ps.id || form.playstyle === ps.name
-              return (
-                <button
-                  key={ps.id}
-                  type="button"
-                  onClick={() => setForm(p => ({ ...p, playstyle: ps.name }))}
-                  className={`p-2 rounded border text-left flex flex-col gap-1 transition-all ${
-                    isSelected
-                      ? `bg-black border-amber-400 ring-1 ring-amber-400 shadow-md`
-                      : 'bg-black/40 border-[#222] hover:border-[#444] opacity-75 hover:opacity-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <img src={ps.imageUrl} alt={ps.name} className="w-5 h-5 object-contain shrink-0" />
-                    <span className={`text-[10px] font-black uppercase ${isSelected ? 'text-amber-300' : 'text-white'}`}>
-                      {ps.name}
-                    </span>
-                  </div>
-                  <span className="text-[8px] text-[#777] line-clamp-1">{ps.description}</span>
-                </button>
-              )
-            })}
           </div>
         </div>
 

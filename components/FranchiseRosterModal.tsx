@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react'
 import { getCountryFlag } from '@/lib/countries'
-import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
 
 interface RosterPlayer {
   id: string
@@ -204,16 +203,11 @@ export default function FranchiseRosterModal({
                     </div>
                   </div>
 
-                  {/* Right Transfer Value & PlayStyle */}
+                  {/* Right Transfer Value */}
                   <div className="text-right shrink-0 space-y-1">
                     <div className="text-xs font-mono font-black text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded">
                       {(player.value || 0).toLocaleString()} CR
                     </div>
-                    {player.badges && player.badges.length > 0 && (
-                      <div className="flex justify-end">
-                        <PlayStyleBadge styleNameOrId={player.badges[0]} graphicOnly={true} className="w-5 h-5" />
-                      </div>
-                    )}
                   </div>
                 </div>
               )

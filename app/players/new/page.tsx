@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import BadgeCanvasEditor, { BadgePosition } from '@/components/BadgeCanvasEditor'
 import { COUNTRY_LIST } from '@/lib/countries'
-import { PLAYSTYLES_LIST } from '@/lib/playstyles'
 
 const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST', 'CF']
 
@@ -240,44 +239,6 @@ export default function NewPlayerPage() {
         <div>
           <label className={labelClass}>Notes (optional)</label>
           <input name="notes" value={form.notes} onChange={handleChange} className={inputClass} placeholder="e.g. Injured, On holiday..." />
-        </div>
-
-        {/* EA FC PlayStyles Selector (Admin can assign multiple) */}
-        <div>
-          <label className={labelClass}>FIFA / EA FC PlayStyles Badges</label>
-          <p className="text-[10px] text-[#666] mb-2">Click to assign/toggle EA FC PlayStyle badges for this player:</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 border border-[#222] p-2 bg-[#080808] max-h-52 overflow-y-auto">
-            {PLAYSTYLES_LIST.map(ps => {
-              const currentBadges = form.badges ? form.badges.split(',').map(b => b.trim()) : []
-              const isAssigned = currentBadges.some(b => b.toLowerCase() === ps.name.toLowerCase() || b.toLowerCase() === ps.id.toLowerCase())
-              return (
-                <button
-                  key={ps.id}
-                  type="button"
-                  onClick={() => {
-                    let updated: string[]
-                    if (isAssigned) {
-                      updated = currentBadges.filter(b => b.toLowerCase() !== ps.name.toLowerCase() && b.toLowerCase() !== ps.id.toLowerCase())
-                    } else {
-                      updated = [...currentBadges, ps.name]
-                    }
-                    setForm(p => ({ ...p, badges: updated.join(', ') }))
-                  }}
-                  className={`p-2 rounded border text-left flex items-center justify-between transition-all ${
-                    isAssigned
-                      ? 'bg-amber-950/40 border-amber-400 text-amber-300 shadow-sm'
-                      : 'bg-black/40 border-[#222] text-[#888] hover:border-[#444]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <img src={ps.imageUrl} alt={ps.name} className="w-5 h-5 object-contain shrink-0" />
-                    <span className="text-[10px] font-bold uppercase truncate">{ps.name}</span>
-                  </div>
-                  <span className="text-xs font-bold ml-1">{isAssigned ? '✓' : '+'}</span>
-                </button>
-              )
-            })}
-          </div>
         </div>
 
         {/* Text Badges / Custom */}

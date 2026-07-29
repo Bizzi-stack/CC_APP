@@ -7,7 +7,6 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
 import { getCountryFlag } from '@/lib/countries'
-import PlayStyleBadge, { PlayStylesList } from '@/components/PlayStyleBadge'
 import FranchiseRosterModal from '@/components/FranchiseRosterModal'
 import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
 
@@ -150,7 +149,6 @@ export default function PlayerStatsPage() {
                   {player.position}
                 </span>
               )}
-              <PlayStylesList badges={player.badges} />
             </div>
           </div>
         </div>
