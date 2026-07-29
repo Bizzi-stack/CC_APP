@@ -105,23 +105,23 @@ export default function HomePage() {
               className="cursor-pointer group active:scale-95 transition-all"
             >
               {nextSession.image_url ? (
-                <div className="relative w-full max-w-[500px] mx-auto rounded-none overflow-hidden border border-white shadow-2xl bg-black">
+                <div className="relative w-full max-w-[500px] mx-auto overflow-hidden bg-black flex justify-center">
                   <img src={nextSession.image_url} alt={nextSession.title} className="w-full h-auto object-contain group-hover:scale-105 transition-transform" />
-                  <div className="absolute bottom-3 right-3 bg-black/90 px-3 py-1 text-[10px] font-mono text-white border border-white rounded-none shadow font-bold flex items-center gap-1.5 uppercase">
+                  <div className="absolute bottom-3 right-3 bg-black/85 backdrop-blur-md px-3 py-1 text-[10px] font-mono text-white border border-white/30 shadow font-bold flex items-center gap-1.5 uppercase">
                     <span>⚽</span>
                     <span>TAP TO JOIN TEAM</span>
                   </div>
                 </div>
               ) : new Date(nextSession.date + 'T00:00:00').getDay() === 5 ? (
-                <div className="relative w-full max-w-[500px] mx-auto rounded-none overflow-hidden border border-white shadow-2xl bg-black">
+                <div className="relative w-full max-w-[500px] mx-auto overflow-hidden bg-black flex justify-center">
                   <img src="/schedule_graphic.png" alt="Friday Ball" className="w-full h-auto object-contain group-hover:scale-105 transition-transform" />
-                  <div className="absolute bottom-3 right-3 bg-black/90 px-3 py-1 text-[10px] font-mono text-white border border-white rounded-none shadow font-bold flex items-center gap-1.5 uppercase">
+                  <div className="absolute bottom-3 right-3 bg-black/85 backdrop-blur-md px-3 py-1 text-[10px] font-mono text-white border border-white/30 shadow font-bold flex items-center gap-1.5 uppercase">
                     <span>⚽</span>
                     <span>TAP TO JOIN TEAM</span>
                   </div>
                 </div>
               ) : (
-                <div className="border border-white bg-[#0a0a0a] p-5 transition-colors rounded-none">
+                <div className="border border-[#222] bg-[#0a0a0a] p-5 transition-colors">
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 ${nextSession.type === '5v5_match' ? 'bg-white text-black' : 'border border-[#444] text-[#aaa]'}`}>
                       {nextSession.type === '5v5_match' ? '5v5 MATCH' : 'FREE SESSION'}
@@ -130,55 +130,51 @@ export default function HomePage() {
                   <p className="text-white font-semibold text-base mt-2">{nextSession.title}</p>
                   <p className="text-[#888] text-sm mt-1">{formatDate(nextSession.date)} · {formatTime(nextSession.time)}</p>
                   <p className="text-[#666] text-sm mt-0.5">{nextSession.location}</p>
-                  <p className="text-white text-xs font-bold uppercase mt-2">TAP TO JOIN TEAM →</p>
+                  <p className="text-amber-400 text-xs font-bold uppercase mt-2">TAP TO JOIN TEAM →</p>
                 </div>
               )}
             </div>
           ) : (
-            <div className="border border-[#1a1a1a] p-5 text-center rounded-xl">
+            <div className="border border-[#1a1a1a] p-5 text-center">
               <p className="text-[#555] text-sm">No upcoming sessions</p>
             </div>
           )}
         </section>
 
         {/* Currency Exchange Value & BTC Spot Price Ticker */}
-        <section className="relative overflow-hidden bg-gradient-to-r from-[#0c0c0d] via-[#161208] to-[#0c0c0d] border border-amber-500/40 rounded-2xl p-4 shadow-xl text-center group space-y-3">
-          {/* Ambient Shimmer */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent animate-badge-shine pointer-events-none" />
-
-          <div className="relative z-10 flex flex-col items-center gap-2">
-            <span className="text-[9px] font-extrabold tracking-[0.25em] text-amber-400 uppercase flex items-center gap-1.5">
+        <section className="relative overflow-hidden bg-[#08080a] border border-[#222] rounded-2xl p-5 shadow-xl text-center space-y-4">
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-[10px] font-extrabold tracking-[0.25em] text-amber-400 uppercase flex items-center gap-1.5">
               <span>⚡</span> LEAGUE BTC CASHOUT RATE <span>⚡</span>
             </span>
 
             {/* Graphic Exchange Pill Container */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-1 py-3 px-4 bg-black/80 border border-[#262215] rounded-xl shadow-inner w-full">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-1 py-3.5 px-5 bg-black border border-[#1f1f24] rounded-xl shadow-inner w-full">
               {/* CR side */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-emerald-400 font-mono font-black text-lg sm:text-xl tracking-tight">
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-400 font-mono font-black text-xl sm:text-2xl tracking-tight">
                   1,000,000
                 </span>
-                <span className="text-[10px] font-bold text-emerald-500/80 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
                   CR
                 </span>
               </div>
 
               {/* Equals Arrow Badge */}
-              <div className="w-7 h-7 rounded-full bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-300 font-black text-xs shadow-md shrink-0 animate-pulse">
+              <div className="w-7 h-7 rounded-full bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-300 font-black text-xs shadow-md shrink-0">
                 =
               </div>
 
-              {/* BTC side */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-amber-300 font-mono font-black text-lg sm:text-xl tracking-tight">
+              {/* USD Cash equivalent side */}
+              <div className="flex items-center gap-2">
+                <span className="text-amber-400 font-mono font-black text-xl sm:text-2xl tracking-tight">
                   $50.00
                 </span>
-                <span className="text-[10px] font-bold text-amber-400/90 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/30">
+                <span className="text-[10px] font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/30">
                   in BTC
                 </span>
               </div>
             </div>
-
             <BtcTicker showConversionHint={true} className="mt-1" />
           </div>
         </section>
