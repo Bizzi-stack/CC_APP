@@ -11,6 +11,7 @@ import BtcTicker from '@/components/BtcTicker'
 import FranchiseStockChart from '@/components/FranchiseStockChart'
 import FranchiseRosterModal from '@/components/FranchiseRosterModal'
 import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
+import PullDownModal from '@/components/PullDownModal'
 
 interface Player {
   id: string
@@ -292,18 +293,12 @@ export default function MarketPage() {
       <PublicNav />
 
       {/* Profile Popup */}
-      {selectedPlayer && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col justify-end"
-          onClick={() => setSelectedPlayer(null)}
-        >
-          <div 
-            className="w-full max-w-[430px] mx-auto bg-[#0a0a0a] border-t border-[#222] rounded-t-3xl p-6 pb-12 animate-slide-up relative"
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Close handle */}
-            <div className="w-12 h-1.5 bg-[#333] rounded-full mx-auto mb-6" />
-
+      <PullDownModal
+        isOpen={Boolean(selectedPlayer)}
+        onClose={() => setSelectedPlayer(null)}
+      >
+        {selectedPlayer && (
+          <div>
             <div className="flex gap-4">
               {/* Big Photo */}
               <div className="w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden border border-[#222] bg-[#111] flex items-center justify-center shadow-2xl">
@@ -443,8 +438,8 @@ export default function MarketPage() {
               </Link>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </PullDownModal>
 
       {/* Franchise Roster Modal */}
       {viewRosterFranchise && (
