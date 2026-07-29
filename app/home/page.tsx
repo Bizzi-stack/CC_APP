@@ -39,10 +39,11 @@ export default function HomePage() {
   const [showSessionModal, setShowSessionModal] = useState(false)
 
   const refetchSession = () => {
+    const todayStr = new Date().toISOString().split('T')[0]
     fetch('/api/sessions')
       .then(r => r.json())
       .then(data => {
-        const upcoming = (data.sessions || []).find((s: Session) => s.date >= today)
+        const upcoming = (data.sessions || []).find((s: Session) => s.date >= todayStr)
         setNextSession(upcoming || null)
       })
       .catch(() => {})
