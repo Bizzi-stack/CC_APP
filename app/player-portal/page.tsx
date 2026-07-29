@@ -12,6 +12,7 @@ import { COUNTRY_LIST, getCountryFlag } from '@/lib/countries'
 import BtcCashoutModal from '@/components/BtcCashoutModal'
 import BtcTicker from '@/components/BtcTicker'
 import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
+import FooterPartnerTicker from '@/components/FooterPartnerTicker'
 
 interface CanvasBadge {
   id: string
@@ -1413,6 +1414,8 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
           </div>
         </div>
       )}
+
+      <FooterPartnerTicker />
 
       <DialogComponent />
     </div>

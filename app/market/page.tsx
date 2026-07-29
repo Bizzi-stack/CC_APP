@@ -11,6 +11,7 @@ import FranchiseStockChart from '@/components/FranchiseStockChart'
 import FranchiseRosterModal from '@/components/FranchiseRosterModal'
 import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
 import PullDownModal from '@/components/PullDownModal'
+import FooterPartnerTicker from '@/components/FooterPartnerTicker'
 
 interface Player {
   id: string
@@ -287,6 +288,8 @@ export default function MarketPage() {
           </div>
         )}
       </div>
+
+      <FooterPartnerTicker />
 
       {/* Public Navigation */}
       <PublicNav />

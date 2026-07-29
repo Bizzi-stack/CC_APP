@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import FooterPartnerTicker from '@/components/FooterPartnerTicker'
 
 interface Player {
   id: string
@@ -270,6 +271,10 @@ export default function LandingPage() {
         <Link href="/login" className="text-[9px] text-[#555] hover:text-white font-mono uppercase tracking-widest transition-colors">
           ADMIN LOGIN →
         </Link>
+      </div>
+
+      <div className="relative z-10 w-full mt-4">
+        <FooterPartnerTicker />
       </div>
 
       <style jsx global>{`

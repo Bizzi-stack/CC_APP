@@ -6,6 +6,7 @@ import BottomNav from '@/components/BottomNav'
 import PublicNav from '@/components/PublicNav'
 import BtcTicker from '@/components/BtcTicker'
 import SessionGraphicModal from '@/components/SessionGraphicModal'
+import FooterPartnerTicker from '@/components/FooterPartnerTicker'
 
 interface Session {
   id: string
@@ -343,6 +344,8 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      <FooterPartnerTicker />
 
       {/* Interactive Session Poster & Team Selection Modal */}
       {showSessionModal && nextSession && (
