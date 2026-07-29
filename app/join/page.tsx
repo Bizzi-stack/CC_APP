@@ -64,7 +64,6 @@ export default function JoinPage() {
           photo_url: uploadData.url,
           notes: form.notes.trim() || null,
           country: form.country || 'Barbados',
-          playstyle: form.playstyle,
         }),
       })
       const joinData = await joinRes.json()
