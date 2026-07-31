@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useCustomDialog } from '@/components/CustomDialog'
 import { requestNotificationPermission, sendNativeNotification } from '@/lib/notifications'
+import { retroAudio } from '@/lib/sounds'
 
 interface Player {
   id: string
@@ -404,7 +405,8 @@ export default function FranchisePortalPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to send challenge')
 
-      await showDialog({ type: 'alert', message: 'Challenge sent successfully!' })
+      retroAudio.playCoin()
+      await showDialog({ type: 'alert', message: '⚔️ Match Challenge & Wager sent successfully!' })
       setIsChallengeModalOpen(false)
       setChallengeOpponentId('')
       setChallengeWager('')
@@ -575,6 +577,17 @@ export default function FranchisePortalPage() {
             </p>
           </div>
         </div>
+
+        {/* Quick Match Challenge & Wager Button */}
+        <button
+          onClick={() => {
+            retroAudio.playClick()
+            setIsChallengeModalOpen(true)
+          }}
+          className="w-full mt-4 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 text-black font-extrabold tracking-widest uppercase p-3.5 rounded-lg hover:brightness-110 active:opacity-70 transition-all flex items-center justify-center gap-2 shadow-lg text-xs"
+        >
+          <span>⚔️</span> ISSUE MATCH CHALLENGE & WAGER <span>💰</span>
+        </button>
 
         {/* Equity & Share Capital Box */}
         <div className="mt-4 bg-[#080808] border border-amber-500/30 p-4 rounded-xl space-y-3">
@@ -1129,60 +1142,107 @@ export default function FranchisePortalPage() {
       {/* Challenge Modal */}
       {isChallengeModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0a0a0a] border border-[#222] p-6 w-full max-w-sm">
-            <h2 className="text-lg font-bold uppercase tracking-wide mb-2 text-white">Challenge Franchise</h2>
-            <p className="text-xs text-[#666] mb-6">
-              Select an opponent and set a wager. If accepted, the wager will be held until the match is resolved.
-            </p>
+          <div className="bg-[#0a0a0a] border border-amber-500/40 p-6 w-full max-w-sm rounded-2xl shadow-2xl space-y-5">
+            <div>
+              <h2 className="text-lg font-bold uppercase tracking-wide text-amber-400 flex items-center gap-2">
+                <span>⚔️</span> Issue Match Challenge
+              </h2>
+              <p className="text-xs text-[#888] mt-1">
+                Challenge rival franchise owners to an official wager match. The total pot will be awarded to the match winner!
+              </p>
+            </div>
 
-            <form onSubmit={handleCreateChallenge} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold tracking-widest uppercase text-[#555]">
-                  Opponent
+            <form onSubmit={handleCreateChallenge} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold tracking-widest uppercase text-[#888]">
+                  Select Opponent Franchise
                 </label>
                 <select
                   required
                   value={challengeOpponentId}
-                  onChange={e => setChallengeOpponentId(e.target.value)}
-                  className="w-full bg-[#111] border border-[#333] p-4 text-white focus:outline-none focus:border-white transition-colors text-sm font-bold uppercase"
+                  onChange={e => {
+                    retroAudio.playClick()
+                    setChallengeOpponentId(e.target.value)
+                  }}
+                  className="w-full bg-[#111] border border-[#333] p-3 rounded-lg text-white focus:outline-none focus:border-amber-400 transition-colors text-sm font-bold uppercase cursor-pointer"
                 >
-                  <option value="">Select Franchise</option>
+                  <option value="">-- Choose Rival Club --</option>
                   {allFranchises.filter(f => f.id !== franchise?.id).map(f => (
-                    <option key={f.id} value={f.id}>{f.name}</option>
+                    <option key={f.id} value={f.id}>{f.name} (Budget: {f.budget.toLocaleString()} CR)</option>
                   ))}
                 </select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold tracking-widest uppercase text-[#555]">
-                  Wager Amount (CR)
-                </label>
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-bold tracking-widest uppercase text-[#888]">
+                    Wager Amount (CR)
+                  </label>
+                  <span className="text-[10px] text-[#666] font-mono">Max: {franchise?.budget.toLocaleString()} CR</span>
+                </div>
                 <input
                   type="number"
                   required
-                  min="0"
+                  min="1"
                   max={franchise?.budget || 0}
                   value={challengeWager}
                   onChange={e => setChallengeWager(e.target.value)}
                   placeholder="e.g. 500"
-                  className="w-full bg-[#111] border border-[#333] p-4 text-white focus:outline-none focus:border-white transition-colors text-base font-bold font-mono"
+                  className="w-full bg-[#111] border border-[#333] p-3 rounded-lg text-white focus:outline-none focus:border-amber-400 text-sm font-bold font-mono"
                 />
+
+                {/* Quick Wager Presets */}
+                <div className="flex items-center gap-1.5 pt-1">
+                  {[250, 500, 1000].map(amt => (
+                    <button
+                      key={amt}
+                      type="button"
+                      onClick={() => {
+                        retroAudio.playClick()
+                        setChallengeWager(Math.min(amt, franchise?.budget || 0).toString())
+                      }}
+                      className="px-2.5 py-1 bg-[#1a1a1a] hover:bg-[#222] border border-[#333] text-[9px] font-bold text-amber-400 font-mono rounded"
+                    >
+                      +{amt} CR
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      retroAudio.playClick()
+                      setChallengeWager((franchise?.budget || 0).toString())
+                    }}
+                    className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-[9px] font-bold text-amber-400 uppercase tracking-wider rounded"
+                  >
+                    Max
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <button
-                  type="submit"
-                  disabled={actioning !== null}
-                  className="flex-1 bg-white text-black font-bold tracking-widest uppercase p-4 hover:bg-gray-200 transition-colors disabled:opacity-50 text-xs"
-                >
-                  Send Challenge
-                </button>
+              {/* Total Match Pot Preview */}
+              {parseInt(challengeWager) > 0 && (
+                <div className="bg-amber-950/30 border border-amber-500/30 p-3 rounded-lg flex items-center justify-between text-xs">
+                  <span className="text-amber-200 font-bold uppercase tracking-wider text-[10px]">🏆 Winner Pot:</span>
+                  <span className="font-mono font-bold text-amber-400 text-sm">
+                    {(parseInt(challengeWager) * 2).toLocaleString()} CR
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsChallengeModalOpen(false)}
-                  className="flex-1 border border-[#333] text-white font-bold tracking-widest uppercase p-4 hover:bg-[#111] transition-colors text-xs"
+                  className="flex-1 border border-[#333] text-[#aaa] font-bold tracking-widest uppercase p-3 rounded-lg hover:bg-[#111] transition-colors text-xs"
                 >
                   Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={actioning !== null || !challengeOpponentId}
+                  className="flex-1 bg-amber-500 text-black font-extrabold tracking-widest uppercase p-3 rounded-lg hover:bg-amber-400 transition-colors disabled:opacity-50 text-xs shadow-lg"
+                >
+                  {actioning === 'create-challenge' ? 'Sending...' : 'Send Wager'}
                 </button>
               </div>
             </form>
