@@ -12,6 +12,7 @@ import FranchiseRosterModal from '@/components/FranchiseRosterModal'
 import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
 import PullDownModal from '@/components/PullDownModal'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
+import { retroAudio } from '@/lib/sounds'
 
 interface Player {
   id: string
@@ -281,7 +282,14 @@ export default function MarketPage() {
         ) : (
           <div className="divide-y divide-[#111]">
             {filtered.map(player => (
-              <div key={player.id} onClick={() => setSelectedPlayer(player)} className="cursor-pointer hover:bg-[#0a0a0a] transition-colors">
+              <div 
+                key={player.id} 
+                onClick={() => {
+                  retroAudio.playClick()
+                  setSelectedPlayer(player)
+                }} 
+                className="cursor-pointer hover:bg-[#0a0a0a] transition-colors"
+              >
                 <PublicPlayerRow player={player} />
               </div>
             ))}

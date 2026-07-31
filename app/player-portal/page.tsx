@@ -13,6 +13,7 @@ import BtcCashoutModal from '@/components/BtcCashoutModal'
 import BtcTicker from '@/components/BtcTicker'
 import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
+import { retroAudio } from '@/lib/sounds'
 
 interface CanvasBadge {
   id: string
@@ -360,6 +361,9 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
         throw new Error(data.error || 'Failed to collect wages')
       }
 
+      // Play 8-bit retro arcade coin sound
+      retroAudio.playCoin()
+
       if (data.isJackpot) {
         await showDialog({
           type: 'alert',
@@ -395,6 +399,9 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
       const res = await fetch('/api/player/loan?bypass=true', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to claim Friday Loan')
+
+      // Play 8-bit retro arcade coin sound
+      retroAudio.playCoin()
 
       setSuccessMsg('⚡ Friday Micro-Loan of 1,000 CR granted! Place your match wagers now.')
       await fetchPortalData()
