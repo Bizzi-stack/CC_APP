@@ -45,11 +45,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Buyer not found' }, { status: 404 })
     }
 
-    const price = badge.price
-
-    if (buyer.balance < price) {
-      return NextResponse.json({ error: `Insufficient credits. Needs ${price.toLocaleString()} CR but you only have ${buyer.balance.toLocaleString()} CR.` }, { status: 400 })
-    }
+    const price = 0 // Free stickers per UWIFA Tournament policy
 
     const isResale = badge.owner_id !== null
 

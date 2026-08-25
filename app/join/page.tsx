@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import PublicNav from '@/components/PublicNav'
 import { COUNTRY_LIST } from '@/lib/countries'
@@ -16,14 +16,25 @@ export default function JoinPage() {
   const [preview, setPreview] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [franchises, setFranchises] = useState<{ id: string; name: string; logo_url: string | null }[]>([])
 
   const [form, setForm] = useState({
     name: '',
     passcode: '',
+    franchise_id: '',
     position: '',
     notes: '',
     country: 'Barbados',
   })
+
+  useEffect(() => {
+    fetch('/api/franchises')
+      .then(res => res.json())
+      .then(data => {
+        setFranchises(data.franchises || [])
+      })
+      .catch(() => {})
+  }, [])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
@@ -63,6 +74,7 @@ export default function JoinPage() {
         body: JSON.stringify({
           name: form.name.trim(),
           passcode: form.passcode.trim(),
+          franchise_id: form.franchise_id || null,
           position: form.position || null,
           photo_url: uploadData.url,
           notes: form.notes.trim() || null,
@@ -198,6 +210,25 @@ export default function JoinPage() {
             placeholder="Set a secret passcode to log in"
           />
           <p className="text-[10px] text-[#666] mt-1">You will use this passcode to log into your account.</p>
+        </div>
+
+        {/* UWIFA Team / Club Selection */}
+        <div>
+          <label className={labelClass}>Select UWIFA Tournament Team</label>
+          <select
+            name="franchise_id"
+            value={form.franchise_id}
+            onChange={e => setForm(p => ({ ...p, franchise_id: e.target.value }))}
+            className={inputClass + ' cursor-pointer uppercase font-bold text-white bg-black'}
+          >
+            <option value="">-- Select UWIFA Team --</option>
+            {franchises.map(f => (
+              <option key={f.id} value={f.id} className="bg-[#111] text-white">
+                ⚽ {f.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-[10px] text-[#666] mt-1">Select the team you are representing in the UWIFA tournament.</p>
         </div>
 
         {/* Country / Flag */}

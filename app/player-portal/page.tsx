@@ -1277,35 +1277,22 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 {marketBadges.map(badge => {
-                  const canAfford = (player?.balance ?? 0) >= badge.price
-                  const isResale = badge.owner_id !== null
                   return (
                     <div key={badge.id} className="border border-[#222] bg-[#0a0a0a] p-3 flex flex-col items-center justify-between gap-3 text-center relative overflow-hidden">
-                      {isResale && (
-                        <div className="absolute top-1 right-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-[6px] font-bold px-1 uppercase tracking-wider">
-                          Resale
-                        </div>
-                      )}
                       <div className="w-16 h-16 flex items-center justify-center p-1 bg-[#111] border border-[#222] rounded overflow-hidden">
                         <img src={badge.image_url} alt={badge.name} className="w-full h-full object-contain filter drop-shadow-md" />
                       </div>
                       <div className="space-y-1">
                         <h4 className="font-bold text-xs text-white truncate max-w-[150px]">{badge.name}</h4>
-                        <p className="text-[10px] text-[#ffb74d] font-mono font-bold">{badge.price.toLocaleString()} CR</p>
-                        {isResale && badge.owner && (
-                          <p className="text-[7px] text-[#666] uppercase truncate max-w-[130px]">Seller: {badge.owner.name}</p>
-                        )}
+                        <p className="text-[10px] text-emerald-400 font-mono font-bold">FREE</p>
                       </div>
 
                       <button
-                        disabled={buying !== null || !canAfford}
+                        disabled={buying !== null}
                         onClick={() => handleBuyBadge(badge.id, badge.name)}
-                        className={`w-full text-[9px] font-bold uppercase tracking-widest py-1.5 transition-all
-                          ${canAfford
-                            ? 'bg-white text-black hover:bg-gray-200 active:opacity-60'
-                            : 'border border-[#222] text-[#333] bg-[#050505] cursor-not-allowed'}`}
+                        className="w-full text-[9px] font-bold uppercase tracking-widest py-1.5 transition-all bg-white text-black hover:bg-gray-200 active:opacity-60"
                       >
-                        {buying === badge.id ? '...' : canAfford ? 'Buy' : 'Insufficient'}
+                        {buying === badge.id ? 'Claiming...' : 'Claim Sticker (Free)'}
                       </button>
                     </div>
                   )
