@@ -99,14 +99,11 @@ export default function LandingPage() {
   return (
     <main className="relative min-h-screen w-full overflow-x-hidden bg-black flex flex-col items-center justify-between p-6">
 
-      {/* Background GIF Layer - Dark Atmospheric Vignette Overlay */}
-      <div className="fixed inset-0 z-0 opacity-20 pointer-events-none overflow-hidden">
-        <img
-          src="https://ayxcbvzeptwplidkwmob.supabase.co/storage/v1/object/public/assets/background.gif.gif"
-          alt="Background"
-          className="w-full h-full object-cover filter brightness-50 contrast-125 pointer-events-none select-none"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/75 to-black pointer-events-none" />
+      {/* Dark Atmospheric Vignette Background (Ultra-Lightweight <1KB for Instant Mobile Load) */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-black">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#18181b] via-[#09090b] to-black opacity-80" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#111_1px,transparent_1px),linear-gradient(to_bottom,#111_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black pointer-events-none" />
       </div>
 
       {/* Top Header Logo */}

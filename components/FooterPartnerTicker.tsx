@@ -57,6 +57,8 @@ export default function FooterPartnerTicker() {
               <img
                 src={partner.logo}
                 alt={partner.name}
+                loading="lazy"
+                decoding="async"
                 className="h-6 sm:h-8 max-w-[130px] object-contain opacity-60 group-hover:opacity-100 transition-all duration-300 filter grayscale brightness-125 group-hover:grayscale-0"
               />
             </div>
