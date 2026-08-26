@@ -6,7 +6,6 @@ import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
 import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseOwnerBadge } from '@/components/ProfileBanner'
 import { getCountryFlag } from '@/lib/countries'
-import BtcTicker from '@/components/BtcTicker'
 import FranchiseStockChart from '@/components/FranchiseStockChart'
 import FranchiseRosterModal from '@/components/FranchiseRosterModal'
 import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
@@ -58,7 +57,7 @@ interface CanvasBadge {
   image_url: string
 }
 
-type Filter = 'all' | 'available' | 'unavailable' | 'stocks'
+type Filter = 'all' | 'available' | 'unavailable' | 'overseas'
 
 export default function MarketPage() {
   const [players, setPlayers] = useState<Player[]>([])
@@ -130,17 +129,19 @@ export default function MarketPage() {
   }
 
   const isPlayerAvailable = (p: Player) => {
-    // A player is available ONLY if they are not assigned to any franchise and available is true
-    return !p.franchise_id && p.available !== false
+    return !p.franchise_id && p.available !== false && p.status !== 'overseas'
   }
 
   const filtered = players.filter(p => {
     if (filter === 'available') return isPlayerAvailable(p)
-    if (filter === 'unavailable') return !isPlayerAvailable(p)
+    if (filter === 'unavailable') return !isPlayerAvailable(p) && p.status !== 'overseas'
+    if (filter === 'overseas') return p.status === 'overseas'
     return true
   })
 
   const availableCount = players.filter(isPlayerAvailable).length
+  const overseasCount = players.filter(p => p.status === 'overseas').length
+  const signedCount = players.filter(p => !isPlayerAvailable(p) && p.status !== 'overseas').length
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -149,118 +150,39 @@ export default function MarketPage() {
         <Link href="/home">
           <img src="/logo_2.png" alt="The Circle FC" className="h-16 object-contain brightness-0 invert mb-3" />
         </Link>
-        <h1 className="text-sm font-bold tracking-[0.2em] uppercase text-[#aaa]">Transfer Market</h1>
-        <div className="flex items-center gap-3 mt-3">
+        <h1 className="text-sm font-bold tracking-[0.2em] uppercase text-[#aaa]">Tournament Players</h1>
+        <div className="flex items-center gap-2 mt-3 flex-wrap justify-center">
           <span className="text-[10px] font-bold tracking-widest text-[#555] uppercase">
             {availableCount} Available
           </span>
           <span className="text-[#333]">·</span>
           <span className="text-[10px] font-bold tracking-widest text-[#555] uppercase">
-            {players.length - availableCount} Signed
+            {signedCount} Signed
+          </span>
+          <span className="text-[#333]">·</span>
+          <span className="text-[10px] font-bold tracking-widest text-blue-400 uppercase">
+            {overseasCount} Overseas
           </span>
         </div>
-
-        <BtcTicker showConversionHint={true} className="mt-3" />
       </div>
-
-      {/* Bloomberg-Style Top Gainers Marquee Ticker */}
-      {players.length > 0 && (() => {
-        const topGainers = players.filter(p => (p.value || 0) > 0).sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 8)
-        if (topGainers.length === 0) return null
-        return (
-          <div className="bg-[#050505] border-b border-[#222] py-2.5 overflow-hidden relative flex items-center shadow-inner">
-            <div className="bg-[#050505] z-10 px-3 py-1 flex items-center gap-1.5 text-[10px] font-black tracking-widest text-emerald-400 uppercase border-r border-[#222] shrink-0 shadow-md">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>🔥 TOP GAINERS</span>
-            </div>
-
-            <div className="overflow-hidden w-full relative">
-              <div className="animate-marquee-left flex items-center gap-3.5 pl-3.5">
-                {[...topGainers, ...topGainers, ...topGainers].map((p, idx) => {
-                  const hasGained = (p.goals && p.goals > 0) || (p.assists && p.assists > 0) || (p.value && p.value > 1000)
-                  return (
-                    <div 
-                      key={`${p.id}-${idx}`} 
-                      onClick={() => setSelectedPlayer(p)} 
-                      className="inline-flex items-center gap-2 cursor-pointer text-[10px] shrink-0 bg-[#111] hover:bg-[#1a1a1a] border border-[#222] hover:border-emerald-500/50 px-3 py-1 rounded-full transition-all active:scale-95 shadow-sm group"
-                    >
-                      <span className="font-bold text-white group-hover:text-emerald-400 transition-colors">{p.name}</span>
-                      {hasGained ? (
-                        <span className="font-mono text-emerald-400 font-black flex items-center gap-1">
-                          <span className="text-[10px]">▲</span> {(p.value || 0).toLocaleString()} CR
-                        </span>
-                      ) : (
-                        <span className="font-mono text-[#777] font-semibold flex items-center gap-1">
-                          <span className="text-[#555] font-bold">-</span> {(p.value || 0).toLocaleString()} CR
-                        </span>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )
-      })()}
 
       {/* Filter Tabs */}
       <div className="flex border-b border-[#1a1a1a]">
-        {(['all', 'available', 'unavailable', 'stocks'] as Filter[]).map(f => (
+        {(['all', 'available', 'unavailable', 'overseas'] as Filter[]).map(f => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`flex-1 py-3 text-[11px] font-bold tracking-widest uppercase transition-colors
+            className={`flex-1 py-3 text-[10px] sm:text-[11px] font-bold tracking-wider uppercase transition-colors
               ${filter === f ? 'text-white border-b-2 border-white' : 'text-[#555]'}`}
           >
-            {f === 'all' ? 'All' : f === 'available' ? 'Available' : f === 'unavailable' ? 'Signed' : '🏛️ Stocks'}
+            {f === 'all' ? 'All' : f === 'available' ? 'Available' : f === 'unavailable' ? 'Signed' : 'Overseas'}
           </button>
         ))}
       </div>
 
-      {/* Player / Stocks Content List */}
+      {/* Player Content List */}
       <div className="pb-24">
-        {filter === 'stocks' ? (
-          <div className="p-4 space-y-6">
-            {/* User Portfolio Summary */}
-            {userPortfolio.length > 0 && (
-              <div className="bg-[#080808] border border-amber-500/30 p-4 rounded-xl space-y-3">
-                <h3 className="text-xs font-bold text-amber-400 tracking-wider uppercase flex items-center gap-2">
-                  <span>💼</span> Your Equity Holdings ({userPortfolio.length})
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {userPortfolio.map(s => (
-                    <div key={s.id} className="bg-black border border-[#222] p-3 rounded space-y-1">
-                      <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                        {s.franchise_logo && <img src={s.franchise_logo} alt="" className="w-4 h-4 rounded-full object-cover" />}
-                        {s.franchise_name}
-                      </p>
-                      <p className="text-[10px] text-[#888]">
-                        {s.shares_count}% Equity ({s.shares_count} Shares)
-                      </p>
-                      <p className="text-xs font-mono font-bold text-emerald-400">
-                        Valued at: {s.total_value.toLocaleString()} CR
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Franchise Stock Valuations & Price Charts */}
-            <div className="space-y-5">
-              <h3 className="text-xs font-bold text-[#888] tracking-widest uppercase">Franchise Valuations & Live Price Charts</h3>
-
-              {stockFranchises.map(f => (
-                <FranchiseStockChart
-                  key={f.id}
-                  franchise={f}
-                  userBalance={currentUser?.balance || 0}
-                  onBuySuccess={fetchStockShares}
-                />
-              ))}
-            </div>
-          </div>
-        ) : loading ? (
+        {loading ? (
           <div className="divide-y divide-[#111]">
             {[1, 2, 3, 4].map(i => (
               <div key={i} className="flex items-center gap-4 px-4 py-4 animate-pulse">
@@ -331,7 +253,6 @@ export default function MarketPage() {
                 </h2>
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <FranchiseOwnerBadge isOwner={selectedPlayer.is_franchise_owner} franchiseName={selectedPlayer.owned_franchise?.name} />
-                  <BusinessBadge isBusiness={selectedPlayer.is_business} businessName={selectedPlayer.business_name} />
                   <InstagramBadge url={selectedPlayer.instagram_url} />
                   {selectedPlayer.franchises && (
                     <button
@@ -374,18 +295,6 @@ export default function MarketPage() {
                 <SpotifyPlayer url={selectedPlayer.spotify_track_url} />
               </div>
             )}
-
-            {/* Value Badges */}
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              {selectedPlayer.value !== undefined && selectedPlayer.value > 0 && (
-                <div className="border border-[#222] bg-[#111] px-4 py-2">
-                  <p className="text-[9px] text-[#666] font-bold tracking-widest uppercase mb-0.5">Market Value</p>
-                  <p className="text-[#4caf50] text-base font-bold">
-                    {selectedPlayer.value.toLocaleString()} <span className="text-[#555] font-normal text-sm">CR</span>
-                  </p>
-                </div>
-              )}
-            </div>
 
             {/* IMVU Style Canvas */}
             {((selectedPlayer.canvas_badges_data?.length || 0) > 0 || (selectedPlayer.canvas_badge_ids?.length || 0) > 0) && (
@@ -495,7 +404,6 @@ function PublicPlayerRow({ player }: { player: Player }) {
             <span>{player.country || 'Barbados'}</span>
           </span>
           <FranchiseOwnerBadge isOwner={player.is_franchise_owner} franchiseName={player.owned_franchise?.name} compact={true} />
-          <BusinessBadge isBusiness={player.is_business} businessName={player.business_name} />
           <InstagramBadge url={player.instagram_url} />
           {player.franchises && (
             <div className="flex items-center gap-1.5 bg-[#111] border border-[#333] px-1.5 py-0.5" title={player.franchises.name}>
@@ -513,21 +421,34 @@ function PublicPlayerRow({ player }: { player: Player }) {
             </span>
           )}
         </div>
-        {player.value !== undefined && player.value > 0 && (
-          <p className="text-[#aaa] text-xs font-bold mt-1">
-            {player.value.toLocaleString()} <span className="text-[#555] font-normal">CR</span>
-          </p>
-        )}
       </div>
 
-      {/* Status Badge */}
-      <div className={`flex-shrink-0 text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 border
-        ${player.available
-          ? 'border-[#2a6b2a] text-[#4caf50] bg-[#0a1f0a]'
-          : 'border-[#333] text-[#888] bg-[#111]'
-        }`}>
-        {player.available ? 'AVAILABLE' : 'SIGNED'}
-      </div>
+      {/* Status Badge or Signed Club Logo */}
+      {player.status === 'overseas' ? (
+        <div className="flex-shrink-0 text-[10px] font-extrabold tracking-widest uppercase px-3 py-1.5 border border-blue-500/50 text-blue-400 bg-blue-950/40 rounded-none shadow-sm">
+          OVERSEAS
+        </div>
+      ) : player.available ? (
+        <div className="flex-shrink-0 text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 border border-[#2a6b2a] text-[#4caf50] bg-[#0a1f0a] rounded-none">
+          AVAILABLE
+        </div>
+      ) : (
+        <div className="flex-shrink-0 flex items-center justify-center">
+          {player.franchises?.logo_url ? (
+            <div className="w-9 h-9 bg-[#111] border border-[#333] p-1 flex items-center justify-center shadow-md overflow-hidden rounded-none" title={`Signed to ${player.franchises.name}`}>
+              <img src={player.franchises.logo_url} alt={player.franchises.name} className="w-full h-full object-contain" />
+            </div>
+          ) : player.franchises?.name ? (
+            <div className="px-2.5 py-1.5 bg-[#111] border border-[#333] text-[9px] font-black text-white uppercase tracking-wider rounded-none" title={`Signed to ${player.franchises.name}`}>
+              {player.franchises.name}
+            </div>
+          ) : (
+            <div className="text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 border border-[#333] text-[#888] bg-[#111] rounded-none">
+              SIGNED
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

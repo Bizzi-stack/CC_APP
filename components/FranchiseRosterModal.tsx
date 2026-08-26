@@ -127,10 +127,6 @@ export default function FranchiseRosterModal({
               </h2>
               <div className="flex items-center gap-2 text-[10px] text-[#777] font-mono uppercase mt-0.5">
                 <span>{roster.length} Signed Players</span>
-                <span>·</span>
-                <span className="text-emerald-400 font-bold">
-                  Total Valuation: {totalRosterValue.toLocaleString()} CR
-                </span>
               </div>
             </div>
           </div>
@@ -200,13 +196,6 @@ export default function FranchiseRosterModal({
                         )}
                         <span>{player.goals || 0} G · {player.assists || 0} A</span>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Right Transfer Value */}
-                  <div className="text-right shrink-0 space-y-1">
-                    <div className="text-xs font-mono font-black text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded">
-                      {(player.value || 0).toLocaleString()} CR
                     </div>
                   </div>
                 </div>

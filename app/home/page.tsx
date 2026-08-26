@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
 import PublicNav from '@/components/PublicNav'
-import BtcTicker from '@/components/BtcTicker'
 import SessionGraphicModal from '@/components/SessionGraphicModal'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
 
@@ -55,8 +54,31 @@ export default function HomePage() {
   }
 
   const [isAdmin, setIsAdmin] = useState(false)
+  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null)
 
   useEffect(() => {
+    const targetDate = new Date('2026-11-10T00:00:00')
+
+    const updateTimer = () => {
+      const now = new Date().getTime()
+      const diff = targetDate.getTime() - now
+
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+        return
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+      setTimeLeft({ days, hours, minutes, seconds })
+    }
+
+    updateTimer()
+    const timerInterval = setInterval(updateTimer, 1000)
+
     // Check auth status
     fetch('/api/auth/status')
       .then(r => r.json())
@@ -79,6 +101,8 @@ export default function HomePage() {
       .then(r => r.json())
       .then(data => setPendingCount((data.players || []).length))
       .catch(() => {})
+
+    return () => clearInterval(timerInterval)
   }, [])
 
   return (
@@ -88,7 +112,19 @@ export default function HomePage() {
         <Link href="/home">
           <img src="/logo_2.png" alt="The Circle FC" className="h-16 object-contain brightness-0 invert mb-2" />
         </Link>
-        <p className="text-[#555] text-xs tracking-widest uppercase">Football Community</p>
+        
+        {/* November 10th Countdown Timer (9px numbers) */}
+        {timeLeft ? (
+          <div className="flex items-center gap-1.5 text-[9px] font-mono font-bold tracking-wider uppercase text-[#888] bg-[#0c0c0c] px-3 py-1 rounded-full border border-[#222] shadow-sm">
+            <span className="text-[#555]">Site disappears in:</span>
+            <span className="text-amber-400 font-mono font-bold text-[9px]">{timeLeft.days}d</span>
+            <span className="text-white font-mono font-bold text-[9px]">{timeLeft.hours}h</span>
+            <span className="text-white font-mono font-bold text-[9px]">{timeLeft.minutes}m</span>
+            <span className="text-emerald-400 font-mono font-bold text-[9px]">{timeLeft.seconds}s</span>
+          </div>
+        ) : (
+          <span className="text-[9px] font-mono text-[#555] tracking-widest uppercase">Site disappears in: 0d 0h 0m 0s</span>
+        )}
       </div>
 
       <div className="page-content px-4 pt-6 space-y-8">
@@ -142,60 +178,54 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* Currency Exchange Value & BTC Spot Price Ticker */}
-        <section className="relative overflow-hidden bg-[#08080a] border border-[#222] rounded-2xl p-5 shadow-xl text-center space-y-4">
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-[10px] font-extrabold tracking-[0.25em] text-amber-400 uppercase flex items-center gap-1.5">
-              <span>⚡</span> LEAGUE BTC CASHOUT RATE <span>⚡</span>
-            </span>
-
-            {/* Graphic Exchange Pill Container */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-1 py-3.5 px-5 bg-black border border-[#1f1f24] rounded-xl shadow-inner w-full">
-              {/* CR side */}
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-400 font-mono font-black text-xl sm:text-2xl tracking-tight">
-                  1,000,000
-                </span>
-                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
-                  CR
-                </span>
+        {/* Fantasy League Hero Banner */}
+        <section>
+          <Link
+            href="/fantasy"
+            className="block relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 p-5 shadow-2xl group hover:brightness-110 active:scale-[0.98] transition-all"
+          >
+            <div className="relative z-10 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="bg-black text-amber-400 text-[9px] font-black uppercase px-2 py-0.5 rounded tracking-widest">
+                    UWIFA TOURNAMENT
+                  </span>
+                  <span className="text-black/80 font-bold text-[10px] uppercase">7-A-Side</span>
+                </div>
+                <h2 className="text-black font-black text-lg md:text-xl uppercase tracking-tight">
+                  Fantasy Tournament
+                </h2>
+                <p className="text-black/80 text-xs font-semibold mt-0.5">
+                  Pick your dream 7, assign your Captain for 2x pts, and top the leaderboard!
+                </p>
               </div>
 
-              {/* Equals Arrow Badge */}
-              <div className="w-7 h-7 rounded-full bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-300 font-black text-xs shadow-md shrink-0">
-                =
-              </div>
-
-              {/* USD Cash equivalent side */}
-              <div className="flex items-center gap-2">
-                <span className="text-amber-400 font-mono font-black text-xl sm:text-2xl tracking-tight">
-                  $50.00
-                </span>
-                <span className="text-[10px] font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/30">
-                  in BTC
-                </span>
+              <div className="bg-black/10 backdrop-blur-sm p-3 rounded-2xl border border-black/10 shrink-0 text-center flex flex-col items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-black group-hover:scale-110 transition-transform">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                <span className="text-[9px] font-black text-black uppercase tracking-wider block mt-1">Play Now →</span>
               </div>
             </div>
-            <BtcTicker showConversionHint={true} className="mt-1" />
-          </div>
+          </Link>
         </section>
 
         {/* Quick Actions */}
         <section>
           <h2 className="text-xs text-[#555] font-bold tracking-widest uppercase mb-3">Quick Actions</h2>
           <div className="grid grid-cols-2 gap-3">
-            {/* 1. View Sessions */}
+            {/* 1. View Matches */}
             <Link href={isAdmin ? "/sessions" : "/calendar"} className="border border-[#222] p-5 flex flex-col gap-2 items-center justify-center text-center active:bg-[#111] transition-colors group">
               <div className="animate-icon-flicker">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
                   <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
               </div>
-              <span className="text-white font-semibold text-sm">View Sessions</span>
+              <span className="text-white font-semibold text-sm">View Matches</span>
               <span className="text-[#555] text-xs">All upcoming</span>
             </Link>
 
-            {/* 2. Player Market */}
+            {/* 2. Other Players */}
             <Link href={isAdmin ? "/players" : "/market"} className="border border-[#222] p-5 flex flex-col gap-2 items-center justify-center text-center active:bg-[#111] transition-colors relative group">
               {isAdmin && pendingCount > 0 && (
                 <div className="absolute top-3 right-3 bg-[#f44336] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
@@ -207,8 +237,8 @@ export default function HomePage() {
                   <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
                 </svg>
               </div>
-              <span className="text-white font-semibold text-sm">Player Market</span>
-              <span className="text-[#555] text-xs">Transfer listed</span>
+              <span className="text-white font-semibold text-sm">Other Players</span>
+              <span className="text-[#555] text-xs">League players</span>
             </Link>
 
             {isAdmin && (
@@ -235,18 +265,18 @@ export default function HomePage() {
                     </svg>
                   </div>
                   <span className="text-white font-semibold text-sm">Submit Profile</span>
-                  <span className="text-[#555] text-xs">Join market</span>
+                  <span className="text-[#555] text-xs">Join a team</span>
                 </Link>
 
-                {/* 4. Franchise Portal */}
+                {/* 4. Team Backend */}
                 <Link href="/franchise-portal" className="border border-[#222] p-5 flex flex-col gap-2 items-center justify-center text-center active:bg-[#111] transition-colors group">
                   <div className="animate-icon-flicker-delay-3">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
                   </div>
-                  <span className="text-white font-semibold text-sm">Franchise Portal</span>
-                  <span className="text-[#555] text-xs">Sign players</span>
+                  <span className="text-white font-semibold text-sm">Team Backend</span>
+                  <span className="text-[#555] text-xs">View team</span>
                 </Link>
 
                 {/* 5. Player Portal */}
@@ -258,7 +288,7 @@ export default function HomePage() {
                     </svg>
                   </div>
                   <span className="text-white font-semibold text-sm">Player Portal</span>
-                  <span className="text-[#555] text-xs">Collect wages</span>
+                  <span className="text-[#555] text-xs">Edit profile</span>
                 </Link>
 
                 {/* 6. League & Stats */}
@@ -335,14 +365,6 @@ export default function HomePage() {
             )}
           </div>
         </section>
-
-        {!isAdmin && (
-          <div className="flex justify-center pt-8 pb-4">
-            <Link href="/login" className="text-[#555] text-[10px] font-bold tracking-widest uppercase hover:text-white transition-colors">
-              Admin Escalation
-            </Link>
-          </div>
-        )}
       </div>
 
       <FooterPartnerTicker />

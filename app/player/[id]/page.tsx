@@ -1,9 +1,8 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import Link from 'next/link'
 import PublicNav from '@/components/PublicNav'
 import VerificationBadge from '@/components/VerificationBadge'
 import { getCountryFlag } from '@/lib/countries'
@@ -162,7 +161,7 @@ export default function PlayerStatsPage() {
           <div className="flex-1 h-px bg-[#333]" />
         </h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 gap-6">
           {/* Goals */}
           <div className="bg-[#0a0a0a] border border-[#222] p-6 rounded-2xl relative overflow-hidden group hover:border-[#444] transition-colors">
             <div className="absolute -right-4 -bottom-4 text-9xl text-white opacity-[0.02] font-black pointer-events-none group-hover:scale-110 transition-transform duration-500">
@@ -180,68 +179,7 @@ export default function PlayerStatsPage() {
             <p className="text-xs font-bold tracking-[0.2em] text-[#666] uppercase mb-4 relative z-10">Total Assists</p>
             <p className="text-6xl font-black relative z-10">{player.assists || 0}</p>
           </div>
-
-          {/* Market Value */}
-          {player.value !== undefined && player.value > 0 && (
-            <div 
-              onClick={scrollToChart}
-              className="bg-[#0a0a0a] border border-[#222] p-6 rounded-2xl relative overflow-hidden group hover:border-[#444] transition-colors col-span-2 sm:col-span-1 cursor-pointer"
-            >
-              <div className="absolute -right-4 -bottom-4 text-9xl text-white opacity-[0.02] font-black pointer-events-none group-hover:scale-110 transition-transform duration-500">
-                $
-              </div>
-              <p className="text-xs font-bold tracking-[0.2em] text-[#666] uppercase mb-4 relative z-10">Market Value</p>
-              <p className="text-4xl font-black relative z-10 break-words">
-                {player.value.toLocaleString()} <span className="text-sm text-[#555] font-bold tracking-widest">CR</span>
-              </p>
-            </div>
-          )}
         </div>
-
-        {/* Market Value Chart */}
-        {history.length > 0 && (
-          <div ref={chartRef} className="mt-12 bg-[#0a0a0a] border border-[#222] p-6 rounded-2xl">
-            <h3 className="text-xs font-bold tracking-[0.2em] text-[#aaa] uppercase mb-8">Value Fluctuation History</h3>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={history}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="#555" 
-                    tick={{fill: '#555', fontSize: 10}}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis 
-                    stroke="#555" 
-                    tick={{fill: '#555', fontSize: 10}}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(val) => `${val >= 1000 ? (val/1000) + 'k' : val}`}
-                  />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '8px' }}
-                    itemStyle={{ color: '#fff', fontWeight: 'bold' }}
-                    labelStyle={{ color: '#888', marginBottom: '4px', fontSize: '12px' }}
-                    formatter={(value: any, name: any, props: any) => [
-                      `${value.toLocaleString()} CR`, 
-                      props.payload.reason
-                    ]}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="value" 
-                    stroke="#fff" 
-                    strokeWidth={2}
-                    dot={{ fill: '#000', stroke: '#fff', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, fill: '#fff' }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Franchise Roster Modal */}

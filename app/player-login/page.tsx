@@ -172,6 +172,19 @@ export default function PlayerLoginPage() {
             </button>
           </form>
         )}
+
+        {/* Register / Submit Profile Section */}
+        <div className="pt-4 border-t border-[#222] text-center space-y-3">
+          <p className="text-[10px] text-[#666] font-mono uppercase tracking-widest">
+            New Player? Submit profile &amp; join a UWIFA team
+          </p>
+          <Link
+            href="/join"
+            className="w-full h-11 border border-amber-500/60 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-extrabold uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all cursor-pointer relative z-20"
+          >
+            <span>⚽</span> REGISTER / SUBMIT PROFILE →
+          </Link>
+        </div>
       </div>
 
       {/* Footer message */}

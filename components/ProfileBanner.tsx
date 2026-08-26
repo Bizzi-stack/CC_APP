@@ -59,18 +59,8 @@ export function InstagramBadge({ url }: { url?: string | null }) {
   )
 }
 
-export function BusinessBadge({ isBusiness, businessName }: { isBusiness?: boolean | null; businessName?: string | null }) {
-  if (!isBusiness) return null
-
-  return (
-    <div
-      className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 text-amber-200 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-amber-500/30 shadow-sm shrink-0"
-      title={businessName ? `Business Owner: ${businessName}` : 'Business Owner'}
-    >
-      <span className="text-[10px]">🏢</span>
-      <span className="truncate max-w-[120px]">{businessName || 'Business Owner'}</span>
-    </div>
-  )
+export function BusinessBadge(_props: { isBusiness?: boolean | null; businessName?: string | null }) {
+  return null
 }
 
 export function FranchiseOwnerBadge({ isOwner, franchiseName, compact = false }: { isOwner?: boolean | null; franchiseName?: string | null; compact?: boolean }) {

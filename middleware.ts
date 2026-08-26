@@ -13,10 +13,6 @@ const communityUIRoutes = [
   '/home',
   '/market',
   '/calendar',
-  '/join',
-  '/franchise-login',
-  '/franchise-portal',
-  '/player-login',
   '/player-portal'
 ]
 
@@ -81,11 +77,9 @@ export const config = {
     '/home/:path*',
     '/market/:path*',
     '/calendar/:path*',
-    '/join/:path*',
     '/players/:path*',
     '/franchises/:path*',
     '/sessions/:path*',
-    '/player-login/:path*',
     '/player-portal/:path*',
     '/api/:path*',
   ],

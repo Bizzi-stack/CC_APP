@@ -97,16 +97,16 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-black flex flex-col items-center justify-between p-6">
+    <main className="relative min-h-screen w-full overflow-x-hidden bg-black flex flex-col items-center justify-between p-6">
 
-      {/* Background GIF Layer */}
-      <div className="absolute inset-0 z-0 opacity-60">
+      {/* Background GIF Layer - Dark Atmospheric Vignette Overlay */}
+      <div className="fixed inset-0 z-0 opacity-20 pointer-events-none overflow-hidden">
         <img
           src="https://ayxcbvzeptwplidkwmob.supabase.co/storage/v1/object/public/assets/background.gif.gif"
           alt="Background"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover filter brightness-50 contrast-125 pointer-events-none select-none"
         />
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/75 to-black pointer-events-none" />
       </div>
 
       {/* Top Header Logo */}
@@ -148,7 +148,7 @@ export default function LandingPage() {
                 href="/player-portal"
                 className="w-full h-12 bg-black border border-[#444] hover:border-white text-white text-xs font-bold uppercase tracking-widest rounded-none flex items-center justify-center transition-all"
               >
-                PLAYER PORTAL 👤
+                PLAYER PORTAL
               </Link>
             </div>
 
@@ -156,7 +156,7 @@ export default function LandingPage() {
               onClick={handleLogout}
               className="text-[10px] text-[#777] hover:text-white font-mono uppercase tracking-widest pt-2 block mx-auto transition-colors"
             >
-              LOG OUT / SWITCH ACCOUNT 🚪
+              LOG OUT / SWITCH ACCOUNT
             </button>
           </div>
         ) : (
@@ -262,6 +262,19 @@ export default function LandingPage() {
                 </button>
               </form>
             )}
+
+            {/* New Player Sign Up / Join Profile Section */}
+            <div className="pt-5 border-t border-[#222] text-center space-y-3 relative z-30">
+              <p className="text-[10px] text-[#888] font-mono uppercase tracking-widest font-bold">
+                New Player? Submit profile &amp; join a UWIFA team
+              </p>
+              <Link
+                href="/join"
+                className="w-full h-12 border-2 border-amber-400 bg-amber-400/20 hover:bg-amber-400 hover:text-black text-amber-400 font-extrabold uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all rounded-none cursor-pointer active:scale-[0.98] select-none"
+              >
+                REGISTER / SUBMIT PROFILE →
+              </Link>
+            </div>
           </div>
         )}
       </div>

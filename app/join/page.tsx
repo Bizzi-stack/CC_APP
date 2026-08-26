@@ -215,20 +215,35 @@ export default function JoinPage() {
         {/* UWIFA Team / Club Selection */}
         <div>
           <label className={labelClass}>Select UWIFA Tournament Team</label>
-          <select
-            name="franchise_id"
-            value={form.franchise_id}
-            onChange={e => setForm(p => ({ ...p, franchise_id: e.target.value }))}
-            className={inputClass + ' cursor-pointer uppercase font-bold text-white bg-black'}
-          >
-            <option value="">-- Select UWIFA Team --</option>
-            {franchises.map(f => (
-              <option key={f.id} value={f.id} className="bg-[#111] text-white">
-                ⚽ {f.name}
-              </option>
-            ))}
-          </select>
-          <p className="text-[10px] text-[#666] mt-1">Select the team you are representing in the UWIFA tournament.</p>
+          <div className="flex items-center gap-3">
+            <select
+              name="franchise_id"
+              value={form.franchise_id}
+              onChange={e => setForm(p => ({ ...p, franchise_id: e.target.value }))}
+              className={inputClass + ' cursor-pointer uppercase font-bold text-white bg-black flex-1'}
+            >
+              <option value="">-- Select UWIFA Team --</option>
+              {franchises.map(f => (
+                <option key={f.id} value={f.id} className="bg-[#111] text-white">
+                  ⚽ {f.name}
+                </option>
+              ))}
+            </select>
+            {form.franchise_id && (
+              <div className="w-11 h-11 border border-[#333] bg-[#111] flex items-center justify-center p-1.5 shrink-0">
+                {franchises.find(f => f.id === form.franchise_id)?.logo_url ? (
+                  <img
+                    src={franchises.find(f => f.id === form.franchise_id)?.logo_url || ''}
+                    alt="Team Crest"
+                    className="w-full h-full object-contain filter drop-shadow"
+                  />
+                ) : (
+                  <span className="text-xs">⚽</span>
+                )}
+              </div>
+            )}
+          </div>
+          <p className="text-[10px] text-[#666] mt-1">Select the official nation/team you are representing in UWIFA.</p>
         </div>
 
         {/* Country / Flag */}

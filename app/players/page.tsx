@@ -280,9 +280,6 @@ export default function AdminPlayersPage() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/admin-cashouts" className="bg-amber-500/10 border border-amber-500/40 text-amber-300 hover:bg-amber-500/20 text-xs font-bold tracking-wider uppercase px-3 py-2 transition-colors flex items-center gap-1.5">
-            <span>₿</span> Cashouts
-          </Link>
           <Link href="/players/new" className="bg-white text-black text-xs font-bold tracking-widest uppercase px-4 py-2 active:bg-gray-200 transition-colors">
             + Add
           </Link>
@@ -828,25 +825,37 @@ function ActivePlayerRow({ player, onToggle, onEdit, onDelete, actioning }: {
           )}
           {player.notes && <span className="text-[11px] text-[#555] truncate">{player.notes}</span>}
         </div>
-        {player.value !== undefined && player.value > 0 && (
-          <p className="text-[#aaa] text-xs font-bold mt-1">
-            {player.value.toLocaleString()} <span className="text-[#555] font-normal">CR</span>
-          </p>
-        )}
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        <button
-          onClick={() => onToggle(player)}
-          disabled={actioning === player.id}
-          className={`text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 border transition-colors disabled:opacity-40
-            ${player.available
-              ? 'border-[#2a6b2a] text-[#4caf50] bg-[#0a1f0a]'
-              : 'border-[#333] text-[#888] bg-[#111]'
-            }`}
-        >
-          {player.available ? 'AVAILABLE' : 'SIGNED'}
-        </button>
+        {player.status === 'overseas' ? (
+          <span className="text-[10px] font-extrabold tracking-widest uppercase px-3 py-1.5 border border-blue-500/50 text-blue-400 bg-blue-950/40 rounded-none shadow-sm">
+            OVERSEAS
+          </span>
+        ) : player.available ? (
+          <button
+            onClick={() => onToggle(player)}
+            disabled={actioning === player.id}
+            className="text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 border border-[#2a6b2a] text-[#4caf50] bg-[#0a1f0a] rounded-none transition-colors disabled:opacity-40"
+          >
+            AVAILABLE
+          </button>
+        ) : (
+          <div className="flex items-center gap-1.5 cursor-pointer" onClick={() => onToggle(player)}>
+            {player.franchises?.logo_url ? (
+              <div className="w-8 h-8 bg-[#111] border border-[#333] p-1 flex items-center justify-center shadow-md overflow-hidden rounded-none" title={`Signed to ${player.franchises.name}`}>
+                <img src={player.franchises.logo_url} alt={player.franchises.name} className="w-full h-full object-contain" />
+              </div>
+            ) : (
+              <button
+                disabled={actioning === player.id}
+                className="text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 border border-[#333] text-[#888] bg-[#111] rounded-none transition-colors disabled:opacity-40"
+              >
+                SIGNED
+              </button>
+            )}
+          </div>
+        )}
         <div className="flex flex-col ml-1">
           <button
             onClick={onEdit}

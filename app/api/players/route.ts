@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
   // Filter by status
   if (status === 'active') {
-    query = query.eq('status', 'active')
+    query = query.in('status', ['active', 'overseas'])
   } else if (status === 'pending') {
     query = query.eq('status', 'pending')
   }

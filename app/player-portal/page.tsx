@@ -9,8 +9,6 @@ import ProfileBanner, { BusinessBadge, InstagramBadge, SpotifyPlayer, FranchiseO
 import { useCustomDialog } from '@/components/CustomDialog'
 import { requestNotificationPermission, sendNativeNotification } from '@/lib/notifications'
 import { COUNTRY_LIST, getCountryFlag } from '@/lib/countries'
-import BtcCashoutModal from '@/components/BtcCashoutModal'
-import BtcTicker from '@/components/BtcTicker'
 import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
 import { retroAudio } from '@/lib/sounds'
@@ -601,7 +599,6 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
             </h1>
             <div className="flex flex-wrap items-center gap-1.5 mt-1">
               <FranchiseOwnerBadge isOwner={player?.is_franchise_owner} franchiseName={player?.owned_franchise?.name} />
-              <BusinessBadge isBusiness={isBusiness} businessName={businessName || player?.business_name} />
               <InstagramBadge url={instagramUrl || player?.instagram_url} />
               <span className="text-[10px] font-bold text-white border border-[#2a2a2a] bg-black/60 px-1.5 py-0.5 uppercase flex items-center gap-1 rounded shadow-sm">
                 <span>{getCountryFlag(country || player?.country)}</span>
@@ -660,105 +657,6 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
           </div>
         )}
 
-        {/* Financial info cards */}
-        <div className="grid grid-cols-2 gap-3 mt-6">
-          <div className="bg-black border border-[#222] p-4">
-            <p className="text-[9px] text-[#666] font-bold tracking-widest uppercase mb-1">Your Wallet</p>
-            <p className="text-white text-lg font-mono font-bold">
-              {player?.balance.toLocaleString()} <span className="text-xs text-[#555] font-sans font-normal">CR</span>
-            </p>
-          </div>
-          <div className="bg-black border border-[#222] p-4">
-            <p className="text-[9px] text-[#666] font-bold tracking-widest uppercase mb-1">Current Wage</p>
-            <p className="text-white text-lg font-mono font-bold">
-              {player?.wages.toLocaleString()} <span className="text-xs text-[#555] font-sans font-normal">CR/Day</span>
-            </p>
-          </div>
-        </div>
-
-        {/* BTC Cash Out Widget */}
-        <div className="mt-4">
-          <BtcCashoutModal
-            playerBalance={player?.balance || 0}
-            onSuccess={(newBal) => setPlayer(prev => prev ? { ...prev, balance: newBal } : null)}
-          />
-        </div>
-
-        {/* Stock Portfolio Banner */}
-        <div className="mt-3 bg-[#080808] border border-emerald-500/30 p-3.5 rounded-xl flex items-center justify-between">
-          <div>
-            <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span>🏛️</span> Franchise Stock Exchange
-            </h3>
-            <p className="text-[10px] text-[#888] mt-0.5">Trade franchise equity & earn 20% match dividends</p>
-          </div>
-          <Link
-            href="/market?tab=stocks"
-            className="bg-emerald-500 text-black font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 rounded hover:bg-emerald-400 transition-colors shrink-0"
-          >
-            Trade Stocks →
-          </Link>
-        </div>
-
-        {/* My Investments P&L Card */}
-        {sharePnl.length > 0 && (
-          <div className="mt-3 bg-[#060606] border border-[#1a1a1a] p-4">
-            <h3 className="text-[10px] font-bold text-white uppercase tracking-widest mb-3 flex items-center gap-2">
-              <span>📊</span> My Investments — P&amp;L
-            </h3>
-            <div className="space-y-3">
-              {sharePnl.map((item: any) => {
-                const unrealised = item.unrealised_pnl
-                const realised = item.realised_pnl
-                const totalPnl = unrealised + realised
-                const isUp = totalPnl >= 0
-                return (
-                  <div key={item.franchise_id} className="border border-[#1e1e1e] bg-[#0a0a0a] p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        {item.franchise_logo && (
-                          <img src={item.franchise_logo} alt={item.franchise_name} className="w-6 h-6 object-contain" />
-                        )}
-                        <span className="text-xs font-bold text-white">{item.franchise_name}</span>
-                      </div>
-                      <span className={`text-xs font-black font-mono ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {isUp ? '+' : ''}{totalPnl.toLocaleString()} CR
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1 text-[10px] text-[#666]">
-                      <div>
-                        <p className="text-[#555] uppercase tracking-wider">Held</p>
-                        <p className="text-white font-mono">{item.shares_held} shares</p>
-                      </div>
-                      <div>
-                        <p className="text-[#555] uppercase tracking-wider">Avg Buy</p>
-                        <p className="text-white font-mono">{item.avg_buy_price.toLocaleString()} CR</p>
-                      </div>
-                      <div>
-                        <p className="text-[#555] uppercase tracking-wider">Current</p>
-                        <p className="text-white font-mono">{item.current_price.toLocaleString()} CR</p>
-                      </div>
-                    </div>
-                    <div className="mt-2 pt-2 border-t border-[#1a1a1a] grid grid-cols-2 gap-1 text-[10px]">
-                      <div>
-                        <p className="text-[#555] uppercase tracking-wider">Unrealised</p>
-                        <p className={`font-mono font-bold ${unrealised >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {unrealised >= 0 ? '+' : ''}{unrealised.toLocaleString()} CR
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[#555] uppercase tracking-wider">Realised</p>
-                        <p className={`font-mono font-bold ${realised >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {realised >= 0 ? '+' : ''}{realised.toLocaleString()} CR
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="p-4 space-y-6">
@@ -769,87 +667,9 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
         )}
         {successMsg && (
           <div className="bg-[#4caf50]/10 border border-[#4caf50] text-[#4caf50] p-3 text-xs text-center uppercase tracking-wider">
-            {successMsg}
+{successMsg}
           </div>
         )}
-
-        {/* Claim daily wages card */}
-        {player?.wages && player.wages > 0 ? (
-          <div className="bg-[#050505] border border-[#222] p-4 text-center space-y-4 rounded-xl relative overflow-hidden">
-            {/* Streak Badge Header */}
-            <div className="flex items-center justify-between border-b border-[#1a1a1a] pb-3">
-              <h2 className="text-[10px] text-[#666] font-bold tracking-widest uppercase">Wage Collection Center</h2>
-              <span className="text-[10px] font-bold text-amber-400 bg-amber-950/40 border border-amber-900/60 px-2.5 py-1 rounded-full flex items-center gap-1">
-                <span>🔥</span>
-                <span>{player.wage_streak || 0} Day Streak (+{((player.wage_streak || 0) > 0 ? (player.wage_streak || 1) - 1 : 0) * 10}% Bonus)</span>
-              </span>
-            </div>
-
-            {player.loan_balance !== undefined && player.loan_balance > 0 && (
-              <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 rounded text-amber-300 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between">
-                <span>💳 Active Micro-Loan:</span>
-                <span>{player.loan_balance.toLocaleString()} CR (Auto-Repaying)</span>
-              </div>
-            )}
-
-            {canClaim ? (
-              <div className="space-y-3">
-                <p className="text-xs text-[#aaa]">Your daily wage is ready with streak bonus & 10% Jackpot drop chance!</p>
-                <button
-                  disabled={claiming}
-                  onClick={handleCollectWages}
-                  className="w-full bg-white text-black font-bold uppercase tracking-widest text-[10px] py-3 rounded-lg active:opacity-60 transition-opacity flex items-center justify-center gap-2"
-                >
-                  <span>🎰</span>
-                  <span>{claiming ? 'Collecting...' : `Collect Daily Wage (+${player.wages.toLocaleString()} CR Base)`}</span>
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-1 py-1">
-                <p className="text-[#ffb74d] text-xs font-bold uppercase tracking-wider">Wages Claimed Today</p>
-                <p className="text-[10px] text-[#555] uppercase">Next collection is available in less than 24 hours.</p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="border border-[#222] bg-[#050505] p-5 text-center text-[#555] text-xs uppercase tracking-wider rounded-xl">
-            You are a Free Agent. Sign to a team to earn daily wages!
-          </div>
-        )}
-
-        {/* Friday Matchday Micro-Loan Card */}
-        <div className="bg-gradient-to-br from-[#0c0a00] to-[#050505] border border-amber-500/30 p-4 text-center space-y-3 rounded-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">💳</span>
-              <div className="text-left">
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">Friday Matchday Micro-Loan</h3>
-                <p className="text-[9px] text-[#888] uppercase">Get 1,000 CR Credit Advance for Friday Wagers</p>
-              </div>
-            </div>
-            <span className="text-[9px] font-bold text-amber-400 bg-amber-950/60 border border-amber-900/60 px-2 py-0.5 rounded uppercase">
-              Friday Special
-            </span>
-          </div>
-
-          {player?.loan_balance && player.loan_balance > 0 ? (
-            <p className="text-[10px] text-amber-400/80 font-mono">
-              Loan active: {player.loan_balance.toLocaleString()} CR remaining. Winnings & wages will automatically pay off your balance!
-            </p>
-          ) : (player?.balance || 0) >= 1000 ? (
-            <p className="text-[10px] text-[#555] uppercase">
-              Micro-Loans unlock when your wallet balance drops below 1,000 CR.
-            </p>
-          ) : (
-            <button
-              disabled={claiming}
-              onClick={handleClaimLoan}
-              className="w-full bg-amber-500 text-black font-bold uppercase tracking-widest text-[10px] py-2.5 rounded-lg hover:bg-amber-400 transition-colors"
-            >
-              {claiming ? 'Processing...' : '⚡ Request 1,000 CR Friday Loan'}
-            </button>
-          )}
-        </div>
 
         {/* Incoming Free Agent Contract Proposals & Wage Negotiations */}
         {incomingOffers.length > 0 && (
@@ -1089,36 +909,6 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
             </p>
           </div>
 
-          {/* Business Owner Toggle */}
-          <div className="pt-2 border-t border-[#1a1a1a] space-y-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isBusiness}
-                onChange={e => setIsBusiness(e.target.checked)}
-                className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
-              />
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-                Enable Business Owner Banner Tag
-              </span>
-            </label>
-
-            {isBusiness && (
-              <div className="space-y-1.5">
-                <label className="text-[9px] font-bold tracking-widest uppercase text-[#888] block">
-                  Business / Brand Name
-                </label>
-                <input
-                  type="text"
-                  value={businessName}
-                  onChange={e => setBusinessName(e.target.value)}
-                  placeholder="e.g. Apex Football Academy"
-                  className="w-full h-10 px-3 bg-black border border-[#333] text-white text-xs outline-none focus:border-white transition-colors"
-                />
-              </div>
-            )}
-          </div>
-
           <button
             type="submit"
             disabled={savingProfile}
@@ -1155,91 +945,6 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
             </div>
           )}
         </div>
-
-        
-        {/* Sportsbook */}
-        {!isBusiness && (
-          <div className="bg-[#0a0a0a] border border-[#222] p-6 col-span-full md:col-span-1 lg:col-span-2 relative mb-6">
-            <h2 className="text-xl font-bold uppercase tracking-widest text-amber-500 mb-6 flex items-center gap-2">
-              Sportsbook <span className="text-[9px] bg-amber-500/10 border border-amber-500/20 text-amber-500 px-2 py-0.5 rounded-full">BETA</span>
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Active Matches */}
-              <div>
-                <h3 className="text-white font-bold tracking-widest uppercase text-sm mb-4">Live Matches</h3>
-                <div className="space-y-4">
-                  {activeMatches.length === 0 ? (
-                    <p className="text-[#555] text-xs uppercase tracking-widest">No active matches to bet on</p>
-                  ) : (
-                    activeMatches.map(match => (
-                      <div key={match.id} className="border border-[#333] bg-black p-4">
-                        <div className="flex justify-between items-center mb-4">
-                          <div className="text-center w-1/3">
-                            {match.challenger.logo_url && <img src={match.challenger.logo_url} className="h-8 mx-auto mb-1 object-contain" />}
-                            <p className="text-[10px] text-white font-bold uppercase">{match.challenger.name}</p>
-                          </div>
-                          <div className="text-center w-1/3 text-amber-500 text-[10px] font-bold uppercase tracking-widest">
-                            VS
-                          </div>
-                          <div className="text-center w-1/3">
-                            {match.challenged.logo_url && <img src={match.challenged.logo_url} className="h-8 mx-auto mb-1 object-contain" />}
-                            <p className="text-[10px] text-white font-bold uppercase">{match.challenged.name}</p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => setBettingMatch(match)}
-                          className="w-full py-2 bg-white text-black font-bold uppercase tracking-widest text-[10px] hover:bg-gray-200 transition-colors"
-                        >
-                          Place Bet
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* My Wagers */}
-              <div>
-                <h3 className="text-white font-bold tracking-widest uppercase text-sm mb-4">My Wagers</h3>
-                <div className="space-y-4">
-                  {myWagers.length === 0 ? (
-                    <p className="text-[#555] text-xs uppercase tracking-widest">No wagers placed</p>
-                  ) : (
-                    myWagers.map(w => {
-                      const pickName = w.predicted_winner_id === null ? 'Draw' : w.predicted_winner?.name
-                      const isPending = w.status === 'pending'
-                      const isWon = w.status === 'won'
-                      
-                      return (
-                        <div key={w.id} className="border border-[#222] p-3 text-[10px] uppercase font-bold tracking-wider">
-                          <div className="flex justify-between mb-2">
-                            <span className="text-[#888]">Match:</span>
-                            <span className="text-white">{w.challenge.challenger.name} vs {w.challenge.challenged.name}</span>
-                          </div>
-                          <div className="flex justify-between mb-2">
-                            <span className="text-[#888]">Pick:</span>
-                            <span className="text-white">{pickName}</span>
-                          </div>
-                          <div className="flex justify-between mb-2">
-                            <span className="text-[#888]">Wager:</span>
-                            <span className="text-white font-mono">{w.wager_amount.toLocaleString()} CR</span>
-                          </div>
-                          <div className="flex justify-between pt-2 border-t border-[#222]">
-                            <span className="text-[#888]">Status:</span>
-                            <span className={isPending ? 'text-amber-500' : isWon ? 'text-green-500' : 'text-red-500'}>
-                              {isPending ? 'Pending' : isWon ? `Won (+${w.wager_amount * 2} CR)` : 'Lost'}
-                            </span>
-                          </div>
-                        </div>
-                      )
-                    })
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Badge Shop / Marketplace */}
         <div className="space-y-4 border-t border-[#111] pt-6">

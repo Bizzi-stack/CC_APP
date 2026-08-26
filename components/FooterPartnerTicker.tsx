@@ -2,8 +2,11 @@
 
 import React from 'react'
 
-// All partners from the public/partners folder
 const PARTNERS = [
+  { name: 'Games Commit', logo: '/partners/games_commit_logo.png' },
+  { name: 'CC', logo: '/partners/CC_new_logo.png' },
+  { name: 'AS Saint-Étienne', logo: '/partners/AS_Saint-Étienne_logo.svg.webp' },
+  { name: 'Grimsby Town FC', logo: '/partners/Grimsby_Town_F.C._logo.svg.webp' },
   { name: 'Polygon', logo: '/partners/polygon-logo.svg' },
   { name: 'Miami FC', logo: '/partners/cropped-logo_Miami-FC.webp' },
   { name: 'Brooklyn FC', logo: '/partners/cropped-Brooklyn-FC-crest.webp' },
@@ -24,7 +27,7 @@ export default function FooterPartnerTicker() {
   ]
 
   return (
-    <footer className="w-full bg-black border-t border-[#1a1a1a] pt-6 pb-12 overflow-hidden flex flex-col items-center select-none">
+    <footer className="w-full bg-black border-t border-[#1a1a1a] pt-3 pb-8 overflow-hidden flex flex-col items-center select-none">
       {/* Noah Bishop Production Credit */}
       <p className="text-[9px] font-mono font-bold tracking-widest text-[#555] uppercase mb-1">
         A NOAH BISHOP PRODUCTION
