@@ -388,7 +388,7 @@ export default function AdminPlayersPage() {
                   onApprove={() => { 
                     setApproving(player)
                     setApproveValue('')
-                    setApproveFranchiseId('')
+                    setApproveFranchiseId(player.franchise_id || '')
                     setApproveWages('')
                     setApproveBalance('')
                     setApprovePasscode(player.passcode || '1234')
@@ -911,9 +911,17 @@ function PendingPlayerRow({ player, onApprove, onReject, actioning }: {
             <VerificationBadge type={player.verification_badge} className="w-[20px] h-[20px] ml-0.5" />
             <span className="text-[9px] font-bold text-[#f5a623] border border-[#f5a623]/40 bg-[#f5a623]/10 px-1.5 py-0.5 uppercase tracking-widest flex-shrink-0">Pending</span>
           </div>
-          {player.position && (
-            <span className="text-[10px] font-bold text-[#888] border border-[#333] px-1.5 py-0.5 mt-1 inline-block">{player.position}</span>
-          )}
+          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+            {player.franchises && (
+              <span className="text-[10px] font-bold text-amber-400 border border-amber-500/40 bg-amber-950/20 px-1.5 py-0.5 uppercase tracking-wider flex items-center gap-1">
+                {player.franchises.logo_url && <img src={player.franchises.logo_url} alt="" className="w-3.5 h-3.5 object-contain" />}
+                <span>Chosen Team: {player.franchises.name}</span>
+              </span>
+            )}
+            {player.position && (
+              <span className="text-[10px] font-bold text-[#888] border border-[#333] px-1.5 py-0.5">{player.position}</span>
+            )}
+          </div>
           {player.notes && <p className="text-[#555] text-xs mt-1 italic">{player.notes}</p>}
         </div>
       </div>
