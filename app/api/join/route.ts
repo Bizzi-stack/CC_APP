@@ -98,6 +98,7 @@ export async function POST(request: NextRequest) {
       country: country || 'Barbados',
       position: position || 'N/A',
       team: teamName,
+      franchise_name: teamName,
       submitted_at: new Date().toISOString()
     }).catch(() => {})
 
