@@ -210,6 +210,39 @@ export default function HomePage() {
           </Link>
         </section>
 
+        {/* Locker Room Community Feed Banner */}
+        <section>
+          <Link
+            href="/feed"
+            className="block relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 p-5 shadow-2xl group hover:brightness-110 active:scale-[0.98] transition-all"
+          >
+            <div className="relative z-10 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="bg-black text-emerald-400 text-[9px] font-black uppercase px-2 py-0.5 rounded tracking-widest flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
+                    COMMUNITY FEED
+                  </span>
+                  <span className="text-white/80 font-bold text-[10px] uppercase">Locker Room</span>
+                </div>
+                <h2 className="text-white font-black text-lg md:text-xl uppercase tracking-tight">
+                  The Locker Room Feed
+                </h2>
+                <p className="text-white/90 text-xs font-semibold mt-0.5">
+                  Post photos & updates, like, comment, repost & share with the community!
+                </p>
+              </div>
+
+              <div className="bg-black/20 backdrop-blur-sm p-3 rounded-2xl border border-white/20 shrink-0 text-center flex flex-col items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform">
+                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                </svg>
+                <span className="text-[9px] font-black text-white uppercase tracking-wider block mt-1">Open Feed →</span>
+              </div>
+            </div>
+          </Link>
+        </section>
+
         {/* Quick Actions */}
         <section>
           <h2 className="text-xs text-[#555] font-bold tracking-widest uppercase mb-3">Quick Actions</h2>
