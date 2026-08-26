@@ -6,6 +6,7 @@ import PublicNav from '@/components/PublicNav'
 import { COUNTRY_LIST } from '@/lib/countries'
 
 const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST', 'CF']
+const SPORTS = ['Football', 'Basketball', 'Track & Field', 'Netball', 'Volleyball', 'Cricket', 'E-Sports', 'Other']
 
 type Step = 'form' | 'uploading' | 'done'
 
@@ -24,6 +25,7 @@ export default function JoinPage() {
     phone: '',
     is_uwi_student: true,
     student_id: '',
+    sport: 'Football',
     passcode: '',
     franchise_id: '',
     position: '',
@@ -87,6 +89,7 @@ export default function JoinPage() {
           phone: form.phone.trim(),
           is_uwi_student: form.is_uwi_student,
           student_id: form.is_uwi_student ? form.student_id.trim() : null,
+          sport: form.sport,
           passcode: form.passcode.trim(),
           franchise_id: form.franchise_id || null,
           position: form.position || null,
@@ -283,6 +286,28 @@ export default function JoinPage() {
               Non-UWI player registration selected. Student ID is not required.
             </p>
           )}
+        </div>
+
+        {/* Primary Sport / Discipline Selection */}
+        <div>
+          <label className={labelClass}>Sport / Primary Discipline</label>
+          <div className="flex flex-wrap gap-2">
+            {SPORTS.map(s => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setForm(p => ({ ...p, sport: s }))}
+                className={`text-xs font-bold px-3 py-2 border transition-colors ${
+                  form.sport === s
+                    ? 'bg-amber-400 text-black border-amber-400'
+                    : 'border-[#333] text-[#aaa] hover:border-white'
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-[#666] mt-1.5">Select your primary sport or athletic profile type.</p>
         </div>
 
         {/* Secret Passcode / Password */}

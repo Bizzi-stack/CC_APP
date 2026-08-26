@@ -15,6 +15,7 @@ interface Player {
   phone?: string | null
   is_uwi_student?: boolean
   student_id?: string | null
+  sport?: string | null
   position?: string
   photo_url?: string
   available: boolean
@@ -939,6 +940,11 @@ function PendingPlayerRow({ player, onApprove, onReject, actioning }: {
               <span className="text-[10px] font-bold text-amber-400 border border-amber-500/40 bg-amber-950/20 px-1.5 py-0.5 uppercase tracking-wider flex items-center gap-1">
                 {player.franchises.logo_url && <img src={player.franchises.logo_url} alt="" className="w-3.5 h-3.5 object-contain" />}
                 <span>Chosen Team: {player.franchises.name}</span>
+              </span>
+            )}
+            {player.sport && (
+              <span className="text-[9px] font-bold text-emerald-400 border border-emerald-500/40 bg-emerald-950/30 px-1.5 py-0.5 uppercase">
+                🏅 {player.sport}
               </span>
             )}
             {player.position && (

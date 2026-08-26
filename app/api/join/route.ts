@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
       phone, 
       is_uwi_student, 
       student_id, 
+      sport,
       position, 
       photo_url, 
       notes, 
@@ -56,6 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const isUwi = is_uwi_student !== undefined ? Boolean(is_uwi_student) : true
+    const playerSport = sport || 'Football'
 
     const { data, error } = await supabase
       .from('players')
@@ -65,6 +67,7 @@ export async function POST(request: NextRequest) {
         phone: phone || null,
         is_uwi_student: isUwi,
         student_id: isUwi ? (student_id || null) : null,
+        sport: playerSport,
         position: position || null,
         photo_url: photo_url || null,
         franchise_id: franchise_id || null,
@@ -91,6 +94,7 @@ export async function POST(request: NextRequest) {
       phone: phone || 'N/A',
       is_uwi_student: isUwi ? 'Yes' : 'No',
       student_id: isUwi ? (student_id || 'N/A') : 'N/A',
+      sport: playerSport,
       country: country || 'Barbados',
       position: position || 'N/A',
       team: teamName,
