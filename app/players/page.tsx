@@ -11,6 +11,10 @@ import { getCountryFlag } from '@/lib/countries'
 interface Player {
   id: string
   name: string
+  email?: string | null
+  phone?: string | null
+  is_uwi_student?: boolean
+  student_id?: string | null
   position?: string
   photo_url?: string
   available: boolean
@@ -912,6 +916,25 @@ function PendingPlayerRow({ player, onApprove, onReject, actioning }: {
             <span className="text-[9px] font-bold text-[#f5a623] border border-[#f5a623]/40 bg-[#f5a623]/10 px-1.5 py-0.5 uppercase tracking-widest flex-shrink-0">Pending</span>
           </div>
           <div className="flex flex-wrap items-center gap-1.5 mt-1">
+            {player.is_uwi_student ? (
+              <span className="text-[9px] font-mono font-bold text-amber-300 border border-amber-500/40 bg-amber-950/30 px-1.5 py-0.5 uppercase">
+                Student ID: {player.student_id || 'N/A'}
+              </span>
+            ) : (
+              <span className="text-[9px] font-mono text-[#777] border border-[#333] px-1.5 py-0.5 uppercase">
+                Non-UWI Student
+              </span>
+            )}
+            {player.email && (
+              <span className="text-[9px] font-mono text-[#aaa] border border-[#333] px-1.5 py-0.5">
+                ✉ {player.email}
+              </span>
+            )}
+            {player.phone && (
+              <span className="text-[9px] font-mono text-[#aaa] border border-[#333] px-1.5 py-0.5">
+                📞 {player.phone}
+              </span>
+            )}
             {player.franchises && (
               <span className="text-[10px] font-bold text-amber-400 border border-amber-500/40 bg-amber-950/20 px-1.5 py-0.5 uppercase tracking-wider flex items-center gap-1">
                 {player.franchises.logo_url && <img src={player.franchises.logo_url} alt="" className="w-3.5 h-3.5 object-contain" />}

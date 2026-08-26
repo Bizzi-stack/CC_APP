@@ -20,6 +20,10 @@ export default function JoinPage() {
 
   const [form, setForm] = useState({
     name: '',
+    email: '',
+    phone: '',
+    is_uwi_student: true,
+    student_id: '',
     passcode: '',
     franchise_id: '',
     position: '',
@@ -54,6 +58,12 @@ export default function JoinPage() {
     e.preventDefault()
     if (!file) { setError('A headshot photo is required'); return }
     if (!form.name.trim()) { setError('Name is required'); return }
+    if (!form.email.trim()) { setError('Email address is required'); return }
+    if (!form.phone.trim()) { setError('Phone number is required'); return }
+    if (form.is_uwi_student && !form.student_id.trim()) {
+      setError('Student ID number is required for UWI students')
+      return
+    }
     if (!form.passcode.trim()) { setError('Passcode is required'); return }
 
     setStep('uploading')
@@ -73,6 +83,10 @@ export default function JoinPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          is_uwi_student: form.is_uwi_student,
+          student_id: form.is_uwi_student ? form.student_id.trim() : null,
           passcode: form.passcode.trim(),
           franchise_id: form.franchise_id || null,
           position: form.position || null,
@@ -195,6 +209,80 @@ export default function JoinPage() {
             className={inputClass}
             placeholder="e.g. Marcus Reid"
           />
+        </div>
+
+        {/* Email & Phone */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass}>Email Address *</label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+              required
+              className={inputClass}
+              placeholder="e.g. marcus@mycavehill.uwi.edu"
+            />
+          </div>
+
+          <div>
+            <label className={labelClass}>Phone Number *</label>
+            <input
+              type="tel"
+              name="phone"
+              value={form.phone}
+              onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
+              required
+              className={inputClass}
+              placeholder="e.g. 246-832-1234"
+            />
+          </div>
+        </div>
+
+        {/* UWI Student Verification & Student ID */}
+        <div className="border border-[#222] bg-[#080808] p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={form.is_uwi_student}
+                onChange={e => setForm(p => ({ ...p, is_uwi_student: e.target.checked }))}
+                className="w-4 h-4 accent-amber-400 cursor-pointer"
+              />
+              <span>I am a UWI Student</span>
+            </label>
+
+            <button
+              type="button"
+              onClick={() => setForm(p => ({ ...p, is_uwi_student: !p.is_uwi_student }))}
+              className="text-[10px] text-[#777] hover:text-amber-400 uppercase font-bold tracking-wider underline cursor-pointer"
+            >
+              {form.is_uwi_student ? 'Not a UWI Student?' : 'UWI Student?'}
+            </button>
+          </div>
+
+          {form.is_uwi_student ? (
+            <div>
+              <label className={labelClass}>
+                Student ID Number * <span className="text-amber-400 font-mono text-[9px]">(Applicable for UWI Students only)</span>
+              </label>
+              <input
+                type="text"
+                name="student_id"
+                value={form.student_id}
+                onChange={e => setForm(p => ({ ...p, student_id: e.target.value }))}
+                required={form.is_uwi_student}
+                className={inputClass + ' font-mono tracking-wider'}
+                placeholder="e.g. 40001234"
+              />
+              <p className="text-[10px] text-[#666] mt-1">Required for UWI Cave Hill student tournament registration.</p>
+            </div>
+          ) : (
+            <p className="text-[10px] text-[#777] italic">
+              Non-UWI player registration selected. Student ID is not required.
+            </p>
+          )}
         </div>
 
         {/* Secret Passcode / Password */}
