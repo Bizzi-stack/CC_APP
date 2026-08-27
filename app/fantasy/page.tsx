@@ -258,10 +258,11 @@ export default function FantasyPage() {
   const benchScore = benchSlots.reduce((acc, s) => acc + s.computedPoints, 0)
   const startersCount = startingSlots.filter(s => s.player !== null).length
 
-  // Handle slot click to open transfer drawer
+  // Handle slot click to open transfer drawer — default to ALL players so any player can be picked for any slot
   const handleSlotClick = (slot: FantasySlot | PickSlot) => {
     setActivePickingSlot(slot as FantasySlot)
-    setSelectedPosFilter(slot.positionType === 'FLEX' ? 'ALL' : slot.positionType)
+    setSelectedPosFilter('ALL')
+    setSelectedTeamFilter('ALL')
     setSearchQuery('')
   }
 
@@ -892,19 +893,19 @@ export default function FantasyPage() {
 
       {/* ================= PLAYER SELECTION DRAWER / MODAL ================= */}
       {activePickingSlot && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4">
-          <div className="bg-[#0e0e0e] border border-[#222] w-full max-w-lg rounded-t-3xl md:rounded-2xl p-5 space-y-4 max-h-[85vh] flex flex-col shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end md:items-center justify-center p-2 pb-20 md:p-4" onClick={() => setActivePickingSlot(null)}>
+          <div className="bg-[#0e0e0e] border border-[#222] w-full max-w-lg rounded-2xl p-4 md:p-5 space-y-3 max-h-[78vh] md:max-h-[85vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[#222] pb-3">
               <div>
                 <h3 className="text-base font-bold text-white uppercase tracking-wide">
                   Pick {activePickingSlot.label} ({activePickingSlot.slotId})
                 </h3>
-                <p className="text-[11px] text-[#888]">Filter by nation or position to add to your squad</p>
+                <p className="text-[11px] text-amber-400 font-medium">All registered UWI players available for selection</p>
               </div>
               <button
                 onClick={() => setActivePickingSlot(null)}
-                className="text-[#888] hover:text-white text-sm font-bold uppercase p-1"
+                className="text-[#888] hover:text-white text-xs font-bold uppercase p-1.5 bg-[#181818] rounded-lg border border-[#333]"
               >
                 ✕ Close
               </button>
@@ -920,9 +921,34 @@ export default function FantasyPage() {
                 className="w-full bg-black border border-[#333] px-3.5 py-2.5 rounded-xl text-white text-xs outline-none focus:border-amber-400 font-medium"
               />
 
+              {/* Position Filter Pills (Default ALL) */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-b border-[#181818]">
+                <span className="text-[9px] font-bold text-[#666] uppercase pr-1">Pos:</span>
+                {[
+                  { id: 'ALL', label: 'All Players' },
+                  { id: 'GK', label: 'Goalkeepers' },
+                  { id: 'DEF', label: 'Defenders' },
+                  { id: 'MID', label: 'Midfielders' },
+                  { id: 'FWD', label: 'Forwards' }
+                ].map(pos => (
+                  <button
+                    key={pos.id}
+                    type="button"
+                    onClick={() => setSelectedPosFilter(pos.id)}
+                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase whitespace-nowrap transition-colors ${
+                      selectedPosFilter === pos.id ? 'bg-amber-400 text-black' : 'bg-[#181818] text-[#888]'
+                    }`}
+                  >
+                    {pos.label}
+                  </button>
+                ))}
+              </div>
+
               {/* Team Pill Filters */}
-              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                <span className="text-[9px] font-bold text-[#666] uppercase pr-1">Team:</span>
                 <button
+                  type="button"
                   onClick={() => setSelectedTeamFilter('ALL')}
                   className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase whitespace-nowrap transition-colors ${
                     selectedTeamFilter === 'ALL' ? 'bg-amber-400 text-black' : 'bg-[#181818] text-[#888]'
@@ -933,6 +959,7 @@ export default function FantasyPage() {
                 {tournamentNations.map(nation => (
                   <button
                     key={nation}
+                    type="button"
                     onClick={() => setSelectedTeamFilter(nation)}
                     className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase whitespace-nowrap transition-colors ${
                       selectedTeamFilter === nation ? 'bg-amber-400 text-black' : 'bg-[#181818] text-[#888]'
@@ -945,7 +972,7 @@ export default function FantasyPage() {
             </div>
 
             {/* Players List */}
-            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1 pb-16">
               {filteredPlayers.length === 0 ? (
                 <div className="text-center py-10 text-[#555] text-xs uppercase">No matching players found</div>
               ) : (
