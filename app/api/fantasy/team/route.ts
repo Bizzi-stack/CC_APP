@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { user_identifier, team_name, manager_name, gameweek = 1, picks } = body
+    const { user_identifier, team_name, manager_name, formation = '2-2-2', gameweek = 1, picks } = body
 
     if (!user_identifier || !team_name || !manager_name) {
       return NextResponse.json({ error: 'Team name, Manager name, and User ID are required' }, { status: 400 })
@@ -143,6 +143,7 @@ export async function POST(request: NextRequest) {
         .update({
           team_name,
           manager_name,
+          formation,
           updated_at: new Date().toISOString()
         })
         .eq('id', teamId)
@@ -152,7 +153,8 @@ export async function POST(request: NextRequest) {
         .insert([{
           user_identifier,
           team_name,
-          manager_name
+          manager_name,
+          formation
         }])
         .select()
         .single()

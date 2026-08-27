@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import PublicNav from '@/components/PublicNav'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
-import { FANTASY_SLOTS, FantasySlot, calculatePlayerPoints } from '@/lib/fantasy'
+import { FANTASY_SLOTS, FantasySlot, FormationType, getSlotsForFormation, calculatePlayerPoints } from '@/lib/fantasy'
 
 interface Player {
   id: string
@@ -31,7 +31,7 @@ interface Player {
 }
 
 interface PickSlot {
-  slotId: FantasySlot['slotId']
+  slotId: string
   label: string
   positionType: 'GK' | 'DEF' | 'MID' | 'FWD' | 'FLEX'
   isStarter: boolean
@@ -56,10 +56,11 @@ export default function FantasyPage() {
   const [gameweek, setGameweek] = useState<number>(1)
   const [gameweeksList, setGameweeksList] = useState<any[]>([])
   
-  // Manager Identity & Team
+  // Manager Identity, Team & Formation
   const [userIdentifier, setUserIdentifier] = useState<string>('')
   const [teamName, setTeamName] = useState<string>('')
   const [managerName, setManagerName] = useState<string>('')
+  const [formation, setFormation] = useState<FormationType>('2-2-2')
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -97,20 +98,40 @@ export default function FantasyPage() {
     picks: any[]
   } | null>(null)
 
-  // Initialize identity from localStorage
+  // Initialize identity from logged-in player session or localStorage
   useEffect(() => {
     let storedId = localStorage.getItem('fpl_manager_id')
     let storedTeam = localStorage.getItem('fpl_team_name')
     let storedManager = localStorage.getItem('fpl_manager_name')
 
-    if (!storedId) {
-      storedId = 'mgr_' + Math.random().toString(36).substring(2, 10)
-      localStorage.setItem('fpl_manager_id', storedId)
-    }
+    fetch('/api/player/me')
+      .then(r => r.json())
+      .then(data => {
+        if (data.player) {
+          const playerId = data.player.id
+          setUserIdentifier(playerId)
+          localStorage.setItem('fpl_manager_id', playerId)
+          if (storedManager) setManagerName(storedManager)
+          else setManagerName(data.player.name)
+        } else {
+          if (!storedId) {
+            storedId = 'mgr_' + Math.random().toString(36).substring(2, 10)
+            localStorage.setItem('fpl_manager_id', storedId)
+          }
+          setUserIdentifier(storedId)
+          if (storedManager) setManagerName(storedManager)
+        }
+      })
+      .catch(() => {
+        if (!storedId) {
+          storedId = 'mgr_' + Math.random().toString(36).substring(2, 10)
+          localStorage.setItem('fpl_manager_id', storedId)
+        }
+        setUserIdentifier(storedId)
+        if (storedManager) setManagerName(storedManager)
+      })
 
-    setUserIdentifier(storedId)
     if (storedTeam) setTeamName(storedTeam)
-    if (storedManager) setManagerName(storedManager)
   }, [])
 
   // Fetch initial data
@@ -139,8 +160,10 @@ export default function FantasyPage() {
       if (teamData.team) {
         setTeamName(teamData.team.team_name)
         setManagerName(teamData.team.manager_name)
+        if (teamData.team.formation) setFormation(teamData.team.formation as FormationType)
         localStorage.setItem('fpl_team_name', teamData.team.team_name)
         localStorage.setItem('fpl_manager_name', teamData.team.manager_name)
+        setIsSetupModalOpen(false)
 
         const initialPicks: any = {}
         ;(teamData.picks || []).forEach((p: any) => {
@@ -152,8 +175,25 @@ export default function FantasyPage() {
         })
         setSquadPicks(initialPicks)
       } else {
-        // If user has no team yet, show setup modal
-        if (!teamName) {
+        // If team stored in localStorage, auto-create record so user never sees modal again
+        const storedTeam = localStorage.getItem('fpl_team_name') || teamName
+        const storedManager = localStorage.getItem('fpl_manager_name') || managerName
+        if (storedTeam && storedManager) {
+          setTeamName(storedTeam)
+          setManagerName(storedManager)
+          setIsSetupModalOpen(false)
+          fetch('/api/fantasy/team', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_identifier: userIdentifier,
+              team_name: storedTeam,
+              manager_name: storedManager,
+              formation,
+              gameweek
+            })
+          }).catch(() => {})
+        } else {
           setIsSetupModalOpen(true)
         }
       }
@@ -162,11 +202,34 @@ export default function FantasyPage() {
     }
   }
 
-  // Build current lineup slots with player details & computed points
+  // Handle Changing Formation
+  const handleFormationChange = async (newFormation: FormationType) => {
+    setFormation(newFormation)
+    if (userIdentifier && teamName && managerName) {
+      try {
+        await fetch('/api/fantasy/team', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_identifier: userIdentifier,
+            team_name: teamName,
+            manager_name: managerName,
+            formation: newFormation,
+            gameweek
+          })
+        })
+      } catch (err) {
+        console.error('Error saving formation:', err)
+      }
+    }
+  }
+
+  // Build current lineup slots dynamically based on active formation
   const filledSlots: PickSlot[] = useMemo(() => {
     const playerMap = new Map(allPlayers.map(p => [p.id, p]))
+    const currentSlots = getSlotsForFormation(formation)
 
-    return FANTASY_SLOTS.map(slot => {
+    return currentSlots.map(slot => {
       const pick = squadPicks[slot.slotId]
       const player = pick ? playerMap.get(pick.playerId) || null : null
       let pts = 0
@@ -185,7 +248,7 @@ export default function FantasyPage() {
         computedPoints: pts
       }
     })
-  }, [allPlayers, squadPicks])
+  }, [allPlayers, squadPicks, formation])
 
   const startingSlots = filledSlots.filter(s => s.isStarter)
   const benchSlots = filledSlots.filter(s => !s.isStarter)
@@ -268,6 +331,7 @@ export default function FantasyPage() {
           user_identifier: userIdentifier,
           team_name: teamName,
           manager_name: managerName,
+          formation,
           gameweek,
           picks: picksPayload
         })
@@ -515,6 +579,27 @@ export default function FantasyPage() {
         {/* ================= TAB 1: PITCH VIEW ================= */}
         {activeTab === 'pitch' && (
           <div className="space-y-4">
+            {/* Formation Selector Bar */}
+            <div className="flex items-center justify-between bg-[#0e0e0e] border border-[#222] p-2 rounded-xl">
+              <span className="text-[10px] font-extrabold uppercase text-[#777] tracking-wider pl-2">Formation (7-A-Side)</span>
+              <div className="flex gap-1.5">
+                {(['2-2-2', '3-2-1', '2-3-1'] as const).map(f => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => handleFormationChange(f)}
+                    className={`px-3 py-1 text-xs font-black font-mono rounded-lg transition-all cursor-pointer ${
+                      formation === f
+                        ? 'bg-amber-400 text-black shadow-md'
+                        : 'bg-[#18181b] text-[#888] hover:text-white border border-[#262626]'
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Pitch Container */}
             <div className="relative w-full rounded-2xl overflow-hidden border-2 border-[#1f4e24] shadow-2xl bg-gradient-to-b from-[#0e3a15] via-[#0c3112] to-[#08240d] p-4 pt-6 pb-6">
               {/* Pitch Field Markings */}
@@ -529,36 +614,39 @@ export default function FantasyPage() {
               {/* Pitch Status Banner */}
               <div className="relative z-10 flex items-center justify-between mb-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-[10px]">
                 <span className="font-bold text-amber-300 uppercase tracking-wide">
-                  7-A-Side Starting XI ({startersCount}/7 Selected)
+                  7-A-Side ({formation}) ({startersCount}/7 Selected)
                 </span>
                 <span className="font-mono text-white font-bold">
                   Live GW: <span className="text-emerald-400">{startingScore} PTS</span>
                 </span>
               </div>
 
-              {/* 7-A-Side Grid Rows */}
+              {/* Dynamic 7-A-Side Grid Rows */}
               <div className="relative z-10 flex flex-col gap-6 py-2">
                 {/* Row 1: Goalkeeper (1) */}
                 <div className="flex justify-center">
                   {renderPitchSlot(filledSlots.find(s => s.slotId === 'GK'))}
                 </div>
 
-                {/* Row 2: Defenders (2) */}
-                <div className="flex justify-around px-4">
-                  {renderPitchSlot(filledSlots.find(s => s.slotId === 'DEF1'))}
-                  {renderPitchSlot(filledSlots.find(s => s.slotId === 'DEF2'))}
+                {/* Row 2: Defenders */}
+                <div className="flex justify-around px-2">
+                  {startingSlots.filter(s => s.positionType === 'DEF').map(slot => (
+                    <div key={slot.slotId}>{renderPitchSlot(slot)}</div>
+                  ))}
                 </div>
 
-                {/* Row 3: Midfielders (2) */}
-                <div className="flex justify-around px-4">
-                  {renderPitchSlot(filledSlots.find(s => s.slotId === 'MID1'))}
-                  {renderPitchSlot(filledSlots.find(s => s.slotId === 'MID2'))}
+                {/* Row 3: Midfielders */}
+                <div className="flex justify-around px-2">
+                  {startingSlots.filter(s => s.positionType === 'MID').map(slot => (
+                    <div key={slot.slotId}>{renderPitchSlot(slot)}</div>
+                  ))}
                 </div>
 
-                {/* Row 4: Forwards (2) */}
-                <div className="flex justify-around px-4">
-                  {renderPitchSlot(filledSlots.find(s => s.slotId === 'FWD1'))}
-                  {renderPitchSlot(filledSlots.find(s => s.slotId === 'FWD2'))}
+                {/* Row 4: Forwards */}
+                <div className="flex justify-around px-2">
+                  {startingSlots.filter(s => s.positionType === 'FWD').map(slot => (
+                    <div key={slot.slotId}>{renderPitchSlot(slot)}</div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -1013,13 +1101,29 @@ export default function FantasyPage() {
             </div>
 
             <form
-              onSubmit={e => {
+              onSubmit={async e => {
                 e.preventDefault()
                 if (teamName.trim() && managerName.trim()) {
-                  localStorage.setItem('fpl_team_name', teamName)
-                  localStorage.setItem('fpl_manager_name', managerName)
+                  localStorage.setItem('fpl_team_name', teamName.trim())
+                  localStorage.setItem('fpl_manager_name', managerName.trim())
                   setIsSetupModalOpen(false)
-                  handleSaveSquad()
+
+                  try {
+                    await fetch('/api/fantasy/team', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        user_identifier: userIdentifier,
+                        team_name: teamName.trim(),
+                        manager_name: managerName.trim(),
+                        formation,
+                        gameweek
+                      })
+                    })
+                    fetchAllData()
+                  } catch (err) {
+                    console.error('Error saving team details:', err)
+                  }
                 }
               }}
               className="space-y-4"
