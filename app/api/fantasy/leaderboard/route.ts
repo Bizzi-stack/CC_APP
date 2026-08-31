@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
         player_id,
         position_slot,
         is_captain,
+        active_chip,
         players (
           id,
           name,
@@ -77,6 +78,7 @@ export async function GET(request: NextRequest) {
       const player = Array.isArray(pick.players) ? pick.players[0] : pick.players
       const statKey = `${pick.gameweek}_${pick.player_id}`
       const stat = statsMap[statKey]
+      const activeChip = pick.active_chip || 'NONE'
 
       let pts = 0
       if (stat && stat.total_points !== undefined && stat.total_points !== null) {
@@ -92,12 +94,13 @@ export async function GET(request: NextRequest) {
       }
 
       if (pick.is_captain) {
-        pts *= 2
+        pts *= activeChip === 'TRIPLE_CAPTAIN' ? 3 : 2
       }
 
       const isStarter = !pick.position_slot?.startsWith('SUB')
+      const isBenchBoostActive = activeChip === 'BENCH_BOOST'
 
-      if (isStarter) {
+      if (isStarter || isBenchBoostActive) {
         // Add to overall total
         teamScoresMap[pick.fantasy_team_id].totalPoints += pts
 

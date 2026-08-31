@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
         position_slot,
         is_captain,
         is_vice_captain,
+        active_chip,
         player_id,
         players (
           id,
@@ -63,6 +64,11 @@ export async function GET(request: NextRequest) {
 
     if (picksError) throw picksError
 
+    // Active chip for this gameweek (from picks or team default)
+    const activeChip = (picks && picks.length > 0 && picks[0].active_chip) 
+      ? picks[0].active_chip 
+      : (team.active_chip || 'NONE')
+
     // Fetch fantasy stats for these players in this gameweek if any
     const playerIds = (picks || []).map((p: any) => p.player_id)
     let statsMap: Record<string, any> = {}
@@ -80,7 +86,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Calculate points for each pick
+    // Calculate points for each pick with Triple Captain and Bench Boost rules
     let totalGameweekPoints = 0
     const processedPicks = (picks || []).map((pick: any) => {
       const player = pick.players
@@ -94,10 +100,17 @@ export async function GET(request: NextRequest) {
 
       let pts = calculatePlayerPoints(player?.position, stat)
       if (pick.is_captain) {
-        pts *= 2
+        // Triple Captain (3x) vs Normal Captain (2x)
+        pts *= activeChip === 'TRIPLE_CAPTAIN' ? 3 : 2
       }
 
-      totalGameweekPoints += pts
+      const isStarter = !pick.position_slot?.startsWith('SUB')
+      const isBenchBoostActive = activeChip === 'BENCH_BOOST'
+
+      // Include points if player is a starter OR if Bench Boost is active
+      if (isStarter || isBenchBoostActive) {
+        totalGameweekPoints += pts
+      }
 
       return {
         ...pick,
@@ -107,7 +120,10 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      team,
+      team: {
+        ...team,
+        active_chip: activeChip
+      },
       gameweek,
       total_gameweek_points: totalGameweekPoints,
       picks: processedPicks
@@ -121,7 +137,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { user_identifier, team_name, manager_name, formation = '2-2-2', gameweek = 1, picks } = body
+    const { user_identifier, team_name, manager_name, formation = '2-2-2', active_chip = 'NONE', gameweek = 1, picks } = body
 
     if (!user_identifier || !team_name || !manager_name) {
       return NextResponse.json({ error: 'Team name, Manager name, and User ID are required' }, { status: 400 })
@@ -144,6 +160,7 @@ export async function POST(request: NextRequest) {
           team_name,
           manager_name,
           formation,
+          active_chip,
           updated_at: new Date().toISOString()
         })
         .eq('id', teamId)
@@ -154,7 +171,8 @@ export async function POST(request: NextRequest) {
           user_identifier,
           team_name,
           manager_name,
-          formation
+          formation,
+          active_chip
         }])
         .select()
         .single()
@@ -172,14 +190,15 @@ export async function POST(request: NextRequest) {
         .eq('fantasy_team_id', teamId)
         .eq('gameweek', gameweek)
 
-      // Insert new picks
+      // Insert new picks with active_chip
       const picksToInsert = picks.map((p: any) => ({
         fantasy_team_id: teamId,
         gameweek: gameweek,
         player_id: p.player_id,
         position_slot: p.position_slot,
         is_captain: Boolean(p.is_captain),
-        is_vice_captain: Boolean(p.is_vice_captain)
+        is_vice_captain: Boolean(p.is_vice_captain),
+        active_chip: active_chip
       }))
 
       const { error: insertError } = await db

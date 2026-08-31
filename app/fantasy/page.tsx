@@ -56,11 +56,12 @@ export default function FantasyPage() {
   const [gameweek, setGameweek] = useState<number>(1)
   const [gameweeksList, setGameweeksList] = useState<any[]>([])
   
-  // Manager Identity, Team & Formation
+  // Manager Identity, Team, Formation & FPL Chips
   const [userIdentifier, setUserIdentifier] = useState<string>('')
   const [teamName, setTeamName] = useState<string>('')
   const [managerName, setManagerName] = useState<string>('')
   const [formation, setFormation] = useState<FormationType>('2-2-2')
+  const [activeChip, setActiveChip] = useState<'NONE' | 'TRIPLE_CAPTAIN' | 'BENCH_BOOST'>('NONE')
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -161,6 +162,7 @@ export default function FantasyPage() {
         setTeamName(teamData.team.team_name)
         setManagerName(teamData.team.manager_name)
         if (teamData.team.formation) setFormation(teamData.team.formation as FormationType)
+        if (teamData.team.active_chip) setActiveChip(teamData.team.active_chip)
         localStorage.setItem('fpl_team_name', teamData.team.team_name)
         localStorage.setItem('fpl_manager_name', teamData.team.manager_name)
         setIsSetupModalOpen(false)
@@ -190,6 +192,7 @@ export default function FantasyPage() {
               team_name: storedTeam,
               manager_name: storedManager,
               formation,
+              active_chip: activeChip,
               gameweek
             })
           }).catch(() => {})
@@ -215,6 +218,7 @@ export default function FantasyPage() {
             team_name: teamName,
             manager_name: managerName,
             formation: newFormation,
+            active_chip: activeChip,
             gameweek
           })
         })
@@ -224,7 +228,31 @@ export default function FantasyPage() {
     }
   }
 
-  // Build current lineup slots dynamically based on active formation
+  // Handle Toggling FPL Chips (Triple Captain / Bench Boost)
+  const handleToggleChip = async (chip: 'TRIPLE_CAPTAIN' | 'BENCH_BOOST') => {
+    const nextChip = activeChip === chip ? 'NONE' : chip
+    setActiveChip(nextChip)
+    if (userIdentifier && teamName && managerName) {
+      try {
+        await fetch('/api/fantasy/team', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_identifier: userIdentifier,
+            team_name: teamName,
+            manager_name: managerName,
+            formation,
+            active_chip: nextChip,
+            gameweek
+          })
+        })
+      } catch (err) {
+        console.error('Error toggling chip:', err)
+      }
+    }
+  }
+
+  // Build current lineup slots dynamically based on active formation & active chip
   const filledSlots: PickSlot[] = useMemo(() => {
     const playerMap = new Map(allPlayers.map(p => [p.id, p]))
     const currentSlots = getSlotsForFormation(formation)
@@ -236,7 +264,7 @@ export default function FantasyPage() {
       if (player) {
         pts = player.fantasy_points !== undefined ? player.fantasy_points : calculatePlayerPoints(player.position, player.stats || {})
         if (pick?.isCaptain) {
-          pts *= 2
+          pts *= activeChip === 'TRIPLE_CAPTAIN' ? 3 : 2
         }
       }
 
@@ -248,14 +276,15 @@ export default function FantasyPage() {
         computedPoints: pts
       }
     })
-  }, [allPlayers, squadPicks, formation])
+  }, [allPlayers, squadPicks, formation, activeChip])
 
   const startingSlots = filledSlots.filter(s => s.isStarter)
   const benchSlots = filledSlots.filter(s => !s.isStarter)
 
   // Calculations
-  const startingScore = startingSlots.reduce((acc, s) => acc + s.computedPoints, 0)
+  const rawStartingScore = startingSlots.reduce((acc, s) => acc + s.computedPoints, 0)
   const benchScore = benchSlots.reduce((acc, s) => acc + s.computedPoints, 0)
+  const startingScore = activeChip === 'BENCH_BOOST' ? (rawStartingScore + benchScore) : rawStartingScore
   const startersCount = startingSlots.filter(s => s.player !== null).length
 
   // Handle slot click to open transfer drawer — default to ALL players so any player can be picked for any slot
@@ -333,6 +362,7 @@ export default function FantasyPage() {
           team_name: teamName,
           manager_name: managerName,
           formation,
+          active_chip: activeChip,
           gameweek,
           picks: picksPayload
         })
@@ -426,8 +456,12 @@ export default function FantasyPage() {
 
           {/* Captain Badge */}
           {slot.isCaptain && (
-            <span className="absolute -top-1 -right-1 bg-amber-400 text-black text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg border border-black">
-              C
+            <span className={`absolute -top-1 -right-1 font-black rounded-full flex items-center justify-center shadow-lg border border-black transition-all ${
+              activeChip === 'TRIPLE_CAPTAIN'
+                ? 'bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 text-black text-[9px] px-1.5 py-0.5 ring-2 ring-amber-300'
+                : 'bg-amber-400 text-black text-[10px] w-5 h-5'
+            }`}>
+              {activeChip === 'TRIPLE_CAPTAIN' ? '3X' : 'C'}
             </span>
           )}
 
@@ -580,24 +614,80 @@ export default function FantasyPage() {
         {/* ================= TAB 1: PITCH VIEW ================= */}
         {activeTab === 'pitch' && (
           <div className="space-y-4">
-            {/* Formation Selector Bar */}
-            <div className="flex items-center justify-between bg-[#0e0e0e] border border-[#222] p-2 rounded-xl">
-              <span className="text-[10px] font-extrabold uppercase text-[#777] tracking-wider pl-2">Formation (7-A-Side)</span>
-              <div className="flex gap-1.5">
-                {(['2-2-2', '3-2-1', '2-3-1'] as const).map(f => (
+            {/* Formation & FPL Chips Bar */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between bg-[#0e0e0e] border border-[#222] p-2 rounded-xl">
+                <span className="text-[10px] font-extrabold uppercase text-[#777] tracking-wider pl-2">Formation (7-A-Side)</span>
+                <div className="flex gap-1.5">
+                  {(['2-2-2', '3-2-1', '2-3-1'] as const).map(f => (
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => handleFormationChange(f)}
+                      className={`px-3 py-1 text-xs font-black font-mono rounded-lg transition-all cursor-pointer ${
+                        formation === f
+                          ? 'bg-amber-400 text-black shadow-md'
+                          : 'bg-[#18181b] text-[#888] hover:text-white border border-[#262626]'
+                      }`}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* FPL Chips Selector Box */}
+              <div className="bg-[#0c0c0c] border border-amber-500/30 p-3 rounded-2xl space-y-2 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest flex items-center gap-1">
+                    <span>⚡</span> FPL CHIPS (GAMEWEEK {gameweek})
+                  </span>
+                  <span className="text-[9px] text-[#777] font-mono uppercase font-bold">1 Chip per GW</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Triple Captain Button */}
                   <button
-                    key={f}
                     type="button"
-                    onClick={() => handleFormationChange(f)}
-                    className={`px-3 py-1 text-xs font-black font-mono rounded-lg transition-all cursor-pointer ${
-                      formation === f
-                        ? 'bg-amber-400 text-black shadow-md'
-                        : 'bg-[#18181b] text-[#888] hover:text-white border border-[#262626]'
+                    onClick={() => handleToggleChip('TRIPLE_CAPTAIN')}
+                    className={`p-2.5 rounded-xl border text-left transition-all relative overflow-hidden cursor-pointer ${
+                      activeChip === 'TRIPLE_CAPTAIN'
+                        ? 'bg-gradient-to-r from-amber-950/70 via-amber-900/50 to-amber-950/70 border-amber-400 text-white ring-2 ring-amber-400/50 shadow-xl'
+                        : 'bg-black border-[#262626] text-[#888] hover:text-white hover:border-[#444]'
                     }`}
                   >
-                    {f}
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-wider text-white">🚀 Triple Captain</span>
+                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded font-mono ${
+                        activeChip === 'TRIPLE_CAPTAIN' ? 'bg-amber-400 text-black' : 'bg-[#1e1e1e] text-[#666]'
+                      }`}>
+                        3X
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-[#aaa] mt-1 font-medium leading-tight">Captain earns 3x points instead of 2x</p>
                   </button>
-                ))}
+
+                  {/* Bench Boost Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleChip('BENCH_BOOST')}
+                    className={`p-2.5 rounded-xl border text-left transition-all relative overflow-hidden cursor-pointer ${
+                      activeChip === 'BENCH_BOOST'
+                        ? 'bg-gradient-to-r from-emerald-950/70 via-emerald-900/50 to-emerald-950/70 border-emerald-400 text-white ring-2 ring-emerald-400/50 shadow-xl'
+                        : 'bg-black border-[#262626] text-[#888] hover:text-white hover:border-[#444]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase tracking-wider text-white">⚡ Bench Boost</span>
+                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded font-mono ${
+                        activeChip === 'BENCH_BOOST' ? 'bg-emerald-400 text-black' : 'bg-[#1e1e1e] text-[#666]'
+                      }`}>
+                        ALL
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-[#aaa] mt-1 font-medium leading-tight">Points from bench subs count in total score</p>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -653,12 +743,23 @@ export default function FantasyPage() {
             </div>
 
             {/* Bench / Substitutes Box */}
-            <div className="bg-[#0a0a0a] border border-[#222] rounded-2xl p-4 shadow-lg space-y-3">
+            <div className={`rounded-2xl p-4 shadow-lg space-y-3 transition-all ${
+              activeChip === 'BENCH_BOOST'
+                ? 'bg-gradient-to-b from-emerald-950/40 to-[#0a0a0a] border-2 border-emerald-500/60 shadow-emerald-950/50'
+                : 'bg-[#0a0a0a] border border-[#222]'
+            }`}>
               <div className="flex items-center justify-between border-b border-[#1a1a1a] pb-2">
-                <span className="text-xs font-bold text-[#888] uppercase tracking-wider">
-                  Substitutes Bench
-                </span>
-                <span className="text-[10px] text-[#555] font-mono">Bench Points: {benchScore} PTS</span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-bold uppercase tracking-wider ${activeChip === 'BENCH_BOOST' ? 'text-emerald-400 font-black' : 'text-[#888]'}`}>
+                    Substitutes Bench
+                  </span>
+                  {activeChip === 'BENCH_BOOST' && (
+                    <span className="bg-emerald-400 text-black text-[9px] font-black uppercase px-2 py-0.5 rounded tracking-wider flex items-center gap-1">
+                      ⚡ BENCH BOOST ACTIVE (SCORING PTS)
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] text-[#555] font-mono font-bold">Bench Points: {benchScore} PTS</span>
               </div>
 
               <div className="flex justify-around py-1">
