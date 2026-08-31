@@ -128,6 +128,28 @@ export default function HomePage() {
       </div>
 
       <div className="page-content px-4 pt-6 space-y-8">
+        {/* Tournament Fixtures & Schedule Quick Card */}
+        <section>
+          <Link href="/calendar" className="block group">
+            <div className="bg-gradient-to-r from-[#121212] via-[#1a1408] to-[#0e0e0e] border border-amber-500/40 hover:border-amber-400 p-4 rounded-2xl shadow-xl transition-all group-hover:scale-[1.01]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-lg">
+                    🗓️
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block">OFFICIAL SCHEDULE & GROUPS</span>
+                    <h3 className="text-sm font-bold text-white uppercase mt-0.5">View Group A & B Fixtures</h3>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-amber-300 group-hover:translate-x-1 transition-transform">
+                  View →
+                </span>
+              </div>
+            </div>
+          </Link>
+        </section>
+
         {/* Next Session Banner */}
         <section>
           <h2 className="text-xs text-[#555] font-bold tracking-widest uppercase mb-3">Next Session</h2>
