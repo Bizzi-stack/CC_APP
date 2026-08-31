@@ -146,7 +146,10 @@ export default function JoinPage() {
     <div className="min-h-screen bg-black text-white pb-24">
       {/* Header */}
       <div className="flex flex-col items-center pt-12 pb-6 border-b border-[#1a1a1a] px-4">
-        <img src="/logo_2.png" alt="The Circle FC" className="h-14 object-contain brightness-0 invert mb-4" />
+        <div className="flex items-center gap-2 mb-4">
+          <img src="/logo.png" alt="College Clubs" className="h-14 object-contain brightness-0 invert" />
+          <span className="text-lg font-black uppercase tracking-wider text-white">College Clubs</span>
+        </div>
         <h1 className="text-xl font-bold tracking-[0.2em] uppercase text-center">Join</h1>
         <p className="text-[#555] text-xs tracking-widest uppercase mt-2 text-center max-w-[280px]">
           Submit your profile to enter the transfer market

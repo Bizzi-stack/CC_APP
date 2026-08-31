@@ -43,7 +43,10 @@ export default function LoginPage() {
       
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="The Circle FC" className="h-20 mx-auto object-contain brightness-0 invert mb-4" />
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <img src="/logo.png" alt="College Clubs" className="h-16 object-contain brightness-0 invert" />
+            <span className="text-xl font-black uppercase tracking-wider text-white">College Clubs</span>
+          </div>
           <h1 className="text-sm font-bold tracking-[0.2em] uppercase text-white">Admin Access</h1>
           <p className="text-[#555] text-xs mt-2 uppercase tracking-widest">Authorized Personnel Only</p>
         </div>

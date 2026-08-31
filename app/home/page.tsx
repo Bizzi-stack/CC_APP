@@ -109,8 +109,9 @@ export default function HomePage() {
     <div className="min-h-screen bg-black text-white pb-24">
       {/* Header */}
       <div className="flex flex-col items-center pt-12 pb-6 border-b border-[#1a1a1a]">
-        <Link href="/home">
-          <img src="/logo_2.png" alt="The Circle FC" className="h-16 object-contain brightness-0 invert mb-2" />
+        <Link href="/home" className="flex items-center gap-2 mb-2">
+          <img src="/logo.png" alt="College Clubs" className="h-16 object-contain brightness-0 invert" />
+          <span className="text-xl font-black uppercase tracking-wider text-white">College Clubs</span>
         </Link>
         
         {/* November 10th Countdown Timer (9px numbers) */}

@@ -5,9 +5,14 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import ServiceWorkerRegistry from '@/components/ServiceWorkerRegistry'
 
 export const metadata: Metadata = {
-  title: 'THE CIRCLE FC',
-  description: 'Private football community — sessions, matches, players.',
+  title: 'College Clubs',
+  description: 'College Clubs — sessions, matches, players, fantasy.',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  }
 }
 
 export const viewport: Viewport = {

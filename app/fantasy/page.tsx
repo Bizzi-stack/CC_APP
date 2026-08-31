@@ -639,8 +639,8 @@ export default function FantasyPage() {
               {/* FPL Chips Selector Box */}
               <div className="bg-[#0c0c0c] border border-amber-500/30 p-3 rounded-2xl space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest flex items-center gap-1">
-                    <span>⚡</span> FPL CHIPS (GAMEWEEK {gameweek})
+                  <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block">
+                    FPL CHIPS (GAMEWEEK {gameweek})
                   </span>
                   <span className="text-[9px] text-[#777] font-mono uppercase font-bold">1 Chip per GW</span>
                 </div>
@@ -657,7 +657,7 @@ export default function FantasyPage() {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black uppercase tracking-wider text-white">🚀 Triple Captain</span>
+                      <span className="text-xs font-black uppercase tracking-wider text-white">Triple Captain</span>
                       <span className={`text-[9px] font-black px-1.5 py-0.5 rounded font-mono ${
                         activeChip === 'TRIPLE_CAPTAIN' ? 'bg-amber-400 text-black' : 'bg-[#1e1e1e] text-[#666]'
                       }`}>
@@ -678,7 +678,7 @@ export default function FantasyPage() {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black uppercase tracking-wider text-white">⚡ Bench Boost</span>
+                      <span className="text-xs font-black uppercase tracking-wider text-white">Bench Boost</span>
                       <span className={`text-[9px] font-black px-1.5 py-0.5 rounded font-mono ${
                         activeChip === 'BENCH_BOOST' ? 'bg-emerald-400 text-black' : 'bg-[#1e1e1e] text-[#666]'
                       }`}>
@@ -755,7 +755,7 @@ export default function FantasyPage() {
                   </span>
                   {activeChip === 'BENCH_BOOST' && (
                     <span className="bg-emerald-400 text-black text-[9px] font-black uppercase px-2 py-0.5 rounded tracking-wider flex items-center gap-1">
-                      ⚡ BENCH BOOST ACTIVE (SCORING PTS)
+                      BENCH BOOST ACTIVE (SCORING PTS)
                     </span>
                   )}
                 </div>
