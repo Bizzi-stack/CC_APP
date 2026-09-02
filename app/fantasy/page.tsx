@@ -384,6 +384,47 @@ export default function FantasyPage() {
     }
   }
 
+  // Clear Entire Team & Start Over
+  const handleClearTeam = async () => {
+    if (!window.confirm('Are you sure you want to clear your entire squad and start over?')) {
+      return
+    }
+
+    setIsSaving(true)
+    setSaveSuccess(false)
+    try {
+      setSquadPicks({})
+      setActiveChip('NONE')
+
+      if (userIdentifier && teamName && managerName) {
+        const res = await fetch('/api/fantasy/team', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_identifier: userIdentifier,
+            team_name: teamName,
+            manager_name: managerName,
+            formation,
+            active_chip: 'NONE',
+            gameweek,
+            picks: []
+          })
+        })
+
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to clear squad')
+      }
+
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 3000)
+      fetchAllData()
+    } catch (err: any) {
+      alert(err.message || 'Error clearing squad')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   // Inspect Opponent Team from Leaderboard
   const handleInspectOpponent = async (teamId: string) => {
     try {
@@ -772,18 +813,25 @@ export default function FantasyPage() {
             </div>
 
             {/* Quick Actions Footer */}
-            <div className="flex gap-2 pt-2">
+            <div className="grid grid-cols-3 gap-2 pt-2">
               <button
                 onClick={() => setActiveTab('transfers')}
-                className="flex-1 bg-[#161616] hover:bg-[#222] border border-[#333] p-3 rounded-xl text-xs font-bold uppercase tracking-wider text-white flex items-center justify-center gap-2 transition-colors"
+                className="bg-[#161616] hover:bg-[#222] border border-[#333] p-3 rounded-xl text-xs font-bold uppercase tracking-wider text-white flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 Make Transfers
               </button>
               <button
                 onClick={() => setActiveTab('leaderboard')}
-                className="flex-1 bg-[#161616] hover:bg-[#222] border border-[#333] p-3 rounded-xl text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center justify-center gap-2 transition-colors"
+                className="bg-[#161616] hover:bg-[#222] border border-[#333] p-3 rounded-xl text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
-                View Leaderboard
+                Leaderboard
+              </button>
+              <button
+                onClick={handleClearTeam}
+                disabled={isSaving}
+                className="bg-red-950/40 hover:bg-red-900/50 border border-red-500/40 p-3 rounded-xl text-xs font-bold uppercase tracking-wider text-red-400 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                Clear Team
               </button>
             </div>
           </div>
@@ -821,7 +869,7 @@ export default function FantasyPage() {
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs font-bold text-white truncate">{slot.player.name}</span>
                           {slot.isCaptain && (
-                            <span className="bg-amber-400 text-black text-[9px] font-black px-1 rounded">C (2x)</span>
+                            <span className="bg-amber-400 text-black text-[9px] font-black px-1 rounded">C</span>
                           )}
                         </div>
                         <div className="flex items-center gap-2 text-[10px] text-[#777]">
@@ -839,7 +887,7 @@ export default function FantasyPage() {
                     {slot.player && slot.isStarter && (
                       <button
                         onClick={() => handleSetCaptain(slot.slotId)}
-                        className={`text-[9px] font-extrabold uppercase px-2 py-1 rounded border transition-colors ${
+                        className={`text-[9px] font-extrabold uppercase px-2 py-1 rounded border transition-colors cursor-pointer ${
                           slot.isCaptain
                             ? 'bg-amber-400 text-black border-amber-400'
                             : 'bg-black text-[#888] border-[#333] hover:text-white'
@@ -851,7 +899,7 @@ export default function FantasyPage() {
 
                     <button
                       onClick={() => handleSlotClick(slot)}
-                      className="bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white text-[10px] font-bold uppercase px-3 py-1.5 rounded-lg border border-[#333] transition-colors"
+                      className="bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white text-[10px] font-bold uppercase px-3 py-1.5 rounded-lg border border-[#333] transition-colors cursor-pointer"
                     >
                       {slot.player ? 'Swap' : '+ Add'}
                     </button>
@@ -860,13 +908,23 @@ export default function FantasyPage() {
               ))}
             </div>
 
-            <button
-              onClick={handleSaveSquad}
-              disabled={isSaving}
-              className="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-black font-black uppercase text-xs tracking-widest p-4 rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-xl mt-4"
-            >
-              {isSaving ? 'Saving Squad...' : 'Save & Lock In Squad'}
-            </button>
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={handleSaveSquad}
+                disabled={isSaving}
+                className="flex-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-black font-black uppercase text-xs tracking-widest p-4 rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-xl cursor-pointer"
+              >
+                {isSaving ? 'Saving Squad...' : 'Save & Lock In Squad'}
+              </button>
+
+              <button
+                onClick={handleClearTeam}
+                disabled={isSaving}
+                className="bg-red-950/40 hover:bg-red-900/60 border border-red-500/50 text-red-400 font-bold uppercase text-xs tracking-wider px-4 py-4 rounded-xl transition-all cursor-pointer"
+              >
+                Clear Team
+              </button>
+            </div>
           </div>
         )}
 

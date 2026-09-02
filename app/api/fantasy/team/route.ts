@@ -181,8 +181,8 @@ export async function POST(request: NextRequest) {
       teamId = newTeam.id
     }
 
-    // 2. Save picks if provided
-    if (Array.isArray(picks) && picks.length > 0) {
+    // 2. Save picks if provided (empty array clears picks)
+    if (Array.isArray(picks)) {
       // Clear old picks for this gameweek
       await db
         .from('fantasy_squad_picks')
@@ -190,22 +190,24 @@ export async function POST(request: NextRequest) {
         .eq('fantasy_team_id', teamId)
         .eq('gameweek', gameweek)
 
-      // Insert new picks with active_chip
-      const picksToInsert = picks.map((p: any) => ({
-        fantasy_team_id: teamId,
-        gameweek: gameweek,
-        player_id: p.player_id,
-        position_slot: p.position_slot,
-        is_captain: Boolean(p.is_captain),
-        is_vice_captain: Boolean(p.is_vice_captain),
-        active_chip: active_chip
-      }))
+      if (picks.length > 0) {
+        // Insert new picks with active_chip
+        const picksToInsert = picks.map((p: any) => ({
+          fantasy_team_id: teamId,
+          gameweek: gameweek,
+          player_id: p.player_id,
+          position_slot: p.position_slot,
+          is_captain: Boolean(p.is_captain),
+          is_vice_captain: Boolean(p.is_vice_captain),
+          active_chip: active_chip
+        }))
 
-      const { error: insertError } = await db
-        .from('fantasy_squad_picks')
-        .insert(picksToInsert)
+        const { error: insertError } = await db
+          .from('fantasy_squad_picks')
+          .insert(picksToInsert)
 
-      if (insertError) throw insertError
+        if (insertError) throw insertError
+      }
     }
 
     return NextResponse.json({
