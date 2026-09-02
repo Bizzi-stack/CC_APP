@@ -12,10 +12,11 @@ export interface FantasySlot {
   isStarter: boolean
 }
 
-export type FormationType = '2-2-2' | '3-2-1' | '2-3-1'
+export type FormationType = '3-3-1' | '3-2-2' | '4-2-1' | '2-3-2'
 
-export function getSlotsForFormation(formation: string = '2-2-2'): FantasySlot[] {
-  if (formation === '3-2-1') {
+export function getSlotsForFormation(formation: string = '3-3-1'): FantasySlot[] {
+  // 3-2-2 (3 Defenders, 2 Midfielders, 2 Forwards)
+  if (formation === '3-2-2') {
     return [
       { slotId: 'GK', label: 'Goalkeeper', positionType: 'GK', isStarter: true },
       { slotId: 'DEF1', label: 'Defender 1', positionType: 'DEF', isStarter: true },
@@ -24,12 +25,30 @@ export function getSlotsForFormation(formation: string = '2-2-2'): FantasySlot[]
       { slotId: 'MID1', label: 'Midfielder 1', positionType: 'MID', isStarter: true },
       { slotId: 'MID2', label: 'Midfielder 2', positionType: 'MID', isStarter: true },
       { slotId: 'FWD1', label: 'Forward 1', positionType: 'FWD', isStarter: true },
+      { slotId: 'FWD2', label: 'Forward 2', positionType: 'FWD', isStarter: true },
       { slotId: 'SUB1', label: 'Substitute 1', positionType: 'FLEX', isStarter: false },
       { slotId: 'SUB2', label: 'Substitute 2', positionType: 'FLEX', isStarter: false },
     ]
   }
 
-  if (formation === '2-3-1') {
+  // 4-2-1 (4 Defenders, 2 Midfielders, 1 Forward)
+  if (formation === '4-2-1') {
+    return [
+      { slotId: 'GK', label: 'Goalkeeper', positionType: 'GK', isStarter: true },
+      { slotId: 'DEF1', label: 'Defender 1', positionType: 'DEF', isStarter: true },
+      { slotId: 'DEF2', label: 'Defender 2', positionType: 'DEF', isStarter: true },
+      { slotId: 'DEF3', label: 'Defender 3', positionType: 'DEF', isStarter: true },
+      { slotId: 'DEF4', label: 'Defender 4', positionType: 'DEF', isStarter: true },
+      { slotId: 'MID1', label: 'Midfielder 1', positionType: 'MID', isStarter: true },
+      { slotId: 'MID2', label: 'Midfielder 2', positionType: 'MID', isStarter: true },
+      { slotId: 'FWD1', label: 'Forward 1', positionType: 'FWD', isStarter: true },
+      { slotId: 'SUB1', label: 'Substitute 1', positionType: 'FLEX', isStarter: false },
+      { slotId: 'SUB2', label: 'Substitute 2', positionType: 'FLEX', isStarter: false },
+    ]
+  }
+
+  // 2-3-2 (2 Defenders, 3 Midfielders, 2 Forwards)
+  if (formation === '2-3-2') {
     return [
       { slotId: 'GK', label: 'Goalkeeper', positionType: 'GK', isStarter: true },
       { slotId: 'DEF1', label: 'Defender 1', positionType: 'DEF', isStarter: true },
@@ -38,26 +57,28 @@ export function getSlotsForFormation(formation: string = '2-2-2'): FantasySlot[]
       { slotId: 'MID2', label: 'Midfielder 2', positionType: 'MID', isStarter: true },
       { slotId: 'MID3', label: 'Midfielder 3', positionType: 'MID', isStarter: true },
       { slotId: 'FWD1', label: 'Forward 1', positionType: 'FWD', isStarter: true },
+      { slotId: 'FWD2', label: 'Forward 2', positionType: 'FWD', isStarter: true },
       { slotId: 'SUB1', label: 'Substitute 1', positionType: 'FLEX', isStarter: false },
       { slotId: 'SUB2', label: 'Substitute 2', positionType: 'FLEX', isStarter: false },
     ]
   }
 
-  // Default: 2-2-2
+  // Default: 3-3-1 (3 Defenders, 3 Midfielders, 1 Forward)
   return [
     { slotId: 'GK', label: 'Goalkeeper', positionType: 'GK', isStarter: true },
     { slotId: 'DEF1', label: 'Defender 1', positionType: 'DEF', isStarter: true },
     { slotId: 'DEF2', label: 'Defender 2', positionType: 'DEF', isStarter: true },
+    { slotId: 'DEF3', label: 'Defender 3', positionType: 'DEF', isStarter: true },
     { slotId: 'MID1', label: 'Midfielder 1', positionType: 'MID', isStarter: true },
     { slotId: 'MID2', label: 'Midfielder 2', positionType: 'MID', isStarter: true },
+    { slotId: 'MID3', label: 'Midfielder 3', positionType: 'MID', isStarter: true },
     { slotId: 'FWD1', label: 'Forward 1', positionType: 'FWD', isStarter: true },
-    { slotId: 'FWD2', label: 'Forward 2', positionType: 'FWD', isStarter: true },
     { slotId: 'SUB1', label: 'Substitute 1', positionType: 'FLEX', isStarter: false },
     { slotId: 'SUB2', label: 'Substitute 2', positionType: 'FLEX', isStarter: false },
   ]
 }
 
-export const FANTASY_SLOTS: FantasySlot[] = getSlotsForFormation('2-2-2')
+export const FANTASY_SLOTS: FantasySlot[] = getSlotsForFormation('3-3-1')
 
 export interface PlayerStats {
   goals?: number

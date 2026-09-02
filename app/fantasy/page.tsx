@@ -60,11 +60,14 @@ export default function FantasyPage() {
   const [userIdentifier, setUserIdentifier] = useState<string>('')
   const [teamName, setTeamName] = useState<string>('')
   const [managerName, setManagerName] = useState<string>('')
-  const [formation, setFormation] = useState<FormationType>('2-2-2')
+  const [formation, setFormation] = useState<FormationType>('3-3-1')
   const [activeChip, setActiveChip] = useState<'NONE' | 'TRIPLE_CAPTAIN' | 'BENCH_BOOST'>('NONE')
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+
+  // Pitch Slot Action Sheet State
+  const [actionSlot, setActionSlot] = useState<PickSlot | null>(null)
 
   // Data
   const [allPlayers, setAllPlayers] = useState<Player[]>([])
@@ -437,7 +440,7 @@ export default function FantasyPage() {
     return (
       <div
         key={slot.slotId}
-        onClick={() => player ? setInspectingPlayer(player) : handleSlotClick(slot)}
+        onClick={() => slot.player ? setActionSlot(slot) : handleSlotClick(slot)}
         className="flex flex-col items-center group cursor-pointer active:scale-95 transition-transform"
       >
         {/* Player Avatar / Jersey Badge */}
@@ -617,14 +620,14 @@ export default function FantasyPage() {
             {/* Formation & FPL Chips Bar */}
             <div className="space-y-2">
               <div className="flex items-center justify-between bg-[#0e0e0e] border border-[#222] p-2 rounded-xl">
-                <span className="text-[10px] font-extrabold uppercase text-[#777] tracking-wider pl-2">Formation (7-A-Side)</span>
-                <div className="flex gap-1.5">
-                  {(['2-2-2', '3-2-1', '2-3-1'] as const).map(f => (
+                <span className="text-[10px] font-extrabold uppercase text-[#777] tracking-wider pl-2">Formation (8-A-Side)</span>
+                <div className="flex gap-1.5 flex-wrap">
+                  {(['3-3-1', '3-2-2', '4-2-1', '2-3-2'] as const).map(f => (
                     <button
                       key={f}
                       type="button"
                       onClick={() => handleFormationChange(f)}
-                      className={`px-3 py-1 text-xs font-black font-mono rounded-lg transition-all cursor-pointer ${
+                      className={`px-2.5 py-1 text-xs font-black font-mono rounded-lg transition-all cursor-pointer ${
                         formation === f
                           ? 'bg-amber-400 text-black shadow-md'
                           : 'bg-[#18181b] text-[#888] hover:text-white border border-[#262626]'
@@ -705,7 +708,7 @@ export default function FantasyPage() {
               {/* Pitch Status Banner */}
               <div className="relative z-10 flex items-center justify-between mb-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-[10px]">
                 <span className="font-bold text-amber-300 uppercase tracking-wide">
-                  7-A-Side ({formation}) ({startersCount}/7 Selected)
+                  8-A-Side ({formation}) ({startersCount}/8 Selected)
                 </span>
                 <span className="font-mono text-white font-bold">
                   Live GW: <span className="text-emerald-400">{startingScore} PTS</span>
@@ -1122,6 +1125,97 @@ export default function FantasyPage() {
         </div>
       )}
 
+      {/* ================= PITCH SLOT ACTION MODAL ================= */}
+      {actionSlot && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0e0e0e] border border-amber-500/40 w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-[#222] pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-black border-2 border-amber-400 shrink-0">
+                  {actionSlot.player?.photo_url ? (
+                    <img src={actionSlot.player.photo_url} alt="" className="w-full h-full object-cover" />
+                  ) : actionSlot.player?.franchises?.logo_url ? (
+                    <img src={actionSlot.player.franchises.logo_url} alt="" className="w-full h-full object-contain p-1" />
+                  ) : (
+                    <span className="flex items-center justify-center h-full text-xs font-bold text-[#666]">
+                      {actionSlot.positionType}
+                    </span>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-white truncate">{actionSlot.player?.name || actionSlot.label}</h3>
+                  <p className="text-[10px] text-amber-400 font-bold uppercase truncate">
+                    Slot: {actionSlot.label} ({actionSlot.player?.position || actionSlot.positionType})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActionSlot(null)}
+                className="text-[#888] hover:text-white font-bold text-sm uppercase p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              {/* Option 1: Swap / Replace Player from Database */}
+              <button
+                type="button"
+                onClick={() => {
+                  const targetSlot = actionSlot
+                  setActionSlot(null)
+                  handleSlotClick(targetSlot)
+                }}
+                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black text-xs uppercase p-3 rounded-xl flex items-center justify-between shadow-lg cursor-pointer transition-all active:scale-[0.98]"
+              >
+                <span className="flex items-center gap-2">
+                  <span>🔄</span> Replace with Player from Database
+                </span>
+                <span className="font-mono text-[10px]">Select →</span>
+              </button>
+
+              {/* Option 2: Set as Captain */}
+              {actionSlot.isStarter && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSetCaptain(actionSlot.slotId)
+                    setActionSlot(null)
+                  }}
+                  className={`w-full text-xs font-bold uppercase p-3 rounded-xl flex items-center justify-between border cursor-pointer transition-all ${
+                    actionSlot.isCaptain
+                      ? 'bg-amber-400/20 border-amber-400 text-amber-300'
+                      : 'bg-black border-[#222] text-white hover:border-amber-400/50'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span>👑</span> {actionSlot.isCaptain ? 'Currently Captain' : 'Make Captain (2x / 3x Pts)'}
+                  </span>
+                  {actionSlot.isCaptain && <span className="text-[10px] bg-amber-400 text-black font-black px-1.5 py-0.5 rounded">ACTIVE</span>}
+                </button>
+              )}
+
+              {/* Option 3: Inspect Player Stats */}
+              {actionSlot.player && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInspectingPlayer(actionSlot.player)
+                    setActionSlot(null)
+                  }}
+                  className="w-full bg-black border border-[#222] hover:border-[#444] text-[#aaa] hover:text-white font-bold text-xs uppercase p-3 rounded-xl flex items-center justify-between cursor-pointer transition-all"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>📊</span> View Player Profile & Stats
+                  </span>
+                  <span className="font-mono text-[10px] text-emerald-400">{actionSlot.computedPoints} pts</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ================= OPPONENT SQUAD INSPECT MODAL ================= */}
       {inspectingOpponent && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1134,7 +1228,7 @@ export default function FantasyPage() {
               </div>
               <button
                 onClick={() => setInspectingOpponent(null)}
-                className="text-[#888] hover:text-white font-bold text-sm uppercase p-1"
+                className="text-[#888] hover:text-white font-bold text-sm uppercase p-1 cursor-pointer"
               >
                 ✕ Close
               </button>
@@ -1153,7 +1247,7 @@ export default function FantasyPage() {
 
             {/* Lineup List */}
             <div className="space-y-2">
-              <span className="text-[10px] font-bold text-[#888] uppercase tracking-wider block">7-A-Side Squad Lineup:</span>
+              <span className="text-[10px] font-bold text-[#888] uppercase tracking-wider block">8-A-Side Squad Lineup:</span>
               {inspectingOpponent.picks.map((pick: any) => (
                 <div key={pick.id} className="bg-black border border-[#222] p-2.5 rounded-xl flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
@@ -1161,7 +1255,7 @@ export default function FantasyPage() {
                       {pick.position_slot}
                     </span>
                     <span className="font-bold text-white">{pick.players?.name}</span>
-                    {pick.is_captain && <span className="bg-amber-400 text-black text-[9px] font-black px-1 rounded">C (2x)</span>}
+                    {pick.is_captain && <span className="bg-amber-400 text-black text-[9px] font-black px-1 rounded">C</span>}
                   </div>
                   <span className="font-mono font-bold text-emerald-400">{pick.computed_points} pts</span>
                 </div>

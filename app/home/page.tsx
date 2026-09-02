@@ -213,13 +213,13 @@ export default function HomePage() {
                   <span className="bg-black text-amber-400 text-[9px] font-black uppercase px-2 py-0.5 rounded tracking-widest">
                     UWIFA TOURNAMENT
                   </span>
-                  <span className="text-black/80 font-bold text-[10px] uppercase">7-A-Side</span>
+                  <span className="text-black/80 font-bold text-[10px] uppercase">8-A-Side</span>
                 </div>
                 <h2 className="text-black font-black text-lg md:text-xl uppercase tracking-tight">
                   Fantasy Tournament
                 </h2>
                 <p className="text-black/80 text-xs font-semibold mt-0.5">
-                  Pick your dream 7, assign your Captain for 2x pts, and top the leaderboard!
+                  Pick your dream 8, assign your Captain, and top the leaderboard!
                 </p>
               </div>
 
