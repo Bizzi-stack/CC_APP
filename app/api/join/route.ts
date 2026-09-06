@@ -86,6 +86,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    const playerCountry = country || 'Barbados'
+    const tournamentCountry = teamName && teamName !== 'Free Agent' ? teamName : playerCountry
+
     // Auto-sync to external Google Sheet (if GOOGLE_SHEETS_WEBHOOK_URL is set)
     syncToGoogleSheet({
       id: data.id,
@@ -95,11 +98,16 @@ export async function POST(request: NextRequest) {
       is_uwi_student: isUwi ? 'Yes' : 'No',
       student_id: isUwi ? (student_id || 'N/A') : 'N/A',
       sport: playerSport,
-      country: country || 'Barbados',
+      team: tournamentCountry,
+      franchise_name: tournamentCountry,
+      tournament_team: tournamentCountry,
+      tournament_country: tournamentCountry,
+      country: playerCountry,
+      nationality: playerCountry,
       position: position || 'N/A',
-      team: teamName,
-      franchise_name: teamName,
-      submitted_at: new Date().toISOString()
+      submitted_at: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
+      created_at: new Date().toISOString()
     }).catch(() => {})
 
     return NextResponse.json({ player: data }, { status: 201 })

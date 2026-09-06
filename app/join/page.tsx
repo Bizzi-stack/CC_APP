@@ -67,6 +67,10 @@ export default function JoinPage() {
       return
     }
     if (!form.passcode.trim()) { setError('Passcode is required'); return }
+    if (!form.franchise_id) {
+      setError('Please select your UWIFA tournament team / nation')
+      return
+    }
 
     setStep('uploading')
     setError(null)
@@ -330,12 +334,13 @@ export default function JoinPage() {
 
         {/* UWIFA Team / Club Selection */}
         <div>
-          <label className={labelClass}>Select UWIFA Tournament Team</label>
+          <label className={labelClass}>Select UWIFA Tournament Team *</label>
           <div className="flex items-center gap-3">
             <select
               name="franchise_id"
               value={form.franchise_id}
               onChange={e => setForm(p => ({ ...p, franchise_id: e.target.value }))}
+              required
               className={inputClass + ' cursor-pointer uppercase font-bold text-white bg-black flex-1'}
             >
               <option value="">-- Select UWIFA Team --</option>
