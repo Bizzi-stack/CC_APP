@@ -833,11 +833,7 @@ function ActivePlayerRow({ player, onToggle, onEdit, onDelete, actioning }: {
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        {player.status === 'overseas' ? (
-          <span className="text-[10px] font-extrabold tracking-widest uppercase px-3 py-1.5 border border-blue-500/50 text-blue-400 bg-blue-950/40 rounded-none shadow-sm">
-            OVERSEAS
-          </span>
-        ) : player.available ? (
+        {player.available ? (
           <button
             onClick={() => onToggle(player)}
             disabled={actioning === player.id}

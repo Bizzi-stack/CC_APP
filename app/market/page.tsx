@@ -57,7 +57,7 @@ interface CanvasBadge {
   image_url: string
 }
 
-type Filter = 'all' | 'available' | 'unavailable' | 'overseas'
+type Filter = 'all' | 'available' | 'unavailable'
 
 export default function MarketPage() {
   const [players, setPlayers] = useState<Player[]>([])
@@ -129,19 +129,17 @@ export default function MarketPage() {
   }
 
   const isPlayerAvailable = (p: Player) => {
-    return !p.franchise_id && p.available !== false && p.status !== 'overseas'
+    return !p.franchise_id && p.available !== false
   }
 
   const filtered = players.filter(p => {
     if (filter === 'available') return isPlayerAvailable(p)
-    if (filter === 'unavailable') return !isPlayerAvailable(p) && p.status !== 'overseas'
-    if (filter === 'overseas') return p.status === 'overseas'
+    if (filter === 'unavailable') return !isPlayerAvailable(p)
     return true
   })
 
   const availableCount = players.filter(isPlayerAvailable).length
-  const overseasCount = players.filter(p => p.status === 'overseas').length
-  const signedCount = players.filter(p => !isPlayerAvailable(p) && p.status !== 'overseas').length
+  const signedCount = players.filter(p => !isPlayerAvailable(p)).length
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -160,23 +158,19 @@ export default function MarketPage() {
           <span className="text-[10px] font-bold tracking-widest text-[#555] uppercase">
             {signedCount} Signed
           </span>
-          <span className="text-[#333]">·</span>
-          <span className="text-[10px] font-bold tracking-widest text-blue-400 uppercase">
-            {overseasCount} Overseas
-          </span>
         </div>
       </div>
 
       {/* Filter Tabs */}
       <div className="flex border-b border-[#1a1a1a]">
-        {(['all', 'available', 'unavailable', 'overseas'] as Filter[]).map(f => (
+        {(['all', 'available', 'unavailable'] as Filter[]).map(f => (
           <button
             key={f}
             onClick={() => setFilter(f)}
             className={`flex-1 py-3 text-[10px] sm:text-[11px] font-bold tracking-wider uppercase transition-colors
               ${filter === f ? 'text-white border-b-2 border-white' : 'text-[#555]'}`}
           >
-            {f === 'all' ? 'All' : f === 'available' ? 'Available' : f === 'unavailable' ? 'Signed' : 'Overseas'}
+            {f === 'all' ? 'All' : f === 'available' ? 'Available' : 'Signed'}
           </button>
         ))}
       </div>
@@ -425,11 +419,7 @@ function PublicPlayerRow({ player }: { player: Player }) {
       </div>
 
       {/* Status Badge or Signed Club Logo */}
-      {player.status === 'overseas' ? (
-        <div className="flex-shrink-0 text-[10px] font-extrabold tracking-widest uppercase px-3 py-1.5 border border-blue-500/50 text-blue-400 bg-blue-950/40 rounded-none shadow-sm">
-          OVERSEAS
-        </div>
-      ) : player.available ? (
+      {player.available ? (
         <div className="flex-shrink-0 text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 border border-[#2a6b2a] text-[#4caf50] bg-[#0a1f0a] rounded-none">
           AVAILABLE
         </div>
