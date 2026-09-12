@@ -6,6 +6,7 @@ import BottomNav from '@/components/BottomNav'
 import PublicNav from '@/components/PublicNav'
 import SessionGraphicModal from '@/components/SessionGraphicModal'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
+import OnesToWatchTicker from '@/components/OnesToWatchTicker'
 
 interface Session {
   id: string
@@ -151,55 +152,8 @@ export default function HomePage() {
           </Link>
         </section>
 
-        {/* Next Session Banner */}
-        <section>
-          <h2 className="text-xs text-[#555] font-bold tracking-widest uppercase mb-3">Next Session</h2>
-          {loading ? (
-            <div className="border border-[#1a1a1a] rounded-none p-5 animate-pulse">
-              <div className="h-4 w-32 bg-[#1a1a1a] mb-2 rounded" />
-              <div className="h-3 w-48 bg-[#1a1a1a] rounded" />
-            </div>
-          ) : nextSession ? (
-            <div
-              onClick={() => setShowSessionModal(true)}
-              className="cursor-pointer group active:scale-95 transition-all"
-            >
-              {nextSession.image_url ? (
-                <div className="relative w-full max-w-[500px] mx-auto overflow-hidden bg-black flex justify-center">
-                  <img src={nextSession.image_url} alt={nextSession.title} className="w-full h-auto object-contain group-hover:scale-105 transition-transform" />
-                  <div className="absolute bottom-3 right-3 bg-black/85 backdrop-blur-md px-3 py-1 text-[10px] font-mono text-white border border-white/30 shadow font-bold flex items-center gap-1.5 uppercase">
-                    <span>⚽</span>
-                    <span>TAP TO JOIN TEAM</span>
-                  </div>
-                </div>
-              ) : new Date(nextSession.date + 'T00:00:00').getDay() === 5 ? (
-                <div className="relative w-full max-w-[500px] mx-auto overflow-hidden bg-black flex justify-center">
-                  <img src="/schedule_graphic.png" alt="Friday Ball" className="w-full h-auto object-contain group-hover:scale-105 transition-transform" />
-                  <div className="absolute bottom-3 right-3 bg-black/85 backdrop-blur-md px-3 py-1 text-[10px] font-mono text-white border border-white/30 shadow font-bold flex items-center gap-1.5 uppercase">
-                    <span>⚽</span>
-                    <span>TAP TO JOIN TEAM</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="border border-[#222] bg-[#0a0a0a] p-5 transition-colors">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 ${nextSession.type === '5v5_match' ? 'bg-white text-black' : 'border border-[#444] text-[#aaa]'}`}>
-                      {nextSession.type === '5v5_match' ? '5v5 MATCH' : 'FREE SESSION'}
-                    </span>
-                  </div>
-                  <p className="text-white font-semibold text-base mt-2">{nextSession.title}</p>
-                  <p className="text-[#888] text-sm mt-1">{formatDate(nextSession.date)} · {formatTime(nextSession.time)}</p>
-                  <p className="text-[#666] text-sm mt-0.5">{nextSession.location}</p>
-                  <p className="text-amber-400 text-xs font-bold uppercase mt-2">TAP TO JOIN TEAM →</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="border border-[#1a1a1a] p-5 text-center">
-              <p className="text-[#555] text-sm">No upcoming sessions</p>
-            </div>
-          )}
-        </section>
+        {/* Ones To Watch (Wants To Watch) Featured Ticker */}
+        <OnesToWatchTicker />
 
         {/* Fantasy League Hero Banner */}
         <section>
