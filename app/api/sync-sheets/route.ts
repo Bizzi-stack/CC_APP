@@ -1,11 +1,11 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
-  const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL
+  const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbwcXkGuqH3nBspbAw_7Y8qVHa4A0hAHx2dmoEj033KRwMF4W0uQYYQ7w7JauDJsODWmeg/exec'
   if (!webhookUrl) {
     return NextResponse.json({ error: 'GOOGLE_SHEETS_WEBHOOK_URL is not configured' }, { status: 500 })
   }

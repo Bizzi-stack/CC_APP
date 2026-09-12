@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 
 // Helper function to non-blockingly auto-push registration data to external Google Sheet
 async function syncToGoogleSheet(playerData: Record<string, any>) {
-  const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL
+  const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbwcXkGuqH3nBspbAw_7Y8qVHa4A0hAHx2dmoEj033KRwMF4W0uQYYQ7w7JauDJsODWmeg/exec'
   if (!webhookUrl) return
 
   try {
