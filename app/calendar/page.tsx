@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import PublicNav from '@/components/PublicNav'
 import SessionGraphicModal from '@/components/SessionGraphicModal'
+import CreatorSignature from '@/components/CreatorSignature'
 
 interface Session {
   id: string
@@ -223,11 +224,8 @@ export default function PublicCalendarPage() {
   return (
     <div className="min-h-screen bg-black text-white pb-24">
       {/* Header */}
-      <div className="flex flex-col items-center pt-12 pb-4 border-b border-[#1a1a1a] px-4">
-        <Link href="/home" className="flex items-center gap-2 mb-3">
-          <img src="/logo.png" alt="College Clubs" className="h-14 object-contain brightness-0 invert" />
-          <span className="text-lg font-black uppercase tracking-wider text-white">College Clubs</span>
-        </Link>
+      <div className="flex flex-col items-center pt-8 pb-4 border-b border-[#1a1a1a] px-4">
+        <CreatorSignature />
         <h1 className="text-xl font-bold tracking-[0.2em] uppercase text-center">Tournament Schedule</h1>
         <p className="text-[10px] text-amber-400 font-extrabold uppercase tracking-widest mt-1">Official Group Stage & Pitch Allocations</p>
       </div>

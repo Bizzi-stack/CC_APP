@@ -11,6 +11,7 @@ import FranchiseRosterModal from '@/components/FranchiseRosterModal'
 import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
 import PullDownModal from '@/components/PullDownModal'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
+import CreatorSignature from '@/components/CreatorSignature'
 import { retroAudio } from '@/lib/sounds'
 
 interface Player {
@@ -144,11 +145,8 @@ export default function MarketPage() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <div className="flex flex-col items-center pt-12 pb-5 border-b border-[#1a1a1a] px-4">
-        <Link href="/home" className="flex items-center gap-2 mb-3">
-          <img src="/logo.png" alt="College Clubs" className="h-16 object-contain brightness-0 invert" />
-          <span className="text-xl font-black uppercase tracking-wider text-white">College Clubs</span>
-        </Link>
+      <div className="flex flex-col items-center pt-8 pb-5 border-b border-[#1a1a1a] px-4">
+        <CreatorSignature />
         <h1 className="text-sm font-bold tracking-[0.2em] uppercase text-[#aaa]">Tournament Players</h1>
         <div className="flex items-center gap-2 mt-3 flex-wrap justify-center">
           <span className="text-[10px] font-bold tracking-widest text-[#555] uppercase">
