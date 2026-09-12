@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import PublicNav from '@/components/PublicNav'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
-import { FANTASY_SLOTS, FantasySlot, FormationType, getSlotsForFormation, calculatePlayerPoints } from '@/lib/fantasy'
+import { FANTASY_SLOTS, FantasySlot, FormationType, getSlotsForFormation, calculatePlayerPoints, MAX_WEEKLY_TRANSFERS, calculateTransfersUsed } from '@/lib/fantasy'
 
 interface Player {
   id: string
@@ -61,7 +61,12 @@ export default function FantasyPage() {
   const [teamName, setTeamName] = useState<string>('')
   const [managerName, setManagerName] = useState<string>('')
   const [formation, setFormation] = useState<FormationType>('3-3-1')
-  const [activeChip, setActiveChip] = useState<'NONE' | 'TRIPLE_CAPTAIN' | 'BENCH_BOOST'>('NONE')
+  const [activeChip, setActiveChip] = useState<'NONE' | 'TRIPLE_CAPTAIN' | 'BENCH_BOOST' | 'FULL_REBUILD'>('NONE')
+  const [isFullRebuildActive, setIsFullRebuildActive] = useState<boolean>(false)
+  const [rebuildUsed, setRebuildUsed] = useState<boolean>(false)
+  const [usedChips, setUsedChips] = useState<string[]>([])
+  const [baselinePlayerIds, setBaselinePlayerIds] = useState<string[]>([])
+  const [isCarriedOver, setIsCarriedOver] = useState<boolean>(false)
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -166,6 +171,11 @@ export default function FantasyPage() {
         setManagerName(teamData.team.manager_name)
         if (teamData.team.formation) setFormation(teamData.team.formation as FormationType)
         if (teamData.team.active_chip) setActiveChip(teamData.team.active_chip)
+        setUsedChips(teamData.team.used_chips || [])
+        setRebuildUsed(Boolean(teamData.team.rebuild_used))
+        setIsFullRebuildActive(Boolean(teamData.team.is_full_rebuild))
+        setBaselinePlayerIds(teamData.baseline_player_ids || [])
+        setIsCarriedOver(Boolean(teamData.is_carried_over))
         localStorage.setItem('fpl_team_name', teamData.team.team_name)
         localStorage.setItem('fpl_manager_name', teamData.team.manager_name)
         setIsSetupModalOpen(false)
@@ -284,11 +294,23 @@ export default function FantasyPage() {
   const startingSlots = filledSlots.filter(s => s.isStarter)
   const benchSlots = filledSlots.filter(s => !s.isStarter)
 
-  // Calculations
+  // Calculations & Transfer Tracking
   const rawStartingScore = startingSlots.reduce((acc, s) => acc + s.computedPoints, 0)
   const benchScore = benchSlots.reduce((acc, s) => acc + s.computedPoints, 0)
   const startingScore = activeChip === 'BENCH_BOOST' ? (rawStartingScore + benchScore) : rawStartingScore
   const startersCount = startingSlots.filter(s => s.player !== null).length
+
+  // Current draft player IDs & weekly transfers used
+  const currentDraftPlayerIds = useMemo(() => {
+    return Object.values(squadPicks).map(p => p.playerId).filter(Boolean)
+  }, [squadPicks])
+
+  const transfersUsed = useMemo(() => {
+    if (gameweek <= 1) return 0
+    return calculateTransfersUsed(baselinePlayerIds, currentDraftPlayerIds)
+  }, [gameweek, baselinePlayerIds, currentDraftPlayerIds])
+
+  const transfersRemaining = Math.max(0, MAX_WEEKLY_TRANSFERS - transfersUsed)
 
   // Handle slot click to open transfer drawer — default to ALL players so any player can be picked for any slot
   const handleSlotClick = (slot: FantasySlot | PickSlot) => {
@@ -298,9 +320,41 @@ export default function FantasyPage() {
     setSearchQuery('')
   }
 
-  // Handle selecting a player into the active slot
+  // Handle selecting a player into the active slot with 4-transfer weekly check
   const handleSelectPlayer = (player: Player) => {
     if (!activePickingSlot) return
+
+    // Enforce 4 weekly transfers limit for GW2+ (unless Full Rebuild active)
+    if (gameweek > 1 && !isFullRebuildActive && baselinePlayerIds.length > 0) {
+      const testDraft: { [slot: string]: string } = {}
+      Object.keys(squadPicks).forEach(k => {
+        if (squadPicks[k]?.playerId && squadPicks[k].playerId !== player.id) {
+          testDraft[k] = squadPicks[k].playerId
+        }
+      })
+      testDraft[activePickingSlot.slotId] = player.id
+
+      const simulatedIds = Object.values(testDraft)
+      const simulatedTransfers = calculateTransfersUsed(baselinePlayerIds, simulatedIds)
+
+      if (simulatedTransfers > MAX_WEEKLY_TRANSFERS) {
+        if (!rebuildUsed) {
+          const activate = window.confirm(
+            `Transfer Limit Reached (${MAX_WEEKLY_TRANSFERS}/${MAX_WEEKLY_TRANSFERS} used for Gameweek ${gameweek}).\n\n` +
+            `You can only switch out up to ${MAX_WEEKLY_TRANSFERS} players from your previous gameweek squad.\n\n` +
+            `Would you like to activate your 1-Time Full Squad Rebuild to unlock unlimited transfers for this gameweek?`
+          )
+          if (activate) {
+            setIsFullRebuildActive(true)
+          } else {
+            return
+          }
+        } else {
+          alert(`Transfer Limit Reached: You have already used all ${MAX_WEEKLY_TRANSFERS} transfers for Gameweek ${gameweek}. Your 1-Time Full Squad Rebuild has already been used across the tournament.`)
+          return
+        }
+      }
+    }
 
     setSquadPicks(prev => {
       const next = { ...prev }
@@ -365,7 +419,8 @@ export default function FantasyPage() {
           team_name: teamName,
           manager_name: managerName,
           formation,
-          active_chip: activeChip,
+          active_chip: isFullRebuildActive ? 'FULL_REBUILD' : activeChip,
+          is_full_rebuild: isFullRebuildActive,
           gameweek,
           picks: picksPayload
         })
@@ -373,6 +428,13 @@ export default function FantasyPage() {
 
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to save lineup')
+
+      if (data.used_chips) {
+        setUsedChips(data.used_chips)
+      }
+      if (data.rebuild_used !== undefined) {
+        setRebuildUsed(Boolean(data.rebuild_used))
+      }
 
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 3000)
@@ -384,44 +446,90 @@ export default function FantasyPage() {
     }
   }
 
-  // Clear Entire Team & Start Over
-  const handleClearTeam = async () => {
-    if (!window.confirm('Are you sure you want to clear your entire squad and start over?')) {
+  // Trigger 1-Time Full Squad Rebuild
+  const handleTriggerFullRebuild = () => {
+    if (gameweek <= 1) {
+      alert('You already have unlimited squad changes and resets in Gameweek 1 before kickoff!')
+      return
+    }
+    if (rebuildUsed) {
+      alert('Your 1-Time Full Squad Rebuild has already been used in an earlier gameweek.')
       return
     }
 
-    setIsSaving(true)
-    setSaveSuccess(false)
-    try {
-      setSquadPicks({})
-      setActiveChip('NONE')
+    const confirmed = window.confirm(
+      `Activate 1-Time Full Squad Rebuild for Gameweek ${gameweek}?\n\n` +
+      `This unlocks UNLIMITED transfers for Gameweek ${gameweek}, allowing you to overhaul your entire squad.\n\n` +
+      `Note: You can only rebuild your squad once across the entire tournament.\n\n` +
+      `Activate now?`
+    )
+    if (confirmed) {
+      setIsFullRebuildActive(true)
+    }
+  }
 
-      if (userIdentifier && teamName && managerName) {
-        const res = await fetch('/api/fantasy/team', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_identifier: userIdentifier,
-            team_name: teamName,
-            manager_name: managerName,
-            formation,
-            active_chip: 'NONE',
-            gameweek,
-            picks: []
-          })
-        })
-
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error || 'Failed to clear squad')
+  // Clear Entire Team & Start Over
+  const handleClearTeam = async () => {
+    if (gameweek <= 1) {
+      if (!window.confirm('Clear your entire squad and start over? (Unlimited resets available before Gameweek 1 kicks off)')) {
+        return
       }
 
-      setSaveSuccess(true)
-      setTimeout(() => setSaveSuccess(false), 3000)
-      fetchAllData()
-    } catch (err: any) {
-      alert(err.message || 'Error clearing squad')
-    } finally {
-      setIsSaving(false)
+      setIsSaving(true)
+      setSaveSuccess(false)
+      try {
+        setSquadPicks({})
+        setActiveChip('NONE')
+        setIsFullRebuildActive(false)
+
+        if (userIdentifier && teamName && managerName) {
+          await fetch('/api/fantasy/team', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_identifier: userIdentifier,
+              team_name: teamName,
+              manager_name: managerName,
+              formation,
+              active_chip: 'NONE',
+              is_full_rebuild: false,
+              gameweek,
+              picks: []
+            })
+          })
+        }
+
+        setSaveSuccess(true)
+        setTimeout(() => setSaveSuccess(false), 3000)
+        fetchAllData()
+      } catch (err: any) {
+        alert(err.message || 'Error clearing squad')
+      } finally {
+        setIsSaving(false)
+      }
+      return
+    }
+
+    // Gameweek 2 onwards
+    if (rebuildUsed && !isFullRebuildActive) {
+      alert(`You have already used your 1-Time Full Squad Rebuild for this tournament. In regular gameweeks, you can switch out up to ${MAX_WEEKLY_TRANSFERS} players from your carried-over squad.`)
+      return
+    }
+
+    if (!isFullRebuildActive) {
+      const confirmed = window.confirm(
+        `Activate 1-Time Full Squad Rebuild for Gameweek ${gameweek}?\n\n` +
+        `You can only clear out your side and rebuild it ONCE across the entire tournament after Gameweek 1.\n\n` +
+        `This will clear your squad and allow unlimited transfers for Gameweek ${gameweek}.\n\n` +
+        `Are you sure you want to activate your 1-Time Rebuild now?`
+      )
+      if (!confirmed) return
+      setIsFullRebuildActive(true)
+      setSquadPicks({})
+      setActiveChip('FULL_REBUILD')
+    } else {
+      if (!window.confirm('Clear all player picks from your pitch?')) return
+      setSquadPicks({})
     }
   }
 
@@ -509,6 +617,13 @@ export default function FantasyPage() {
             </span>
           )}
 
+          {/* Transferred In Badge */}
+          {gameweek > 1 && baselinePlayerIds.length > 0 && player && !baselinePlayerIds.includes(player.id) && (
+            <span className="absolute -top-1 -left-1 bg-emerald-400 text-black text-[8px] font-black px-1.5 py-0.2 rounded-full border border-black shadow z-10">
+              ⇄ IN
+            </span>
+          )}
+
           {/* Nation Crest Tag */}
           {player?.franchises?.name && (
             <span className="absolute -bottom-1 -left-1 bg-black text-white text-[8px] font-bold px-1 rounded border border-[#333] truncate max-w-[50px]">
@@ -571,6 +686,56 @@ export default function FantasyPage() {
                 [Edit Name]
               </button>
             </p>
+
+            {/* Gameweek Transfer & Rebuild Status Badge */}
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              {gameweek <= 1 ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-950/50 text-emerald-400 border border-emerald-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Pre-GW1 • Unlimited Squad Changes & Resets
+                </span>
+              ) : isFullRebuildActive ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-950/60 text-amber-300 border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                  <span>⚡</span>
+                  1-Time Full Rebuild Active • Unlimited Transfers
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-[#141414] text-[#ccc] border border-[#2c2c2c]">
+                  <span className="text-[#777]">Transfers:</span>
+                  <span className={`font-mono font-bold ${transfersUsed > 0 ? 'text-amber-400' : 'text-white'}`}>
+                    {transfersUsed} / {MAX_WEEKLY_TRANSFERS} Used
+                  </span>
+                  <span className="text-[#555]">·</span>
+                  <span className={`font-mono font-bold ${transfersRemaining > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {transfersRemaining} Left
+                  </span>
+                </span>
+              )}
+
+              {gameweek > 1 && (
+                rebuildUsed ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold uppercase text-[#666] bg-[#111] border border-[#222]">
+                    🔒 1-Time Rebuild Used
+                  </span>
+                ) : isFullRebuildActive ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsFullRebuildActive(false)}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold uppercase text-amber-400 hover:text-white bg-amber-950/40 hover:bg-amber-900/50 border border-amber-500/40 transition-colors cursor-pointer"
+                  >
+                    ✕ Cancel Rebuild
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleTriggerFullRebuild}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold uppercase text-amber-400 hover:text-black bg-amber-500/10 hover:bg-amber-400 border border-amber-500/40 transition-colors cursor-pointer"
+                  >
+                    ⚡ 1-Time Rebuild Available
+                  </button>
+                )
+              )}
+            </div>
           </div>
 
           {/* Save Lineup Button with Moving Gradient Glow */}
@@ -828,10 +993,17 @@ export default function FantasyPage() {
               </button>
               <button
                 onClick={handleClearTeam}
-                disabled={isSaving}
-                className="bg-red-950/40 hover:bg-red-900/50 border border-red-500/40 p-3 rounded-xl text-xs font-bold uppercase tracking-wider text-red-400 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                disabled={isSaving || (gameweek > 1 && rebuildUsed && !isFullRebuildActive)}
+                className={`border p-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                  gameweek > 1 && rebuildUsed && !isFullRebuildActive
+                    ? 'bg-[#141414] border-[#222] text-[#555] cursor-not-allowed'
+                    : gameweek > 1 && !isFullRebuildActive
+                    ? 'bg-amber-950/40 hover:bg-amber-900/50 border-amber-500/40 text-amber-400'
+                    : 'bg-red-950/40 hover:bg-red-900/50 border-red-500/40 text-red-400'
+                }`}
+                title={gameweek > 1 && rebuildUsed && !isFullRebuildActive ? '1-Time Rebuild already used' : undefined}
               >
-                Clear Team
+                {gameweek <= 1 ? 'Clear Team' : isFullRebuildActive ? 'Clear Team' : '⚡ Rebuild'}
               </button>
             </div>
           </div>
@@ -840,15 +1012,74 @@ export default function FantasyPage() {
         {/* ================= TAB 2: PICK TEAM / TRANSFERS ================= */}
         {activeTab === 'transfers' && (
           <div className="space-y-4">
+            {/* Squad Manager & Transfer Policy Header Card */}
             <div className="bg-[#0e0e0e] border border-[#222] p-4 rounded-xl space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold uppercase text-white tracking-wider">Squad Manager (No Budget Limit)</h2>
-                <span className="text-[10px] text-emerald-400 font-bold uppercase bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded">
-                  Unlimited Free Picks
-                </span>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <h2 className="text-sm font-bold uppercase text-white tracking-wider">
+                  {gameweek <= 1
+                    ? 'Squad Manager (Pre-GW1 Setup)'
+                    : isFullRebuildActive
+                    ? 'Squad Manager (⚡ 1-Time Rebuild Active)'
+                    : `Squad Manager (Gameweek ${gameweek})`}
+                </h2>
+                {gameweek <= 1 ? (
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded">
+                    Unlimited Free Picks
+                  </span>
+                ) : isFullRebuildActive ? (
+                  <span className="text-[10px] text-amber-300 font-bold uppercase bg-amber-950/50 border border-amber-500/40 px-2 py-0.5 rounded animate-pulse">
+                    ⚡ Unlimited Rebuild Transfers
+                  </span>
+                ) : (
+                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
+                    transfersRemaining > 0
+                      ? 'text-emerald-400 bg-emerald-950/40 border-emerald-500/30'
+                      : 'text-amber-400 bg-amber-950/40 border-amber-500/30'
+                  }`}>
+                    {transfersRemaining} Transfers Remaining ({transfersUsed}/{MAX_WEEKLY_TRANSFERS})
+                  </span>
+                )}
               </div>
+
+              {gameweek > 1 && (
+                <div className="grid grid-cols-3 gap-2 pt-1">
+                  <div className="bg-[#141414] border border-[#222] p-2 rounded-lg text-center">
+                    <span className="text-[9px] uppercase font-bold text-[#777] block">Transfers Used</span>
+                    <span className="text-sm font-black font-mono text-amber-400">
+                      {isFullRebuildActive ? 'Unlimited' : `${transfersUsed} / ${MAX_WEEKLY_TRANSFERS}`}
+                    </span>
+                  </div>
+                  <div className="bg-[#141414] border border-[#222] p-2 rounded-lg text-center">
+                    <span className="text-[9px] uppercase font-bold text-[#777] block">Transfers Left</span>
+                    <span className={`text-sm font-black font-mono ${transfersRemaining > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {isFullRebuildActive ? '∞' : `${transfersRemaining}`}
+                    </span>
+                  </div>
+                  <div className="bg-[#141414] border border-[#222] p-2 rounded-lg text-center flex flex-col justify-center items-center">
+                    <span className="text-[9px] uppercase font-bold text-[#777] block">1-Time Rebuild</span>
+                    {rebuildUsed ? (
+                      <span className="text-[10px] font-bold text-[#666] uppercase">🔒 Used</span>
+                    ) : isFullRebuildActive ? (
+                      <span className="text-[10px] font-bold text-amber-400 uppercase">⚡ Active</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleTriggerFullRebuild}
+                        className="text-[9px] font-extrabold uppercase text-amber-400 hover:text-white bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/40 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                      >
+                        ⚡ Activate
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <p className="text-[11px] text-[#888]">
-                Select any registered player from France, Spain, England, Brazil, Argentina, Germany, Mexico, or Portugal. Multiple managers can choose the same player.
+                {gameweek <= 1
+                  ? 'Before Gameweek 1 kicks off, you can make unlimited squad changes and full team clears. Multiple managers can choose the same player.'
+                  : isFullRebuildActive
+                  ? '1-Time Full Squad Rebuild is active! You can freely clear out and overhaul all 10 players for this gameweek without counting against your weekly transfer limit.'
+                  : `You get up to ${MAX_WEEKLY_TRANSFERS} player transfers from your carried-over squad every gameweek. (To overhaul your full team, use your 1-time tournament rebuild).`}
               </p>
             </div>
 
@@ -866,10 +1097,15 @@ export default function FantasyPage() {
 
                     {slot.player ? (
                       <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-xs font-bold text-white truncate">{slot.player.name}</span>
                           {slot.isCaptain && (
                             <span className="bg-amber-400 text-black text-[9px] font-black px-1 rounded">C</span>
+                          )}
+                          {gameweek > 1 && baselinePlayerIds.length > 0 && !baselinePlayerIds.includes(slot.player.id) && (
+                            <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[8px] font-black px-1.5 py-0.5 rounded">
+                              ⇄ IN
+                            </span>
                           )}
                         </div>
                         <div className="flex items-center gap-2 text-[10px] text-[#777]">
@@ -919,10 +1155,21 @@ export default function FantasyPage() {
 
               <button
                 onClick={handleClearTeam}
-                disabled={isSaving}
-                className="bg-red-950/40 hover:bg-red-900/60 border border-red-500/50 text-red-400 font-bold uppercase text-xs tracking-wider px-4 py-4 rounded-xl transition-all cursor-pointer"
+                disabled={isSaving || (gameweek > 1 && rebuildUsed && !isFullRebuildActive)}
+                className={`border text-xs font-bold uppercase tracking-wider px-4 py-4 rounded-xl transition-all cursor-pointer ${
+                  gameweek > 1 && rebuildUsed && !isFullRebuildActive
+                    ? 'bg-[#141414] border-[#222] text-[#555] cursor-not-allowed'
+                    : gameweek > 1 && !isFullRebuildActive
+                    ? 'bg-amber-950/40 hover:bg-amber-900/60 border-amber-500/50 text-amber-400'
+                    : 'bg-red-950/40 hover:bg-red-900/60 border-red-500/50 text-red-400'
+                }`}
+                title={gameweek > 1 && rebuildUsed && !isFullRebuildActive ? '1-Time Rebuild already used' : undefined}
               >
-                Clear Team
+                {gameweek <= 1
+                  ? 'Clear Team'
+                  : isFullRebuildActive
+                  ? 'Clear Team'
+                  : '⚡ Rebuild Squad'}
               </button>
             </div>
           </div>
@@ -1009,6 +1256,45 @@ export default function FantasyPage() {
         {/* ================= TAB 4: RULES & SCORING ================= */}
         {activeTab === 'rules' && (
           <div className="space-y-4">
+            {/* Squad Management & Transfers Rules Card */}
+            <div className="bg-gradient-to-r from-amber-950/40 via-black to-amber-950/40 border border-amber-500/40 p-5 rounded-2xl space-y-3 shadow-xl">
+              <div className="flex items-center gap-2">
+                <span className="text-amber-400 text-base">⚡</span>
+                <h2 className="text-sm font-black uppercase tracking-wider text-white">
+                  Tournament Transfer & Rebuild Rules
+                </h2>
+              </div>
+              
+              <div className="space-y-2.5 text-xs text-[#bbb]">
+                <div className="bg-black/60 p-3 rounded-xl border border-[#222]">
+                  <strong className="text-emerald-400 block uppercase font-mono text-[11px] mb-1">
+                    1. Pre-GW1 Kickoff (Initial Squad Setup)
+                  </strong>
+                  <p>
+                    Before the first game week kicks off, you have <strong>unlimited free transfers</strong> and can completely clear out and rebuild your squad as many times as you want without restrictions.
+                  </p>
+                </div>
+
+                <div className="bg-black/60 p-3 rounded-xl border border-[#222]">
+                  <strong className="text-amber-400 block uppercase font-mono text-[11px] mb-1">
+                    2. Every Gameweek: 4 Free Transfers
+                  </strong>
+                  <p>
+                    Starting from Gameweek 2 onwards, your squad carries forward into each new matchweek. Every game week, you get the opportunity to <strong>switch out up to 4 players</strong> from your team without penalty.
+                  </p>
+                </div>
+
+                <div className="bg-black/60 p-3 rounded-xl border border-[#222]">
+                  <strong className="text-cyan-400 block uppercase font-mono text-[11px] mb-1">
+                    3. 1-Time Full Squad Rebuild ("Wildcard")
+                  </strong>
+                  <p>
+                    After the first game week, you are allowed to <strong>fully clear out and rebuild your squad ONCE</strong> across the entire tournament. Activating this unlocks unlimited transfers for that gameweek. Once used, it is permanently locked for the rest of the tournament.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-[#0e0e0e] border border-[#222] p-5 rounded-2xl space-y-4">
               <h2 className="text-sm font-extrabold uppercase tracking-wider text-amber-400">
                 FPL Tournament Scoring Guide
@@ -1063,7 +1349,17 @@ export default function FantasyPage() {
                 <h3 className="text-base font-bold text-white uppercase tracking-wide">
                   Pick {activePickingSlot.label} ({activePickingSlot.slotId})
                 </h3>
-                <p className="text-[11px] text-amber-400 font-medium">All registered UWI players available for selection</p>
+                {gameweek <= 1 ? (
+                  <p className="text-[11px] text-emerald-400 font-medium">Pre-GW1: Unlimited free picks & squad changes</p>
+                ) : isFullRebuildActive ? (
+                  <p className="text-[11px] text-amber-400 font-medium">⚡ 1-Time Full Rebuild Active: Unlimited transfers</p>
+                ) : (
+                  <p className="text-[11px] text-[#aaa] font-medium">
+                    GW {gameweek} Transfers: <strong className={transfersRemaining > 0 ? 'text-emerald-400' : 'text-amber-400'}>
+                      {transfersUsed}/{MAX_WEEKLY_TRANSFERS} used ({transfersRemaining} remaining)
+                    </strong>
+                  </p>
+                )}
               </div>
               <button
                 onClick={() => setActivePickingSlot(null)}

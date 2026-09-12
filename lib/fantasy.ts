@@ -137,3 +137,24 @@ export function calculatePlayerPoints(position: string | undefined | null, stats
 
   return Math.max(0, pts)
 }
+
+export const MAX_WEEKLY_TRANSFERS = 4
+
+export type FantasyChip = 'NONE' | 'TRIPLE_CAPTAIN' | 'BENCH_BOOST' | 'FULL_REBUILD'
+
+/**
+ * Calculates the number of player transfers made between baseline player IDs and the new draft player IDs.
+ * Returns the count of players in newPlayerIds that were not in baselinePlayerIds.
+ */
+export function calculateTransfersUsed(baselinePlayerIds: string[], currentDraftPlayerIds: string[]): number {
+  if (!baselinePlayerIds || baselinePlayerIds.length === 0) return 0
+  const baseSet = new Set(baselinePlayerIds.filter(Boolean))
+  const newSet = new Set(currentDraftPlayerIds.filter(Boolean))
+  let transfers = 0
+  for (const id of newSet) {
+    if (!baseSet.has(id)) {
+      transfers++
+    }
+  }
+  return transfers
+}

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
-import { calculatePlayerPoints } from '@/lib/fantasy'
+import { calculatePlayerPoints, calculateTransfersUsed, MAX_WEEKLY_TRANSFERS } from '@/lib/fantasy'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ team: null, picks: [] })
     }
 
-    // Fetch picks for this team & gameweek
+    // 1. Fetch picks for this team & gameweek
     const { data: picks, error: picksError } = await db
       .from('fantasy_squad_picks')
       .select(`
@@ -64,13 +64,73 @@ export async function GET(request: NextRequest) {
 
     if (picksError) throw picksError
 
+    // 2. Fetch baseline squad from previous gameweeks if gameweek > 1
+    let baselinePlayerIds: string[] = []
+    let isCarriedOver = false
+    let picksToUse = picks || []
+
+    if (gameweek > 1) {
+      const { data: prevPicks } = await db
+        .from('fantasy_squad_picks')
+        .select(`
+          id,
+          gameweek,
+          position_slot,
+          is_captain,
+          is_vice_captain,
+          active_chip,
+          player_id,
+          players (
+            id,
+            name,
+            position,
+            photo_url,
+            country,
+            franchise_id,
+            goals,
+            assists,
+            franchises:franchises!players_franchise_id_fkey (
+              id,
+              name,
+              logo_url
+            )
+          )
+        `)
+        .eq('fantasy_team_id', team.id)
+        .lt('gameweek', gameweek)
+        .order('gameweek', { ascending: false })
+
+      if (prevPicks && prevPicks.length > 0) {
+        const latestPrevGw = prevPicks[0].gameweek
+        const latestPicks = prevPicks.filter((p: any) => p.gameweek === latestPrevGw)
+        baselinePlayerIds = latestPicks.map((p: any) => p.player_id)
+
+        // If no explicit picks saved yet for current gameweek, carry over previous squad!
+        if (picksToUse.length === 0) {
+          picksToUse = latestPicks.map((p: any) => ({
+            ...p,
+            gameweek,
+            is_carried_over: true
+          }))
+          isCarriedOver = true
+        }
+      }
+    } else {
+      // In GW1, baseline is current picks
+      baselinePlayerIds = (picks || []).map((p: any) => p.player_id)
+    }
+
     // Active chip for this gameweek (from picks or team default)
-    const activeChip = (picks && picks.length > 0 && picks[0].active_chip) 
-      ? picks[0].active_chip 
+    const activeChip = (picksToUse && picksToUse.length > 0 && picksToUse[0].active_chip) 
+      ? picksToUse[0].active_chip 
       : (team.active_chip || 'NONE')
 
+    const usedChips: string[] = team.used_chips || []
+    const rebuildUsed = usedChips.includes('FULL_REBUILD')
+    const isFullRebuild = activeChip === 'FULL_REBUILD' || (picksToUse && picksToUse.length > 0 && picksToUse[0].active_chip === 'FULL_REBUILD')
+
     // Fetch fantasy stats for these players in this gameweek if any
-    const playerIds = (picks || []).map((p: any) => p.player_id)
+    const playerIds = (picksToUse || []).map((p: any) => p.player_id)
     let statsMap: Record<string, any> = {}
     if (playerIds.length > 0) {
       const { data: statsData } = await db
@@ -88,7 +148,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate points for each pick with Triple Captain and Bench Boost rules
     let totalGameweekPoints = 0
-    const processedPicks = (picks || []).map((pick: any) => {
+    const processedPicks = (picksToUse || []).map((pick: any) => {
       const player = pick.players
       const stat = statsMap[pick.player_id] || {
         goals: player?.goals || 0,
@@ -122,11 +182,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       team: {
         ...team,
-        active_chip: activeChip
+        active_chip: activeChip,
+        used_chips: usedChips,
+        rebuild_used: rebuildUsed,
+        is_full_rebuild: isFullRebuild
       },
       gameweek,
       total_gameweek_points: totalGameweekPoints,
-      picks: processedPicks
+      picks: processedPicks,
+      baseline_player_ids: baselinePlayerIds,
+      is_carried_over: isCarriedOver
     })
   } catch (error: any) {
     console.error('Error fetching fantasy team:', error)
@@ -137,7 +202,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { user_identifier, team_name, manager_name, formation = '2-2-2', active_chip = 'NONE', gameweek = 1, picks } = body
+    const {
+      user_identifier,
+      team_name,
+      manager_name,
+      formation = '3-3-1',
+      active_chip = 'NONE',
+      is_full_rebuild = false,
+      gameweek = 1,
+      picks
+    } = body
 
     if (!user_identifier || !team_name || !manager_name) {
       return NextResponse.json({ error: 'Team name, Manager name, and User ID are required' }, { status: 400 })
@@ -152,18 +226,11 @@ export async function POST(request: NextRequest) {
     if (findError) throw findError
 
     let teamId: string
+    let usedChips: string[] = []
+
     if (existingTeams && existingTeams.length > 0) {
       teamId = existingTeams[0].id
-      await db
-        .from('fantasy_teams')
-        .update({
-          team_name,
-          manager_name,
-          formation,
-          active_chip,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', teamId)
+      usedChips = existingTeams[0].used_chips || []
     } else {
       const { data: newTeam, error: createError } = await db
         .from('fantasy_teams')
@@ -172,16 +239,90 @@ export async function POST(request: NextRequest) {
           team_name,
           manager_name,
           formation,
-          active_chip
+          active_chip: is_full_rebuild ? 'FULL_REBUILD' : active_chip,
+          used_chips: is_full_rebuild ? ['FULL_REBUILD'] : []
         }])
         .select()
         .single()
 
       if (createError) throw createError
       teamId = newTeam.id
+      usedChips = is_full_rebuild ? ['FULL_REBUILD'] : []
     }
 
-    // 2. Save picks if provided (empty array clears picks)
+    // 2. Validate transfer rules for Gameweek 2 onwards
+    if (gameweek > 1) {
+      if (is_full_rebuild) {
+        // Check if FULL_REBUILD was already used in an earlier gameweek
+        const { data: pastRebuildPicks } = await db
+          .from('fantasy_squad_picks')
+          .select('gameweek')
+          .eq('fantasy_team_id', teamId)
+          .eq('active_chip', 'FULL_REBUILD')
+          .lt('gameweek', gameweek)
+          .limit(1)
+
+        if (pastRebuildPicks && pastRebuildPicks.length > 0) {
+          return NextResponse.json({
+            error: '1-Time Full Squad Rebuild has already been used in a previous gameweek and cannot be used again.'
+          }, { status: 400 })
+        }
+
+        if (!usedChips.includes('FULL_REBUILD')) {
+          usedChips = [...usedChips, 'FULL_REBUILD']
+        }
+      } else {
+        // Normal weekly transfer validation
+        if (Array.isArray(picks)) {
+          if (picks.length === 0) {
+            return NextResponse.json({
+              error: 'You can only clear your entire squad after Gameweek 1 by using your 1-Time Full Squad Rebuild.'
+            }, { status: 400 })
+          }
+
+          // Fetch baseline squad from previous gameweek
+          const { data: prevPicks } = await db
+            .from('fantasy_squad_picks')
+            .select('gameweek, player_id')
+            .eq('fantasy_team_id', teamId)
+            .lt('gameweek', gameweek)
+            .order('gameweek', { ascending: false })
+
+          if (prevPicks && prevPicks.length > 0) {
+            const latestPrevGw = prevPicks[0].gameweek
+            const basePlayerIds = prevPicks
+              .filter((p: any) => p.gameweek === latestPrevGw)
+              .map((p: any) => p.player_id)
+
+            const currentPicksPlayerIds = picks.map((p: any) => p.player_id)
+            const transfersUsed = calculateTransfersUsed(basePlayerIds, currentPicksPlayerIds)
+
+            if (transfersUsed > MAX_WEEKLY_TRANSFERS) {
+              return NextResponse.json({
+                error: `Transfer limit exceeded: You attempted ${transfersUsed} transfers. Only up to ${MAX_WEEKLY_TRANSFERS} player transfers are allowed per gameweek without your 1-Time Full Squad Rebuild.`
+              }, { status: 400 })
+            }
+          }
+        }
+      }
+    }
+
+    const finalActiveChip = is_full_rebuild ? 'FULL_REBUILD' : active_chip
+
+    // 3. Update team metadata
+    await db
+      .from('fantasy_teams')
+      .update({
+        team_name,
+        manager_name,
+        formation,
+        active_chip: finalActiveChip,
+        used_chips: usedChips,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', teamId)
+
+    // 4. Save squad picks
     if (Array.isArray(picks)) {
       // Clear old picks for this gameweek
       await db
@@ -191,7 +332,6 @@ export async function POST(request: NextRequest) {
         .eq('gameweek', gameweek)
 
       if (picks.length > 0) {
-        // Insert new picks with active_chip
         const picksToInsert = picks.map((p: any) => ({
           fantasy_team_id: teamId,
           gameweek: gameweek,
@@ -199,7 +339,7 @@ export async function POST(request: NextRequest) {
           position_slot: p.position_slot,
           is_captain: Boolean(p.is_captain),
           is_vice_captain: Boolean(p.is_vice_captain),
-          active_chip: active_chip
+          active_chip: finalActiveChip
         }))
 
         const { error: insertError } = await db
@@ -213,6 +353,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       team_id: teamId,
+      used_chips: usedChips,
+      rebuild_used: usedChips.includes('FULL_REBUILD'),
       message: 'Fantasy lineup saved successfully'
     })
   } catch (error: any) {
@@ -220,3 +362,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message || 'Internal error' }, { status: 500 })
   }
 }
+
