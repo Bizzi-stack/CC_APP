@@ -8,14 +8,33 @@ export default function PublicNav() {
 
   const links = [
     {
+      href: '/home',
+      label: 'Home',
+      icon: (active: boolean) => (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? '#fff' : '#666'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+          <path d="M9 21V12h6v9"/>
+        </svg>
+      ),
+    },
+    {
       href: '/market',
-      label: 'Market',
+      label: 'Players',
       icon: (active: boolean) => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? '#fff' : '#666'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
           <circle cx="9" cy="7" r="4"/>
           <path d="M23 21v-2a4 4 0 00-3-3.87"/>
           <path d="M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+      ),
+    },
+    {
+      href: '/fantasy',
+      label: 'Fantasy',
+      icon: (active: boolean) => (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? '#f59e0b' : 'none'} stroke={active ? '#f59e0b' : '#666'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
         </svg>
       ),
     },
@@ -31,31 +50,17 @@ export default function PublicNav() {
         </svg>
       ),
     },
-    {
-      href: '/fantasy',
-      label: 'Fantasy',
-      icon: (active: boolean) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? '#f59e0b' : 'none'} stroke={active ? '#f59e0b' : '#666'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      ),
-    },
-    {
-      href: '/join',
-      label: 'Join',
-      icon: (active: boolean) => (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? '#fff' : '#666'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 5v14M5 12h14"/>
-        </svg>
-      ),
-    },
   ]
 
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 bg-black border-t border-[#222]">
       <div className="flex">
         {links.map((link) => {
-          const active = pathname === link.href || pathname.startsWith(link.href + '/')
+          const active = link.href === '/home'
+            ? pathname === '/home' || pathname.startsWith('/home/') || pathname === '/'
+            : link.href === '/market'
+            ? pathname === '/market' || pathname.startsWith('/market/') || pathname.startsWith('/player/')
+            : pathname === link.href || pathname.startsWith(link.href + '/')
           return (
             <Link
               key={link.href}
