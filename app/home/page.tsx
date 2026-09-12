@@ -37,8 +37,8 @@ function formatTime(timeStr: string) {
   return `${displayHour}:${m} ${ampm}`
 }
 
-// Creator / Developer Instagram URL (Defaults to instagram.com, configurable via handle)
-const CREATOR_INSTAGRAM_URL = 'https://instagram.com'
+// Creator / Developer Instagram URL
+const CREATOR_INSTAGRAM_URL = 'https://www.instagram.com/userfrombds?utm_source=ig_web_button_share_sheet&stkn=ZDNlZDc0MzIxNw=='
 
 export default function HomePage() {
   const [nextSession, setNextSession] = useState<Session | null>(null)
