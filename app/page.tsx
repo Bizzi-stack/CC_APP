@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
-import OnesToWatchTicker from '@/components/OnesToWatchTicker'
 
 interface Player {
   id: string
@@ -301,11 +300,6 @@ export default function LandingPage() {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Featured Ones To Watch Section */}
-      <div className="relative z-10 w-full max-w-[420px] mx-auto my-4 px-1">
-        <OnesToWatchTicker />
       </div>
 
       {/* Bottom Footer Admin Link */}
