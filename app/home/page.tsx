@@ -37,6 +37,9 @@ function formatTime(timeStr: string) {
   return `${displayHour}:${m} ${ampm}`
 }
 
+// Creator / Developer Instagram URL (Defaults to instagram.com, configurable via handle)
+const CREATOR_INSTAGRAM_URL = 'https://instagram.com'
+
 export default function HomePage() {
   const [nextSession, setNextSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
@@ -109,11 +112,42 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-black text-white pb-24">
       {/* Header */}
-      <div className="flex flex-col items-center pt-12 pb-6 border-b border-[#1a1a1a]">
-        <Link href="/home" className="flex items-center gap-2 mb-2">
-          <img src="/logo.png" alt="College Clubs" className="h-16 object-contain brightness-0 invert" />
-          <span className="text-xl font-black uppercase tracking-wider text-white">College Clubs</span>
-        </Link>
+      <div className="flex flex-col items-center pt-8 pb-5 border-b border-[#1a1a1a]">
+        {/* Web App Creator Credit: "need a web app -> [Signature]" */}
+        <div className="flex items-center justify-center gap-2 mb-2.5">
+          <span className="text-[11px] sm:text-xs text-[#888] font-mono tracking-tight lowercase">
+            need a web app
+          </span>
+          <span className="text-amber-400 font-bold text-xs select-none">
+            →
+          </span>
+          <a
+            href={CREATOR_INSTAGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
+            title="Visit Instagram"
+          >
+            <img
+              src="/signature.png"
+              alt="Signature"
+              className="h-6 sm:h-7 w-auto max-w-[130px] object-contain brightness-0 invert opacity-90 group-hover:opacity-100 transition-opacity drop-shadow-sm"
+              onError={(e) => {
+                const target = e.currentTarget
+                target.style.display = 'none'
+                const fb = document.getElementById('sig-placeholder-fallback')
+                if (fb) fb.style.display = 'inline-flex'
+              }}
+            />
+            <span
+              id="sig-placeholder-fallback"
+              style={{ display: 'none' }}
+              className="text-xs font-serif italic text-white/80 border-b border-amber-400/50 hover:text-amber-400 transition-colors"
+            >
+              [signature] ↗
+            </span>
+          </a>
+        </div>
         
         {/* November 10th Countdown Timer (9px numbers) */}
         {timeLeft ? (
