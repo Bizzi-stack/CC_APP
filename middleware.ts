@@ -20,7 +20,8 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const hasAdminToken = request.cookies.has('admin_token')
   const hasPlayerToken = request.cookies.has('player_token')
-  const hasCommunityToken = request.cookies.has('community_token') || hasPlayerToken
+  const hasManagerToken = request.cookies.has('manager_token')
+  const hasCommunityToken = request.cookies.has('community_token') || hasPlayerToken || hasManagerToken
 
   // Check Admin UI routes
   const isAdminUI = adminUIRoutes.some(route => pathname.startsWith(route))
@@ -48,7 +49,7 @@ export function middleware(request: NextRequest) {
   // Check Player Portal protection (requires player_token)
   if (pathname.startsWith('/player-portal') && !hasPlayerToken) {
     const url = request.nextUrl.clone()
-    url.pathname = '/'
+    url.pathname = hasManagerToken ? '/fantasy' : '/'
     return NextResponse.redirect(url)
   }
 

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       .select('*')
       .order('id', { ascending: true })
 
-    // 2. Fetch all registered players
+    // 2. Fetch all registered active tournament players (excluding fantasy manager accounts)
     const { data: players, error: playersError } = await db
       .from('players')
       .select(`
@@ -35,6 +35,8 @@ export async function GET(request: NextRequest) {
           logo_url
         )
       `)
+      .neq('status', 'fan')
+      .neq('position', 'FAN')
       .order('name', { ascending: true })
 
     if (playersError) throw playersError

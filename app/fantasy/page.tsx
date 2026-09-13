@@ -123,21 +123,60 @@ export default function FantasyPage() {
           if (storedManager) setManagerName(storedManager)
           else setManagerName(data.player.name)
         } else {
-          if (!storedId) {
-            storedId = 'mgr_' + Math.random().toString(36).substring(2, 10)
-            localStorage.setItem('fpl_manager_id', storedId)
-          }
-          setUserIdentifier(storedId)
-          if (storedManager) setManagerName(storedManager)
+          // Check if logged in as a dedicated Campus Fantasy Manager
+          fetch('/api/fantasy/auth')
+            .then(r => r.json())
+            .then(mgrData => {
+              if (mgrData.manager) {
+                setUserIdentifier(mgrData.manager.id)
+                localStorage.setItem('fpl_manager_id', mgrData.manager.id)
+                if (storedManager) setManagerName(storedManager)
+                else setManagerName(mgrData.manager.name)
+              } else {
+                if (!storedId) {
+                  storedId = 'mgr_' + Math.random().toString(36).substring(2, 10)
+                  localStorage.setItem('fpl_manager_id', storedId)
+                }
+                setUserIdentifier(storedId)
+                if (storedManager) setManagerName(storedManager)
+              }
+            })
+            .catch(() => {
+              if (!storedId) {
+                storedId = 'mgr_' + Math.random().toString(36).substring(2, 10)
+                localStorage.setItem('fpl_manager_id', storedId)
+              }
+              setUserIdentifier(storedId)
+              if (storedManager) setManagerName(storedManager)
+            })
         }
       })
       .catch(() => {
-        if (!storedId) {
-          storedId = 'mgr_' + Math.random().toString(36).substring(2, 10)
-          localStorage.setItem('fpl_manager_id', storedId)
-        }
-        setUserIdentifier(storedId)
-        if (storedManager) setManagerName(storedManager)
+        fetch('/api/fantasy/auth')
+          .then(r => r.json())
+          .then(mgrData => {
+            if (mgrData.manager) {
+              setUserIdentifier(mgrData.manager.id)
+              localStorage.setItem('fpl_manager_id', mgrData.manager.id)
+              if (storedManager) setManagerName(storedManager)
+              else setManagerName(mgrData.manager.name)
+            } else {
+              if (!storedId) {
+                storedId = 'mgr_' + Math.random().toString(36).substring(2, 10)
+                localStorage.setItem('fpl_manager_id', storedId)
+              }
+              setUserIdentifier(storedId)
+              if (storedManager) setManagerName(storedManager)
+            }
+          })
+          .catch(() => {
+            if (!storedId) {
+              storedId = 'mgr_' + Math.random().toString(36).substring(2, 10)
+              localStorage.setItem('fpl_manager_id', storedId)
+            }
+            setUserIdentifier(storedId)
+            if (storedManager) setManagerName(storedManager)
+          })
       })
 
     if (storedTeam) setTeamName(storedTeam)

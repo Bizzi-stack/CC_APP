@@ -23,8 +23,18 @@ export default function LandingPage() {
   const [error, setError] = useState('')
   const [shaking, setShaking] = useState(false)
 
-  // Current logged in player session on this device
+  // Role toggle: Tournament Player vs. Campus Fantasy Manager
+  const [authRole, setAuthRole] = useState<'player' | 'manager'>('player')
+
+  // Manager form state
+  const [managerMode, setManagerMode] = useState<'login' | 'register'>('login')
+  const [mgrName, setMgrName] = useState('')
+  const [mgrUsername, setMgrUsername] = useState('')
+  const [mgrPasscode, setMgrPasscode] = useState('')
+
+  // Current logged in player or manager session on this device
   const [activePlayer, setActivePlayer] = useState<Player | null>(null)
+  const [activeManager, setActiveManager] = useState<{ id: string; name: string; username: string } | null>(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
 
   // 5 UWIFA Stadium Action Background Photos
@@ -46,7 +56,7 @@ export default function LandingPage() {
   }, [])
 
   useEffect(() => {
-    // 1. Check if logged in already on this phone/device
+    // 1. Check if logged in already (player or fantasy manager)
     fetch('/api/player/me')
       .then(r => r.json())
       .then(data => {
@@ -54,10 +64,35 @@ export default function LandingPage() {
           setActivePlayer(data.player)
           localStorage.setItem('player_token', data.player.id)
           localStorage.setItem('player_name', data.player.name)
+          setCheckingAuth(false)
+        } else {
+          // Check if logged in as fantasy manager
+          fetch('/api/fantasy/auth')
+            .then(r => r.json())
+            .then(mData => {
+              if (mData.manager) {
+                setActiveManager(mData.manager)
+                localStorage.setItem('fpl_manager_id', mData.manager.id)
+                localStorage.setItem('fpl_manager_name', mData.manager.name)
+              }
+              setCheckingAuth(false)
+            })
+            .catch(() => setCheckingAuth(false))
         }
-        setCheckingAuth(false)
       })
-      .catch(() => setCheckingAuth(false))
+      .catch(() => {
+        fetch('/api/fantasy/auth')
+          .then(r => r.json())
+          .then(mData => {
+            if (mData.manager) {
+              setActiveManager(mData.manager)
+              localStorage.setItem('fpl_manager_id', mData.manager.id)
+              localStorage.setItem('fpl_manager_name', mData.manager.name)
+            }
+            setCheckingAuth(false)
+          })
+          .catch(() => setCheckingAuth(false))
+      })
 
     // 2. Fetch list of active players for login dropdown
     fetch('/api/players?status=active')
@@ -107,11 +142,55 @@ export default function LandingPage() {
     }
   }
 
+  const handleManagerAuth = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSubmitting(true)
+
+    try {
+      const res = await fetch('/api/fantasy/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: managerMode,
+          name: managerMode === 'register' ? mgrName.trim() : undefined,
+          username: mgrUsername.trim(),
+          passcode: mgrPasscode.trim()
+        })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Authentication failed')
+      }
+
+      if (data.manager) {
+        localStorage.setItem('fpl_manager_id', data.manager.id)
+        localStorage.setItem('fpl_manager_name', data.manager.name)
+      }
+
+      window.location.href = '/fantasy'
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed')
+      setShaking(true)
+      setSubmitting(false)
+      setTimeout(() => setShaking(false), 500)
+    }
+  }
+
   const handleLogout = async () => {
-    await fetch('/api/player/logout', { method: 'POST' })
+    await Promise.all([
+      fetch('/api/player/logout', { method: 'POST' }).catch(() => {}),
+      fetch('/api/fantasy/auth/logout', { method: 'POST' }).catch(() => {})
+    ])
     localStorage.removeItem('player_token')
     localStorage.removeItem('player_name')
+    localStorage.removeItem('fpl_manager_id')
+    localStorage.removeItem('fpl_manager_name')
+    localStorage.removeItem('fpl_team_name')
     setActivePlayer(null)
+    setActiveManager(null)
   }
 
   return (
@@ -144,7 +223,7 @@ export default function LandingPage() {
             <p className="text-xs text-[#aaa] font-mono uppercase tracking-widest">Checking saved session...</p>
           </div>
         ) : activePlayer ? (
-          /* Logged In Card (Translucent Glassmorphism) */
+          /* Logged In Card for Tournament Player */
           <div className="bg-black/65 backdrop-blur-xl border border-white/30 p-8 rounded-none shadow-[0_0_50px_rgba(0,0,0,0.8)] text-center space-y-6 animate-fadeIn">
             <div className="flex flex-col items-center space-y-3">
               {activePlayer.photo_url ? (
@@ -182,122 +261,308 @@ export default function LandingPage() {
               LOG OUT / SWITCH ACCOUNT
             </button>
           </div>
+        ) : activeManager ? (
+          /* Logged In Card for Campus Fantasy Manager */
+          <div className="bg-black/65 backdrop-blur-xl border border-amber-400/40 p-8 rounded-none shadow-[0_0_50px_rgba(0,0,0,0.8)] text-center space-y-6 animate-fadeIn">
+            <div className="flex flex-col items-center space-y-3">
+              <div className="w-20 h-20 rounded-none bg-amber-400 text-black border-2 border-white flex items-center justify-center text-3xl font-black shadow-xl">
+                {activeManager.name.charAt(0)}
+              </div>
+              <div className="space-y-1">
+                <span className="text-[9px] font-black tracking-widest text-amber-400 uppercase bg-amber-400/10 px-2 py-0.5 border border-amber-400/30">
+                  CAMPUS FANTASY MANAGER
+                </span>
+                <h2 className="text-base font-bold text-white uppercase tracking-widest text-shadow">
+                  Welcome back, {activeManager.name}!
+                </h2>
+                <p className="text-[11px] text-[#888] font-mono">@{activeManager.username}</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Link
+                href="/fantasy"
+                className="w-full h-12 bg-amber-400 hover:bg-amber-300 text-black text-xs font-black uppercase tracking-widest rounded-none flex items-center justify-center transition-all shadow-[0_0_20px_rgba(251,191,36,0.3)] active:scale-[0.98]"
+              >
+                MANAGE FANTASY SQUAD →
+              </Link>
+
+              <Link
+                href="/home"
+                className="w-full h-12 bg-black/60 hover:bg-black/85 border border-white/40 hover:border-white text-white text-xs font-bold uppercase tracking-widest rounded-none flex items-center justify-center backdrop-blur-md transition-all active:scale-[0.98]"
+              >
+                ENTER HOME FEED
+              </Link>
+            </div>
+
+            <button
+              onClick={handleLogout}
+              className="text-[10px] text-[#aaa] hover:text-white font-mono uppercase tracking-widest pt-2 block mx-auto transition-colors cursor-pointer"
+            >
+              LOG OUT / SWITCH ACCOUNT
+            </button>
+          </div>
         ) : (
           /* Login Form for New / Unauthenticated Devices (Translucent Glassmorphism) */
           <div className="bg-black/65 backdrop-blur-xl border border-white/30 p-8 rounded-none shadow-[0_0_50px_rgba(0,0,0,0.8)] space-y-6">
-            <div className="text-center space-y-1">
-              <h1 className="text-lg font-black text-white uppercase tracking-widest drop-shadow-md">PLAYER LOGIN</h1>
+            
+            {/* Role Switcher: Tournament Pitch Player vs. Campus Fantasy Manager */}
+            <div className="grid grid-cols-2 border border-white/20 p-1 bg-black/60">
+              <button
+                type="button"
+                onClick={() => { setAuthRole('player'); setError(''); }}
+                className={`py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                  authRole === 'player'
+                    ? 'bg-white text-black shadow'
+                    : 'text-[#888] hover:text-white'
+                }`}
+              >
+                Pitch Player
+              </button>
+              <button
+                type="button"
+                onClick={() => { setAuthRole('manager'); setError(''); }}
+                className={`py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                  authRole === 'manager'
+                    ? 'bg-amber-400 text-black shadow'
+                    : 'text-[#888] hover:text-white'
+                }`}
+              >
+                Campus Fantasy
+              </button>
             </div>
 
-            {loading ? (
-              <div className="text-center text-xs text-[#aaa] font-mono uppercase py-8 animate-pulse">
-                Loading players...
-              </div>
-            ) : (
-              <form onSubmit={handlePlayerLogin} className={`space-y-5 ${shaking ? 'animate-shake' : ''}`}>
-                {/* Type Username / Select Player */}
-                <div className="space-y-2 text-left relative">
-                  <label className="text-[9px] font-bold tracking-widest uppercase text-[#bbb] block font-mono">
-                    ENTER USERNAME / PLAYER NAME
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={searchQuery}
-                    onChange={e => {
-                      setSearchQuery(e.target.value)
-                      setSelectedPlayerId('')
-                      setError('')
-                      setShowDropdown(true)
-                    }}
-                    onFocus={() => setShowDropdown(true)}
-                    placeholder="Type player username..."
-                    className="w-full h-12 px-4 bg-black/50 border border-white/30 text-white text-sm outline-none focus:border-white focus:bg-black/80 backdrop-blur-md transition-all rounded-none font-mono placeholder-[#777]"
-                  />
+            {authRole === 'player' ? (
+              /* TOURNAMENT PLAYER LOGIN */
+              <>
+                <div className="text-center space-y-1">
+                  <h1 className="text-lg font-black text-white uppercase tracking-widest drop-shadow-md">PLAYER LOGIN</h1>
+                  <p className="text-[10px] text-[#888] font-mono">For registered tournament players</p>
+                </div>
 
-                  {/* Filtered Autocomplete Dropdown Suggestions */}
-                  {showDropdown && searchQuery.trim().length > 0 && (
-                    <div className="absolute top-full left-0 right-0 z-50 bg-black/90 backdrop-blur-xl border border-white/30 max-h-48 overflow-y-auto shadow-2xl mt-1">
-                      {players.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
-                        <div className="p-3 text-[11px] text-[#aaa] font-mono text-center">
-                          No matching players — will try logging in as &quot;{searchQuery}&quot;
+                {loading ? (
+                  <div className="text-center text-xs text-[#aaa] font-mono uppercase py-8 animate-pulse">
+                    Loading players...
+                  </div>
+                ) : (
+                  <form onSubmit={handlePlayerLogin} className={`space-y-5 ${shaking ? 'animate-shake' : ''}`}>
+                    {/* Type Username / Select Player */}
+                    <div className="space-y-2 text-left relative">
+                      <label className="text-[9px] font-bold tracking-widest uppercase text-[#bbb] block font-mono">
+                        ENTER USERNAME / PLAYER NAME
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={searchQuery}
+                        onChange={e => {
+                          setSearchQuery(e.target.value)
+                          setSelectedPlayerId('')
+                          setError('')
+                          setShowDropdown(true)
+                        }}
+                        onFocus={() => setShowDropdown(true)}
+                        placeholder="Type player username..."
+                        className="w-full h-12 px-4 bg-black/50 border border-white/30 text-white text-sm outline-none focus:border-white focus:bg-black/80 backdrop-blur-md transition-all rounded-none font-mono placeholder-[#777]"
+                      />
+
+                      {/* Filtered Autocomplete Dropdown Suggestions */}
+                      {showDropdown && searchQuery.trim().length > 0 && (
+                        <div className="absolute top-full left-0 right-0 z-50 bg-black/90 backdrop-blur-xl border border-white/30 max-h-48 overflow-y-auto shadow-2xl mt-1">
+                          {players.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+                            <div className="p-3 text-[11px] text-[#aaa] font-mono text-center">
+                              No matching players — will try logging in as &quot;{searchQuery}&quot;
+                            </div>
+                          ) : (
+                            players
+                              .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                              .map(p => (
+                                <button
+                                  key={p.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedPlayerId(p.id)
+                                    setSearchQuery(p.name)
+                                    setShowDropdown(false)
+                                    setError('')
+                                  }}
+                                  className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors border-b border-white/10 last:border-b-0 cursor-pointer"
+                                >
+                                  {p.photo_url ? (
+                                    <img src={p.photo_url} alt="" className="w-6 h-6 object-cover border border-white/30 shrink-0" />
+                                  ) : (
+                                    <div className="w-6 h-6 bg-white/20 text-[10px] font-bold flex items-center justify-center text-white shrink-0">
+                                      {p.name.charAt(0)}
+                                    </div>
+                                  )}
+                                  <span className="text-xs font-bold text-white font-mono">{p.name}</span>
+                                </button>
+                              ))
+                          )}
                         </div>
-                      ) : (
-                        players
-                          .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                          .map(p => (
-                            <button
-                              key={p.id}
-                              type="button"
-                              onClick={() => {
-                                setSelectedPlayerId(p.id)
-                                setSearchQuery(p.name)
-                                setShowDropdown(false)
-                                setError('')
-                              }}
-                              className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors border-b border-white/10 last:border-b-0 cursor-pointer"
-                            >
-                              {p.photo_url ? (
-                                <img src={p.photo_url} alt="" className="w-6 h-6 object-cover border border-white/30 shrink-0" />
-                              ) : (
-                                <div className="w-6 h-6 bg-white/20 text-[10px] font-bold flex items-center justify-center text-white shrink-0">
-                                  {p.name.charAt(0)}
-                                </div>
-                              )}
-                              <span className="text-xs font-bold text-white font-mono">{p.name}</span>
-                            </button>
-                          ))
                       )}
                     </div>
-                  )}
-                </div>
 
-                {/* Passcode */}
-                <div className="space-y-2 text-left">
-                  <label className="text-[9px] font-bold tracking-widest uppercase text-[#bbb] block font-mono">
-                    ENTER PASSCODE
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={passcode}
-                    onChange={e => {
-                      setPasscode(e.target.value)
-                      setError('')
-                    }}
-                    placeholder="••••"
-                    className="w-full h-12 px-4 bg-black/50 border border-white/30 text-white text-sm outline-none focus:border-white focus:bg-black/80 backdrop-blur-md transition-all text-center tracking-widest font-mono rounded-none placeholder-[#666]"
-                  />
-                </div>
+                    {/* Passcode */}
+                    <div className="space-y-2 text-left">
+                      <label className="text-[9px] font-bold tracking-widest uppercase text-[#bbb] block font-mono">
+                        ENTER PASSCODE
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        value={passcode}
+                        onChange={e => {
+                          setPasscode(e.target.value)
+                          setError('')
+                        }}
+                        placeholder="••••"
+                        className="w-full h-12 px-4 bg-black/50 border border-white/30 text-white text-sm outline-none focus:border-white focus:bg-black/80 backdrop-blur-md transition-all text-center tracking-widest font-mono rounded-none placeholder-[#666]"
+                      />
+                    </div>
 
-                {error && (
-                  <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 text-xs text-center font-mono rounded-none backdrop-blur-md">
-                    {error}
-                  </div>
+                    {error && (
+                      <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 text-xs text-center font-mono rounded-none backdrop-blur-md">
+                        {error}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={submitting || (!selectedPlayerId && !searchQuery.trim())}
+                      className="w-full h-12 bg-white/95 hover:bg-white text-black font-extrabold uppercase tracking-widest text-xs transition-all rounded-none disabled:opacity-40 shadow-[0_0_20px_rgba(255,255,255,0.3)] active:scale-[0.98]"
+                    >
+                      {submitting ? '...' : 'ENTER'}
+                    </button>
+                  </form>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={submitting || (!selectedPlayerId && !searchQuery.trim())}
-                  className="w-full h-12 bg-white/95 hover:bg-white text-black font-extrabold uppercase tracking-widest text-xs transition-all rounded-none disabled:opacity-40 shadow-[0_0_20px_rgba(255,255,255,0.3)] active:scale-[0.98]"
-                >
-                  {submitting ? '...' : 'ENTER'}
-                </button>
-              </form>
+                {/* New Player Sign Up / Join Profile Section */}
+                <div className="pt-5 border-t border-white/20 text-center space-y-3 relative z-30">
+                  <p className="text-[10px] text-[#ccc] font-mono uppercase tracking-widest font-bold">
+                    New Player? Submit profile &amp; join a UWIFA team
+                  </p>
+                  <Link
+                    href="/join"
+                    className="w-full h-12 border-2 border-amber-400 bg-amber-400/25 hover:bg-amber-400 hover:text-black text-amber-300 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 backdrop-blur-md shadow-[0_0_25px_rgba(251,191,36,0.3)] transition-all rounded-none cursor-pointer active:scale-[0.98] select-none"
+                  >
+                    REGISTER / SUBMIT PROFILE →
+                  </Link>
+                </div>
+              </>
+            ) : (
+              /* CAMPUS FANTASY MANAGER (STUDENTS & FANS) */
+              <>
+                <div className="text-center space-y-1">
+                  <span className="text-[9px] font-black tracking-widest text-amber-400 uppercase bg-amber-400/10 px-2 py-0.5 border border-amber-400/30">
+                    NON-PLAYING STUDENTS &amp; FANS
+                  </span>
+                  <h1 className="text-lg font-black text-white uppercase tracking-widest drop-shadow-md mt-1">
+                    {managerMode === 'login' ? 'FANTASY LOGIN' : 'CREATE FANTASY ACCOUNT'}
+                  </h1>
+                  <p className="text-[10px] text-[#888] font-mono">
+                    {managerMode === 'login' ? 'Log in to manage your 7-player squad' : 'Join UWI Fantasy without playing on the pitch'}
+                  </p>
+                </div>
+
+                {/* Sub-toggle: Log In vs Create Account */}
+                <div className="flex border-b border-white/20">
+                  <button
+                    type="button"
+                    onClick={() => { setManagerMode('login'); setError(''); }}
+                    className={`flex-1 pb-2 text-[11px] font-bold uppercase tracking-widest transition-colors ${
+                      managerMode === 'login'
+                        ? 'text-amber-400 border-b-2 border-amber-400 font-black'
+                        : 'text-[#777] hover:text-white'
+                    }`}
+                  >
+                    Log In
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setManagerMode('register'); setError(''); }}
+                    className={`flex-1 pb-2 text-[11px] font-bold uppercase tracking-widest transition-colors ${
+                      managerMode === 'register'
+                        ? 'text-amber-400 border-b-2 border-amber-400 font-black'
+                        : 'text-[#777] hover:text-white'
+                    }`}
+                  >
+                    Sign Up
+                  </button>
+                </div>
+
+                <form onSubmit={handleManagerAuth} className={`space-y-4 ${shaking ? 'animate-shake' : ''}`}>
+                  {managerMode === 'register' && (
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-[9px] font-bold tracking-widest uppercase text-[#bbb] block font-mono">
+                        YOUR FULL NAME
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={mgrName}
+                        onChange={e => setMgrName(e.target.value)}
+                        placeholder="e.g. Jordan Miller"
+                        className="w-full h-12 px-4 bg-black/50 border border-white/30 text-white text-sm outline-none focus:border-amber-400 focus:bg-black/80 backdrop-blur-md transition-all rounded-none font-mono placeholder-[#666]"
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-[9px] font-bold tracking-widest uppercase text-[#bbb] block font-mono">
+                      USERNAME / HANDLE
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={mgrUsername}
+                      onChange={e => setMgrUsername(e.target.value)}
+                      placeholder="e.g. jordan_uwi"
+                      className="w-full h-12 px-4 bg-black/50 border border-white/30 text-white text-sm outline-none focus:border-amber-400 focus:bg-black/80 backdrop-blur-md transition-all rounded-none font-mono placeholder-[#666]"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-[9px] font-bold tracking-widest uppercase text-[#bbb] block font-mono">
+                      4-DIGIT PASSCODE
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={mgrPasscode}
+                      onChange={e => setMgrPasscode(e.target.value)}
+                      placeholder="••••"
+                      className="w-full h-12 px-4 bg-black/50 border border-white/30 text-white text-sm outline-none focus:border-amber-400 focus:bg-black/80 backdrop-blur-md transition-all text-center tracking-widest font-mono rounded-none placeholder-[#666]"
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 text-xs text-center font-mono rounded-none backdrop-blur-md">
+                      {error}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={submitting || !mgrUsername.trim() || !mgrPasscode.trim() || (managerMode === 'register' && !mgrName.trim())}
+                    className="w-full h-12 bg-amber-400 hover:bg-amber-300 text-black font-extrabold uppercase tracking-widest text-xs transition-all rounded-none disabled:opacity-40 shadow-[0_0_20px_rgba(251,191,36,0.3)] active:scale-[0.98] cursor-pointer"
+                  >
+                    {submitting ? '...' : managerMode === 'register' ? 'START PLAYING FANTASY →' : 'ENTER FANTASY →'}
+                  </button>
+                </form>
+
+                <div className="pt-3 border-t border-white/10 text-center">
+                  <p className="text-[10px] text-[#777] font-mono">
+                    {managerMode === 'login' ? (
+                      <>Don&apos;t have an account yet? <button type="button" onClick={() => { setManagerMode('register'); setError(''); }} className="text-amber-400 hover:underline font-bold">Sign up in 15 seconds</button></>
+                    ) : (
+                      <>Already have a team? <button type="button" onClick={() => { setManagerMode('login'); setError(''); }} className="text-amber-400 hover:underline font-bold">Log in here</button></>
+                    )}
+                  </p>
+                </div>
+              </>
             )}
 
-            {/* New Player Sign Up / Join Profile Section */}
-            <div className="pt-5 border-t border-white/20 text-center space-y-3 relative z-30">
-              <p className="text-[10px] text-[#ccc] font-mono uppercase tracking-widest font-bold">
-                New Player? Submit profile &amp; join a UWIFA team
-              </p>
-              <Link
-                href="/join"
-                className="w-full h-12 border-2 border-amber-400 bg-amber-400/25 hover:bg-amber-400 hover:text-black text-amber-300 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 backdrop-blur-md shadow-[0_0_25px_rgba(251,191,36,0.3)] transition-all rounded-none cursor-pointer active:scale-[0.98] select-none"
-              >
-                REGISTER / SUBMIT PROFILE →
-              </Link>
-            </div>
           </div>
         )}
       </div>
