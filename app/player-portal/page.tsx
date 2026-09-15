@@ -13,6 +13,7 @@ import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
 import { retroAudio } from '@/lib/sounds'
 import Image from 'next/image'
+import ImageCropper from '@/components/ImageCropper'
 
 interface CanvasBadge {
   id: string
@@ -117,6 +118,7 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
   const [savingProfile, setSavingProfile] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
 
   // Canvas positions state
@@ -267,18 +269,26 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
     }
   }
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 10 * 1024 * 1024) {
       setError('Headshot image must be under 10MB')
       return
     }
+    const reader = new FileReader()
+    reader.addEventListener('load', () => setCropImageSrc(reader.result?.toString() || null))
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
+  const handleCropDone = async (croppedBlob: Blob) => {
+    setCropImageSrc(null)
     setUploadingPhoto(true)
     setError('')
     try {
       const uploadForm = new FormData()
-      uploadForm.append('file', file)
+      uploadForm.append('file', croppedBlob, 'headshot.jpg')
       const res = await fetch('/api/upload', { method: 'POST', body: uploadForm })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Photo upload failed')
@@ -565,6 +575,14 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
 
   return (
     <div className="min-h-screen bg-black text-white pb-24 max-w-[430px] mx-auto border-x border-[#222]">
+      {cropImageSrc && (
+        <ImageCropper
+          imageSrc={cropImageSrc}
+          onCropDone={handleCropDone}
+          onCancel={() => setCropImageSrc(null)}
+          aspectRatio={1}
+        />
+      )}
       {/* Header Banner */}
       <div className="bg-[#050505] border-b border-[#222] p-6 pt-12 relative">
         <div className="flex items-center justify-between mb-6">
