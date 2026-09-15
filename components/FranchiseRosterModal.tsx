@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { getCountryFlag } from '@/lib/countries'
+import Image from 'next/image'
 
 interface RosterPlayer {
   id: string
@@ -110,8 +111,7 @@ export default function FranchiseRosterModal({
         <div className="flex items-center justify-between border-b border-[#222] pb-4 shrink-0">
           <div className="flex items-center gap-3">
             {franchise?.logo_url ? (
-              <img
-                src={franchise.logo_url}
+              <Image width={500} height={500}                 src={franchise.logo_url}
                 alt=""
                 className="w-12 h-12 rounded-full object-cover border border-[#333] shadow-md shrink-0"
               />
@@ -167,7 +167,7 @@ export default function FranchiseRosterModal({
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-full border border-[#333] bg-[#1a1a1a] overflow-hidden shrink-0">
                       {player.photo_url ? (
-                        <img src={player.photo_url} alt="" className="w-full h-full object-cover object-top" />
+                        <Image width={500} height={500} src={player.photo_url} alt="" className="w-full h-full object-cover object-top" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-[#666] font-bold text-xs">
                           ⚽

@@ -2,6 +2,7 @@
 
 import { useCartWishlist } from '@/contexts/CartWishlistContext'
 import type { CatalogItem } from '@/app/api/catalog/route'
+import Image from 'next/image'
 
 export interface ItemCardProps {
   id: string
@@ -80,7 +81,7 @@ export default function ItemCard({
 
       {/* Image Container */}
       <div className="relative w-full aspect-square mb-2 overflow-hidden bg-[#111]">
-        <img
+        <Image width={500} height={500} 
           src={image}
           alt={name}
           className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300"
@@ -106,7 +107,7 @@ export default function ItemCard({
 
         {/* Price Area */}
         <div className="flex items-center gap-2">
-          <img src="/coin.png" alt="Coin" className="w-5 h-5 object-contain" />
+          <Image width={500} height={500} src="/coin.png" alt="Coin" className="w-5 h-5 object-contain" />
           <span className="text-[13px] text-white font-medium">
             {price.toFixed(0)} BBD
           </span>
@@ -117,7 +118,7 @@ export default function ItemCard({
           onClick={handleCardClick}
           className="hover:opacity-80 transition"
         >
-          <img src="/camera.png" alt="View" className="w-5 h-5 object-contain" />
+          <Image width={500} height={500} src="/camera.png" alt="View" className="w-5 h-5 object-contain" />
         </button>
 
       </div>

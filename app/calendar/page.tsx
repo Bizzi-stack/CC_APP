@@ -5,6 +5,7 @@ import Link from 'next/link'
 import PublicNav from '@/components/PublicNav'
 import SessionGraphicModal from '@/components/SessionGraphicModal'
 import CreatorSignature from '@/components/CreatorSignature'
+import Image from 'next/image'
 
 interface Session {
   id: string
@@ -345,7 +346,7 @@ export default function PublicCalendarPage() {
                             {/* Team A */}
                             <div className="col-span-3 flex flex-col items-center justify-center space-y-1.5">
                               <div className="w-12 h-12 rounded-full overflow-hidden bg-black border border-[#333] p-1 shadow-md flex items-center justify-center">
-                                <img src={match.teamALogo} alt={match.teamA} className="w-full h-full object-contain" />
+                                <Image width={500} height={500} src={match.teamALogo} alt={match.teamA} className="w-full h-full object-contain" />
                               </div>
                               <span className="text-xs font-bold text-white uppercase tracking-wider">{match.teamA}</span>
                             </div>
@@ -360,7 +361,7 @@ export default function PublicCalendarPage() {
                             {/* Team B */}
                             <div className="col-span-3 flex flex-col items-center justify-center space-y-1.5">
                               <div className="w-12 h-12 rounded-full overflow-hidden bg-black border border-[#333] p-1 shadow-md flex items-center justify-center">
-                                <img src={match.teamBLogo} alt={match.teamB} className="w-full h-full object-contain" />
+                                <Image width={500} height={500} src={match.teamBLogo} alt={match.teamB} className="w-full h-full object-contain" />
                               </div>
                               <span className="text-xs font-bold text-white uppercase tracking-wider">{match.teamB}</span>
                             </div>
@@ -396,7 +397,7 @@ export default function PublicCalendarPage() {
                       <div className="flex items-center gap-3">
                         <span className="text-[10px] font-mono font-bold text-[#555]">#{idx + 1}</span>
                         <div className="w-8 h-8 rounded-full overflow-hidden bg-[#111] border border-[#333] p-0.5 shrink-0">
-                          <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
+                          <Image width={500} height={500} src={team.logo} alt={team.name} className="w-full h-full object-contain" />
                         </div>
                         <span className="text-xs font-bold text-white uppercase">{team.name}</span>
                       </div>
@@ -420,7 +421,7 @@ export default function PublicCalendarPage() {
                       <div className="flex items-center gap-3">
                         <span className="text-[10px] font-mono font-bold text-[#555]">#{idx + 1}</span>
                         <div className="w-8 h-8 rounded-full overflow-hidden bg-[#111] border border-[#333] p-0.5 shrink-0">
-                          <img src={team.logo} alt={team.name} className="w-full h-full object-contain" />
+                          <Image width={500} height={500} src={team.logo} alt={team.name} className="w-full h-full object-contain" />
                         </div>
                         <span className="text-xs font-bold text-white uppercase">{team.name}</span>
                       </div>

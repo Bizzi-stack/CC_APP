@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
+import Image from 'next/image'
 
 interface Signup {
   id: string
@@ -258,7 +259,7 @@ export default function SessionsPage() {
               {/* Event Graphic Poster */}
               {activeModalSession.image_url ? (
                 <div className="relative w-full h-64 rounded-xl overflow-hidden border border-[#333] shadow-lg bg-black">
-                  <img src={activeModalSession.image_url} alt="" className="w-full h-full object-cover" />
+                  <Image width={500} height={500} src={activeModalSession.image_url} alt="" className="w-full h-full object-cover" />
                 </div>
               ) : (
                 <div className="w-full h-32 rounded-xl border border-dashed border-[#333] bg-[#0c0c0e] flex items-center justify-center text-[#555] text-xs font-mono uppercase">
@@ -291,7 +292,7 @@ export default function SessionsPage() {
                       onClick={() => handleJoinTeam(activeModalSession.id, activeModalSession.team_a_name || 'Red Team')}
                       className="h-12 bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider rounded-none transition-all active:scale-95 flex items-center justify-center gap-2 border border-white"
                     >
-                      <img src="/red_team.png" alt="Red Team" className="w-6 h-6 object-contain shrink-0" />
+                      <Image width={500} height={500} src="/red_team.png" alt="Red Team" className="w-6 h-6 object-contain shrink-0" />
                       <span>Join {activeModalSession.team_a_name || 'Red Team'}</span>
                     </button>
 
@@ -301,7 +302,7 @@ export default function SessionsPage() {
                       onClick={() => handleJoinTeam(activeModalSession.id, activeModalSession.team_b_name || 'Blue Team')}
                       className="h-12 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-none transition-all active:scale-95 flex items-center justify-center gap-2 border border-white"
                     >
-                      <img src="/blue_team.png" alt="Blue Team" className="w-6 h-6 object-contain shrink-0" />
+                      <Image width={500} height={500} src="/blue_team.png" alt="Blue Team" className="w-6 h-6 object-contain shrink-0" />
                       <span>Join {activeModalSession.team_b_name || 'Blue Team'}</span>
                     </button>
                   </div>
@@ -322,7 +323,7 @@ export default function SessionsPage() {
                   <div className="bg-[#0c0c0e] border border-red-500/30 p-3 rounded-none space-y-2 text-left">
                     <h5 className="text-[11px] font-bold text-red-400 uppercase tracking-wide border-b border-red-500/20 pb-1 flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
-                        <img src="/red_team.png" alt="" className="w-4 h-4 object-contain shrink-0" />
+                        <Image width={500} height={500} src="/red_team.png" alt="" className="w-4 h-4 object-contain shrink-0" />
                         <span>{activeModalSession.team_a_name || 'Red Team'}</span>
                       </span>
                       <span className="text-[9px] font-mono text-[#888]">
@@ -348,7 +349,7 @@ export default function SessionsPage() {
                   <div className="bg-[#0c0c0e] border border-blue-500/30 p-3 rounded-none space-y-2 text-left">
                     <h5 className="text-[11px] font-bold text-blue-400 uppercase tracking-wide border-b border-blue-500/20 pb-1 flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
-                        <img src="/blue_team.png" alt="" className="w-4 h-4 object-contain shrink-0" />
+                        <Image width={500} height={500} src="/blue_team.png" alt="" className="w-4 h-4 object-contain shrink-0" />
                         <span>{activeModalSession.team_b_name || 'Blue Team'}</span>
                       </span>
                       <span className="text-[9px] font-mono text-[#888]">
@@ -398,7 +399,7 @@ function EventGraphicCard({ session, onOpenModal, onDelete, deleting }: {
         className="relative w-full h-52 bg-black cursor-pointer overflow-hidden group-hover:brightness-110 transition-all"
       >
         {image_url ? (
-          <img src={image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <Image width={500} height={500} src={image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[#18181c] to-[#08080a] flex flex-col items-center justify-center p-4 text-center">
             <span className="text-3xl mb-2">⚽</span>

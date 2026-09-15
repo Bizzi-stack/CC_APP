@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
+import Image from 'next/image'
 
 interface Player {
   id: string
@@ -177,7 +178,7 @@ export default function AdminBidsPage() {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full overflow-hidden border border-[#333] bg-[#111] flex items-center justify-center shrink-0">
                       {bid.player.photo_url ? (
-                        <img src={bid.player.photo_url} alt={bid.player.name} className="w-full h-full object-cover object-top" />
+                        <Image width={500} height={500} src={bid.player.photo_url} alt={bid.player.name} className="w-full h-full object-cover object-top" />
                       ) : (
                         <span className="text-[#444] text-xs font-bold uppercase">{bid.player.name.substring(0, 2)}</span>
                       )}

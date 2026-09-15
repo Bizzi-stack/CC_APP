@@ -5,6 +5,7 @@ import Link from 'next/link'
 import PublicNav from '@/components/PublicNav'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
 import { FANTASY_SLOTS, FantasySlot, FormationType, getSlotsForFormation, calculatePlayerPoints, MAX_WEEKLY_TRANSFERS, calculateTransfersUsed } from '@/lib/fantasy'
+import Image from 'next/image'
 
 interface Player {
   id: string
@@ -637,9 +638,9 @@ export default function FantasyPage() {
             player ? 'border-amber-400' : 'border-dashed border-white/40'
           }`}>
             {player?.photo_url ? (
-              <img src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
+              <Image width={500} height={500} src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
             ) : player?.franchises?.logo_url ? (
-              <img src={player.franchises.logo_url} alt="" className="w-8 h-8 object-contain" />
+              <Image width={500} height={500} src={player.franchises.logo_url} alt="" className="w-8 h-8 object-contain" />
             ) : (
               <span className="text-xs font-bold text-[#888]">{slot.positionType}</span>
             )}
@@ -1482,9 +1483,9 @@ export default function FantasyPage() {
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-10 h-10 rounded-full overflow-hidden bg-[#111] border border-[#333] shrink-0">
                         {player.photo_url ? (
-                          <img src={player.photo_url} alt="" className="w-full h-full object-cover" />
+                          <Image width={500} height={500} src={player.photo_url} alt="" className="w-full h-full object-cover" />
                         ) : player.franchises?.logo_url ? (
-                          <img src={player.franchises.logo_url} alt="" className="w-full h-full object-contain p-1" />
+                          <Image width={500} height={500} src={player.franchises.logo_url} alt="" className="w-full h-full object-contain p-1" />
                         ) : (
                           <span className="flex items-center justify-center h-full text-xs font-bold text-[#666]">
                             {player.position || 'PL'}
@@ -1526,9 +1527,9 @@ export default function FantasyPage() {
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-black border-2 border-amber-400 shrink-0">
                   {actionSlot.player?.photo_url ? (
-                    <img src={actionSlot.player.photo_url} alt="" className="w-full h-full object-cover" />
+                    <Image width={500} height={500} src={actionSlot.player.photo_url} alt="" className="w-full h-full object-cover" />
                   ) : actionSlot.player?.franchises?.logo_url ? (
-                    <img src={actionSlot.player.franchises.logo_url} alt="" className="w-full h-full object-contain p-1" />
+                    <Image width={500} height={500} src={actionSlot.player.franchises.logo_url} alt="" className="w-full h-full object-contain p-1" />
                   ) : (
                     <span className="flex items-center justify-center h-full text-xs font-bold text-[#666]">
                       {actionSlot.positionType}
@@ -1666,7 +1667,7 @@ export default function FantasyPage() {
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-black border border-amber-400/50">
                   {inspectingPlayer.photo_url ? (
-                    <img src={inspectingPlayer.photo_url} alt="" className="w-full h-full object-cover" />
+                    <Image width={500} height={500} src={inspectingPlayer.photo_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <span className="flex items-center justify-center h-full text-xs font-bold text-[#666]">
                       {inspectingPlayer.position || 'PL'}

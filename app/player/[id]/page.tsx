@@ -8,6 +8,7 @@ import VerificationBadge from '@/components/VerificationBadge'
 import { getCountryFlag } from '@/lib/countries'
 import FranchiseRosterModal from '@/components/FranchiseRosterModal'
 import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
+import Image from 'next/image'
 
 interface Player {
   id: string
@@ -106,7 +107,7 @@ export default function PlayerStatsPage() {
         <div className="relative z-10 flex items-center gap-6">
           <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 rounded-2xl overflow-hidden border border-[#222] bg-[#111] shadow-2xl">
             {player.photo_url ? (
-              <img src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
+              <Image width={500} height={500} src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <span className="text-4xl font-bold text-[#444]">
@@ -135,7 +136,7 @@ export default function PlayerStatsPage() {
                   title={`View ${player.franchises.name} Roster`}
                 >
                   {player.franchises.logo_url && (
-                    <img src={player.franchises.logo_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                    <Image width={500} height={500} src={player.franchises.logo_url} alt="" className="w-5 h-5 rounded-full object-cover" />
                   )}
                   <span className="text-xs font-bold tracking-widest uppercase text-white group-hover:text-amber-300 transition-colors flex items-center gap-1">
                     <span>{player.franchises.name}</span>

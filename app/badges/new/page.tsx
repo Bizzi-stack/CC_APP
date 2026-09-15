@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import Image from 'next/image'
 
 export default function NewBadgePage() {
   const router = useRouter()
@@ -133,7 +134,7 @@ export default function NewBadgePage() {
               onClick={() => fileInputRef.current?.click()}
             >
               {photoPreview ? (
-                <img src={photoPreview} alt="Preview" className="w-full h-full object-contain" />
+                <Image width={500} height={500} src={photoPreview} alt="Preview" className="w-full h-full object-contain" />
               ) : (
                 <div className="text-center p-4">
                   <svg className="w-8 h-8 mx-auto mb-2 text-[#555]" fill="none" viewBox="0 0 24 24" stroke="currentColor">

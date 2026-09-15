@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import FilterBar from '@/components/FilterBar'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 export default function CreateItemPage() {
     const router = useRouter()
@@ -111,7 +112,7 @@ export default function CreateItemPage() {
         <div className="min-h-screen bg-[#000000] text-white font-sans">
             {/* Logo Header */}
             <div className="flex justify-center items-center py-4 border-b border-[#333333]">
-                <img src="/logo.png" alt="ARTIC" className="h-40 object-contain" />
+                <Image width={500} height={500} src="/logo.png" alt="ARTIC" className="h-40 object-contain" />
             </div>
 
             <FilterBar category="" priceRange="" sort="best-match" search="" />
@@ -139,7 +140,7 @@ export default function CreateItemPage() {
                                 className={`flex flex-col items-center justify-center w-full aspect-square border border-dashed border-[#333333] hover:border-white cursor-pointer transition bg-black ${preview ? 'border-none p-0' : 'p-4'}`}
                             >
                                 {preview ? (
-                                    <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                                    <Image width={500} height={500} src={preview} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="text-center">
                                         <span className="text-[40px] mb-2 block text-[#333333]">+</span>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
+import Image from 'next/image'
 
 interface Franchise {
   id: string
@@ -83,7 +84,7 @@ export default function FranchisesPage() {
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full border border-[#333] bg-[#111] flex items-center justify-center overflow-hidden shrink-0">
                     {franchise.logo_url ? (
-                      <img src={franchise.logo_url} alt={franchise.name} className="w-full h-full object-cover" />
+                      <Image width={500} height={500} src={franchise.logo_url} alt={franchise.name} className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-[#444] text-xs font-bold uppercase">{franchise.name.substring(0, 2)}</span>
                     )}

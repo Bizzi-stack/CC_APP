@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 export interface SessionSignup {
   id: string
@@ -145,7 +146,7 @@ export default function SessionGraphicModal({ session, onClose, onSignupSuccess 
         <div className="overflow-y-auto space-y-4 pr-1 flex-1 custom-scrollbar">
           {/* Full Graphic Poster */}
           <div className="relative w-full rounded-none overflow-hidden border border-[#333] shadow-2xl bg-black flex justify-center">
-            <img src={posterImage} alt={session.title} className="w-full max-h-80 object-contain" />
+            <Image width={500} height={500} src={posterImage} alt={session.title} className="w-full max-h-80 object-contain" />
           </div>
 
           {/* User Status / Notification */}
@@ -181,7 +182,7 @@ export default function SessionGraphicModal({ session, onClose, onSignupSuccess 
                   userCurrentSignup?.selected_team === teamAName ? 'ring-2 ring-white' : ''
                 }`}
               >
-                <img src="/red_team.png" alt="Red Team" className="w-6 h-6 object-contain shrink-0" />
+                <Image width={500} height={500} src="/red_team.png" alt="Red Team" className="w-6 h-6 object-contain shrink-0" />
                 <span>JOIN {teamAName}</span>
               </button>
 
@@ -193,7 +194,7 @@ export default function SessionGraphicModal({ session, onClose, onSignupSuccess 
                   userCurrentSignup?.selected_team === teamBName ? 'ring-2 ring-white' : ''
                 }`}
               >
-                <img src="/blue_team.png" alt="Blue Team" className="w-6 h-6 object-contain shrink-0" />
+                <Image width={500} height={500} src="/blue_team.png" alt="Blue Team" className="w-6 h-6 object-contain shrink-0" />
                 <span>JOIN {teamBName}</span>
               </button>
             </div>
@@ -213,7 +214,7 @@ export default function SessionGraphicModal({ session, onClose, onSignupSuccess 
               <div className="bg-[#0a0a0a] border border-red-500/50 p-3 rounded-none space-y-2 text-left">
                 <h5 className="text-[11px] font-bold text-red-400 uppercase tracking-wide border-b border-red-500/30 pb-1 flex items-center justify-between font-mono">
                   <span className="flex items-center gap-1.5">
-                    <img src="/red_team.png" alt="" className="w-4 h-4 object-contain shrink-0" />
+                    <Image width={500} height={500} src="/red_team.png" alt="" className="w-4 h-4 object-contain shrink-0" />
                     <span>{teamAName}</span>
                   </span>
                   <span className="text-[9px] font-mono text-[#888]">{teamASignups.length}</span>
@@ -235,7 +236,7 @@ export default function SessionGraphicModal({ session, onClose, onSignupSuccess 
               <div className="bg-[#0a0a0a] border border-blue-500/50 p-3 rounded-none space-y-2 text-left">
                 <h5 className="text-[11px] font-bold text-blue-400 uppercase tracking-wide border-b border-blue-500/30 pb-1 flex items-center justify-between font-mono">
                   <span className="flex items-center gap-1.5">
-                    <img src="/blue_team.png" alt="" className="w-4 h-4 object-contain shrink-0" />
+                    <Image width={500} height={500} src="/blue_team.png" alt="" className="w-4 h-4 object-contain shrink-0" />
                     <span>{teamBName}</span>
                   </span>
                   <span className="text-[9px] font-mono text-[#888]">{teamBSignups.length}</span>

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -44,7 +45,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <img src="/logo.png" alt="College Clubs" className="h-16 object-contain brightness-0 invert" />
+            <Image width={500} height={500} src="/logo.png" alt="College Clubs" className="h-16 object-contain brightness-0 invert" />
             <span className="text-xl font-black uppercase tracking-wider text-white">College Clubs</span>
           </div>
           <h1 className="text-sm font-bold tracking-[0.2em] uppercase text-white">Admin Access</h1>

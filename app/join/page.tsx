@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import PublicNav from '@/components/PublicNav'
 import { COUNTRY_LIST } from '@/lib/countries'
+import Image from 'next/image'
 
 const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST', 'CF']
 const SPORTS = ['Football', 'Basketball', 'Track & Field', 'Netball', 'Volleyball', 'Cricket', 'E-Sports', 'Other']
@@ -151,7 +152,7 @@ export default function JoinPage() {
       {/* Header */}
       <div className="flex flex-col items-center pt-12 pb-6 border-b border-[#1a1a1a] px-4">
         <div className="flex items-center gap-2 mb-4">
-          <img src="/logo.png" alt="College Clubs" className="h-14 object-contain brightness-0 invert" />
+          <Image width={500} height={500} src="/logo.png" alt="College Clubs" className="h-14 object-contain brightness-0 invert" />
           <span className="text-lg font-black uppercase tracking-wider text-white">College Clubs</span>
         </div>
         <h1 className="text-xl font-bold tracking-[0.2em] uppercase text-center">Join</h1>
@@ -179,7 +180,7 @@ export default function JoinPage() {
           >
             {preview ? (
               <div className="relative w-full aspect-square max-h-64 overflow-hidden border border-[#333]">
-                <img src={preview} alt="Your headshot" className="w-full h-full object-cover object-top" />
+                <Image width={500} height={500} src={preview} alt="Your headshot" className="w-full h-full object-cover object-top" />
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                   <span className="text-white text-xs font-bold tracking-widest uppercase">Change Photo</span>
                 </div>
@@ -353,8 +354,7 @@ export default function JoinPage() {
             {form.franchise_id && (
               <div className="w-11 h-11 border border-[#333] bg-[#111] flex items-center justify-center p-1.5 shrink-0">
                 {franchises.find(f => f.id === form.franchise_id)?.logo_url ? (
-                  <img
-                    src={franchises.find(f => f.id === form.franchise_id)?.logo_url || ''}
+                  <Image width={500} height={500}                     src={franchises.find(f => f.id === form.franchise_id)?.logo_url || ''}
                     alt="Team Crest"
                     className="w-full h-full object-contain filter drop-shadow"
                   />

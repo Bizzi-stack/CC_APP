@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
+import Image from 'next/image'
 
 interface Player {
   id: string
@@ -199,8 +200,7 @@ export default function LandingPage() {
       {/* Background Image Layer: Dynamic Crossfade Transitioning between 5 UWIFA Photos */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-black">
         {BACKGROUND_IMAGES.map((imgSrc, idx) => (
-          <img
-            key={imgSrc}
+          <Image width={500} height={500}             key={imgSrc}
             src={imgSrc}
             alt="UWIFA Action Background"
             className={`absolute inset-0 w-full h-full object-cover object-[center_35%] filter brightness-[0.75] contrast-110 pointer-events-none select-none transition-all duration-1000 ease-in-out ${
@@ -213,7 +213,7 @@ export default function LandingPage() {
 
       {/* Top Header Logo */}
       <div className="relative z-10 flex flex-col items-center pt-6 pb-2">
-        <img src="/logo.png" alt="College Clubs FC" className="h-28 md:h-36 w-auto object-contain drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]" />
+        <Image width={500} height={500} src="/logo.png" alt="College Clubs FC" className="h-28 md:h-36 w-auto object-contain drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]" />
       </div>
 
       {/* Foreground Content Card - Translucent Glassmorphic Style */}
@@ -227,7 +227,7 @@ export default function LandingPage() {
           <div className="bg-black/65 backdrop-blur-xl border border-white/30 p-8 rounded-none shadow-[0_0_50px_rgba(0,0,0,0.8)] text-center space-y-6 animate-fadeIn">
             <div className="flex flex-col items-center space-y-3">
               {activePlayer.photo_url ? (
-                <img src={activePlayer.photo_url} alt="" className="w-20 h-20 rounded-none object-cover border-2 border-white shadow-xl" />
+                <Image width={500} height={500} src={activePlayer.photo_url} alt="" className="w-20 h-20 rounded-none object-cover border-2 border-white shadow-xl" />
               ) : (
                 <div className="w-20 h-20 rounded-none bg-black/80 border-2 border-white flex items-center justify-center text-2xl font-bold text-white shadow-xl">
                   {activePlayer.name.charAt(0)}
@@ -389,7 +389,7 @@ export default function LandingPage() {
                                   className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/10 text-left transition-colors border-b border-white/10 last:border-b-0 cursor-pointer"
                                 >
                                   {p.photo_url ? (
-                                    <img src={p.photo_url} alt="" className="w-6 h-6 object-cover border border-white/30 shrink-0" />
+                                    <Image width={500} height={500} src={p.photo_url} alt="" className="w-6 h-6 object-cover border border-white/30 shrink-0" />
                                   ) : (
                                     <div className="w-6 h-6 bg-white/20 text-[10px] font-bold flex items-center justify-center text-white shrink-0">
                                       {p.name.charAt(0)}

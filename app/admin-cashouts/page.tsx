@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import BtcTicker from '@/components/BtcTicker'
+import Image from 'next/image'
 
 interface CashoutRequest {
   id: string
@@ -181,7 +182,7 @@ export default function AdminCashoutsPage() {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full border border-[#333] bg-[#161616] overflow-hidden shrink-0">
                       {req.players?.photo_url ? (
-                        <img src={req.players.photo_url} alt="" className="w-full h-full object-cover object-top" />
+                        <Image width={500} height={500} src={req.players.photo_url} alt="" className="w-full h-full object-cover object-top" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-amber-400 font-bold text-sm">
                           ₿

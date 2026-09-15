@@ -13,6 +13,7 @@ import PullDownModal from '@/components/PullDownModal'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
 import CreatorSignature from '@/components/CreatorSignature'
 import { retroAudio } from '@/lib/sounds'
+import Image from 'next/image'
 
 interface Player {
   id: string
@@ -228,7 +229,7 @@ export default function MarketPage() {
               {/* Big Photo */}
               <div className="w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden border border-[#222] bg-[#111] flex items-center justify-center shadow-2xl">
                 {selectedPlayer.photo_url ? (
-                  <img src={selectedPlayer.photo_url} alt={selectedPlayer.name} className="w-full h-full object-cover object-top" />
+                  <Image width={500} height={500} src={selectedPlayer.photo_url} alt={selectedPlayer.name} className="w-full h-full object-cover object-top" />
                 ) : (
                   <span className="text-3xl font-bold text-[#444]">
                     {selectedPlayer.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
@@ -255,7 +256,7 @@ export default function MarketPage() {
                       title={`View ${selectedPlayer.franchises.name} Roster`}
                     >
                       {selectedPlayer.franchises.logo_url ? (
-                        <img src={selectedPlayer.franchises.logo_url} alt="" className="w-4 h-4 rounded-full object-cover" />
+                        <Image width={500} height={500} src={selectedPlayer.franchises.logo_url} alt="" className="w-4 h-4 rounded-full object-cover" />
                       ) : (
                         <span className="text-[10px] font-bold text-[#888]">{selectedPlayer.franchises.name.substring(0, 1)}</span>
                       )}
@@ -312,7 +313,7 @@ export default function MarketPage() {
                         }}
                       >
                         <div className="flex items-center justify-center hover:scale-110 transition-transform w-full h-full" title={badge.name}>
-                          <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover filter drop-shadow-lg" />
+                          <Image width={500} height={500} src={badge.image_url} alt={badge.name} className="w-full h-full object-cover filter drop-shadow-lg" />
                         </div>
                       </div>
                     )
@@ -329,7 +330,7 @@ export default function MarketPage() {
                         style={{ left: `${20 + (index * 20)}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
                       >
                         <div className="flex items-center justify-center hover:scale-110 transition-transform" title={badge.name}>
-                          <img src={badge.image_url} alt={badge.name} className="max-w-[80px] max-h-[80px] sm:max-w-[100px] sm:max-h-[100px] object-contain filter drop-shadow-lg" />
+                          <Image width={500} height={500} src={badge.image_url} alt={badge.name} className="max-w-[80px] max-h-[80px] sm:max-w-[100px] sm:max-h-[100px] object-contain filter drop-shadow-lg" />
                         </div>
                       </div>
                     )
@@ -377,7 +378,7 @@ function PublicPlayerRow({ player }: { player: Player }) {
       {/* Photo */}
       <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden border border-[#222] bg-[#111] flex items-center justify-center">
         {player.photo_url ? (
-          <img src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
+          <Image width={500} height={500} src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
         ) : (
           <span className="text-base font-bold text-[#444]">{initials}</span>
         )}
@@ -401,7 +402,7 @@ function PublicPlayerRow({ player }: { player: Player }) {
           {player.franchises && (
             <div className="flex items-center gap-1.5 bg-[#111] border border-[#333] px-1.5 py-0.5" title={player.franchises.name}>
               {player.franchises.logo_url ? (
-                <img src={player.franchises.logo_url} alt="" className="w-3 h-3 rounded-full object-cover" />
+                <Image width={500} height={500} src={player.franchises.logo_url} alt="" className="w-3 h-3 rounded-full object-cover" />
               ) : (
                 <span className="text-[8px] font-bold text-[#888]">{player.franchises.name.substring(0, 1)}</span>
               )}
@@ -425,7 +426,7 @@ function PublicPlayerRow({ player }: { player: Player }) {
         <div className="flex-shrink-0 flex items-center justify-center">
           {player.franchises?.logo_url ? (
             <div className="w-9 h-9 bg-[#111] border border-[#333] p-1 flex items-center justify-center shadow-md overflow-hidden rounded-none" title={`Signed to ${player.franchises.name}`}>
-              <img src={player.franchises.logo_url} alt={player.franchises.name} className="w-full h-full object-contain" />
+              <Image width={500} height={500} src={player.franchises.logo_url} alt={player.franchises.name} className="w-full h-full object-contain" />
             </div>
           ) : player.franchises?.name ? (
             <div className="px-2.5 py-1.5 bg-[#111] border border-[#333] text-[9px] font-black text-white uppercase tracking-wider rounded-none" title={`Signed to ${player.franchises.name}`}>

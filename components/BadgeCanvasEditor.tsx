@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
+import Image from 'next/image'
 
 interface CanvasBadge {
   id: string
@@ -117,7 +118,7 @@ export default function BadgeCanvasEditor({
               className={`w-full aspect-square border ${isSelected ? 'border-white bg-[#222]' : 'border-[#333] bg-[#111]'} flex items-center justify-center p-2 cursor-pointer transition-colors relative`}
               title={badge.name}
             >
-              <img src={badge.image_url} alt={badge.name} className="w-full h-full object-contain" />
+              <Image width={500} height={500} src={badge.image_url} alt={badge.name} className="w-full h-full object-contain" />
               {isSelected && (
                 <div className="absolute -top-1 -right-1 bg-white text-black rounded-full w-4 h-4 flex items-center justify-center">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -166,7 +167,7 @@ export default function BadgeCanvasEditor({
                     zIndex: isActive ? 10 : 1 
                   }}
                 >
-                  <img 
+                  <Image width={500} height={500} 
                     src={badge.image_url} 
                     alt={badge.name} 
                     className={`w-full h-full object-cover filter drop-shadow-md cursor-move pointer-events-auto ${floatClass}`}

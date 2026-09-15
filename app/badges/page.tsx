@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
+import Image from 'next/image'
 
 interface CanvasBadge {
   id: string
@@ -107,7 +108,7 @@ export default function BadgesPage() {
                 </button>
 
                 <div className="w-20 h-20 flex items-center justify-center overflow-hidden">
-                  <img src={badge.image_url} alt={badge.name} className="w-full h-full object-contain" />
+                  <Image width={500} height={500} src={badge.image_url} alt={badge.name} className="w-full h-full object-contain" />
                 </div>
                 
                 <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => handleEditName(badge)}>

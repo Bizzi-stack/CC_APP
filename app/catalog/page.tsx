@@ -7,6 +7,7 @@ import ItemCard from '@/components/ItemCard'
 import ItemCardSkeleton from '@/components/ItemCardSkeleton'
 import Pagination from '@/components/Pagination'
 import type { CatalogResponse, CatalogItem } from '@/app/api/catalog/route'
+import Image from 'next/image'
 
 function CatalogContent() {
   const searchParams = useSearchParams()
@@ -55,7 +56,7 @@ function CatalogContent() {
     return (
       <div className="min-h-screen bg-[#000000]">
         <div className="flex justify-center items-center py-8">
-          <img src="/logo.png" alt="ARTIC" className="h-20 object-contain invert" />
+          <Image width={500} height={500} src="/logo.png" alt="ARTIC" className="h-20 object-contain invert" />
         </div>
         <FilterBar category={category} priceRange={priceRange} sort={sort} search={search} />
         <div className="max-w-[1440px] mx-auto px-6 py-8 text-center">
@@ -73,7 +74,7 @@ function CatalogContent() {
       {/* Logo Header */}
       <div className="flex justify-center items-center py-4 border-b border-[#333333]">
         {/* Using the uploaded logo. Assuming it has transparency. If it's black text on clear, we might need invert, but user image seemed to be white text or gothic. Let's try raw first. */}
-        <img src="/logo.png" alt="ARTIC" className="h-40 object-contain" />
+        <Image width={500} height={500} src="/logo.png" alt="ARTIC" className="h-40 object-contain" />
       </div>
 
       <FilterBar category={category} priceRange={priceRange} sort={sort} search={search} />

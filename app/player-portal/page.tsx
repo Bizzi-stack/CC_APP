@@ -12,6 +12,7 @@ import { COUNTRY_LIST, getCountryFlag } from '@/lib/countries'
 import { TopScorerBadge, TopAssisterBadge } from '@/components/TopBadges'
 import FooterPartnerTicker from '@/components/FooterPartnerTicker'
 import { retroAudio } from '@/lib/sounds'
+import Image from 'next/image'
 
 interface CanvasBadge {
   id: string
@@ -587,7 +588,7 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full border border-[#333] bg-[#111] overflow-hidden flex items-center justify-center shrink-0">
             {player?.photo_url ? (
-              <img src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
+              <Image width={500} height={500} src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
             ) : (
               <span className="text-[#555] text-xl font-bold uppercase">{player?.name.substring(0, 2)}</span>
             )}
@@ -685,7 +686,7 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {offer.franchise?.logo_url ? (
-                        <img src={offer.franchise.logo_url} alt="" className="w-6 h-6 rounded-full object-cover" />
+                        <Image width={500} height={500} src={offer.franchise.logo_url} alt="" className="w-6 h-6 rounded-full object-cover" />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-[#222] flex items-center justify-center text-[10px] font-bold text-[#888]">
                           {offer.franchise?.name.substring(0, 2)}
@@ -785,7 +786,7 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
               />
               <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-[#333] bg-[#111] shadow-lg group">
                 {photoUrl ? (
-                  <img src={photoUrl} alt="Player Headshot" className="w-full h-full object-cover object-top" />
+                  <Image width={500} height={500} src={photoUrl} alt="Player Headshot" className="w-full h-full object-cover object-top" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-[#555] font-bold text-xs">
                     No Photo
@@ -985,7 +986,7 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
                   return (
                     <div key={badge.id} className="border border-[#222] bg-[#0a0a0a] p-3 flex flex-col items-center justify-between gap-3 text-center relative overflow-hidden">
                       <div className="w-16 h-16 flex items-center justify-center p-1 bg-[#111] border border-[#222] rounded overflow-hidden">
-                        <img src={badge.image_url} alt={badge.name} className="w-full h-full object-contain filter drop-shadow-md" />
+                        <Image width={500} height={500} src={badge.image_url} alt={badge.name} className="w-full h-full object-contain filter drop-shadow-md" />
                       </div>
                       <div className="space-y-1">
                         <h4 className="font-bold text-xs text-white truncate max-w-[150px]">{badge.name}</h4>
@@ -1016,7 +1017,7 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST',
                   return (
                     <div key={badge.id} className="border border-[#222] bg-[#0a0a0a] p-3 flex flex-col items-center justify-between gap-3 text-center relative">
                       <div className="w-16 h-16 flex items-center justify-center p-1 bg-[#111] border border-[#222] rounded overflow-hidden">
-                        <img src={badge.image_url} alt={badge.name} className="w-full h-full object-contain filter drop-shadow-md" />
+                        <Image width={500} height={500} src={badge.image_url} alt={badge.name} className="w-full h-full object-contain filter drop-shadow-md" />
                       </div>
                       <div className="space-y-1">
                         <h4 className="font-bold text-xs text-white truncate max-w-[150px]">{badge.name}</h4>

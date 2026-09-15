@@ -7,6 +7,7 @@ import BadgeCanvasEditor, { BadgePosition } from '@/components/BadgeCanvasEditor
 import VerificationBadge from '@/components/VerificationBadge'
 import { FranchiseOwnerBadge } from '@/components/ProfileBanner'
 import { getCountryFlag } from '@/lib/countries'
+import Image from 'next/image'
 
 interface Player {
   id: string
@@ -802,7 +803,7 @@ function ActivePlayerRow({ player, onToggle, onEdit, onDelete, actioning }: {
     <div className="flex items-center gap-3 px-4 py-4">
       <div className="w-11 h-11 flex-shrink-0 rounded-full overflow-hidden border border-[#222] bg-[#111] flex items-center justify-center">
         {player.photo_url ? (
-          <img src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
+          <Image width={500} height={500} src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
         ) : (
           <span className="text-sm font-bold text-[#555]">{initials}</span>
         )}
@@ -818,7 +819,7 @@ function ActivePlayerRow({ player, onToggle, onEdit, onDelete, actioning }: {
           {player.franchises && (
             <div className="flex items-center gap-1 bg-[#111] border border-[#333] px-1.5 py-0.5" title={player.franchises.name}>
               {player.franchises.logo_url ? (
-                <img src={player.franchises.logo_url} alt="" className="w-3 h-3 rounded-full object-cover" />
+                <Image width={500} height={500} src={player.franchises.logo_url} alt="" className="w-3 h-3 rounded-full object-cover" />
               ) : (
                 <span className="text-[8px] font-bold text-[#888]">{player.franchises.name.substring(0, 1)}</span>
               )}
@@ -845,7 +846,7 @@ function ActivePlayerRow({ player, onToggle, onEdit, onDelete, actioning }: {
           <div className="flex items-center gap-1.5 cursor-pointer" onClick={() => onToggle(player)}>
             {player.franchises?.logo_url ? (
               <div className="w-8 h-8 bg-[#111] border border-[#333] p-1 flex items-center justify-center shadow-md overflow-hidden rounded-none" title={`Signed to ${player.franchises.name}`}>
-                <img src={player.franchises.logo_url} alt={player.franchises.name} className="w-full h-full object-contain" />
+                <Image width={500} height={500} src={player.franchises.logo_url} alt={player.franchises.name} className="w-full h-full object-contain" />
               </div>
             ) : (
               <button
@@ -900,7 +901,7 @@ function PendingPlayerRow({ player, onApprove, onReject, actioning }: {
         {/* Photo */}
         <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden border border-[#333] bg-[#111] flex items-center justify-center">
           {player.photo_url ? (
-            <img src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
+            <Image width={500} height={500} src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
           ) : (
             <span className="text-base font-bold text-[#555]">{initials}</span>
           )}
@@ -934,7 +935,7 @@ function PendingPlayerRow({ player, onApprove, onReject, actioning }: {
             )}
             {player.franchises && (
               <span className="text-[10px] font-bold text-amber-400 border border-amber-500/40 bg-amber-950/20 px-1.5 py-0.5 uppercase tracking-wider flex items-center gap-1">
-                {player.franchises.logo_url && <img src={player.franchises.logo_url} alt="" className="w-3.5 h-3.5 object-contain" />}
+                {player.franchises.logo_url && <Image width={500} height={500} src={player.franchises.logo_url} alt="" className="w-3.5 h-3.5 object-contain" />}
                 <span>Chosen Team: {player.franchises.name}</span>
               </span>
             )}

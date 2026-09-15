@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface Franchise {
   id: string
@@ -133,7 +134,7 @@ export default function LeaguePage() {
                         <td className="p-4 font-bold flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full border border-[#333] bg-black overflow-hidden flex items-center justify-center shrink-0">
                             {f.logo_url ? (
-                              <img src={f.logo_url} alt={f.name} className="w-full h-full object-cover" />
+                              <Image width={500} height={500} src={f.logo_url} alt={f.name} className="w-full h-full object-cover" />
                             ) : (
                               <span className="text-[10px] text-[#555]">{f.name.substring(0, 2)}</span>
                             )}
@@ -177,7 +178,7 @@ export default function LeaguePage() {
                         <span className="font-mono text-[#555] text-xs w-4 text-center">{index + 1}</span>
                         <div className="w-10 h-10 rounded-full border border-[#333] bg-[#111] overflow-hidden flex items-center justify-center shrink-0">
                           {p.photo_url ? (
-                            <img src={p.photo_url} alt={p.name} className="w-full h-full object-cover object-top" />
+                            <Image width={500} height={500} src={p.photo_url} alt={p.name} className="w-full h-full object-cover object-top" />
                           ) : (
                             <span className="text-[10px] text-[#555]">{p.name.substring(0, 2)}</span>
                           )}
@@ -211,7 +212,7 @@ export default function LeaguePage() {
                         <span className="font-mono text-[#555] text-xs w-4 text-center">{index + 1}</span>
                         <div className="w-10 h-10 rounded-full border border-[#333] bg-[#111] overflow-hidden flex items-center justify-center shrink-0">
                           {p.photo_url ? (
-                            <img src={p.photo_url} alt={p.name} className="w-full h-full object-cover object-top" />
+                            <Image width={500} height={500} src={p.photo_url} alt={p.name} className="w-full h-full object-cover object-top" />
                           ) : (
                             <span className="text-[10px] text-[#555]">{p.name.substring(0, 2)}</span>
                           )}

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useId } from 'react'
+import Image from 'next/image'
 
 export interface StockFranchise {
   id: string
@@ -154,7 +155,7 @@ export default function FranchiseStockChart({ franchise, userBalance = 0, onBuyS
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {franchise.logo_url ? (
-            <img src={franchise.logo_url} alt="" className="w-11 h-11 rounded-full object-cover border border-[#333] shadow-md" />
+            <Image width={500} height={500} src={franchise.logo_url} alt="" className="w-11 h-11 rounded-full object-cover border border-[#333] shadow-md" />
           ) : (
             <div className="w-11 h-11 rounded-full bg-[#181818] border border-[#333] flex items-center justify-center font-bold text-[#888] shadow-md">
               {franchise.name.substring(0, 2)}
@@ -298,7 +299,7 @@ export default function FranchiseStockChart({ franchise, userBalance = 0, onBuyS
             <div className="flex items-center justify-between border-b border-[#222] pb-3">
               <div className="flex items-center gap-2.5">
                 {franchise.logo_url && (
-                  <img src={franchise.logo_url} alt="" className="w-8 h-8 rounded-full object-cover border border-[#333]" />
+                  <Image width={500} height={500} src={franchise.logo_url} alt="" className="w-8 h-8 rounded-full object-cover border border-[#333]" />
                 )}
                 <div>
                   <h3 className="text-sm font-black uppercase text-white tracking-wider">
@@ -416,7 +417,7 @@ export default function FranchiseStockChart({ franchise, userBalance = 0, onBuyS
             <div className="flex items-center justify-between border-b border-[#222] pb-3">
               <div className="flex items-center gap-2.5">
                 {franchise.logo_url && (
-                  <img src={franchise.logo_url} alt="" className="w-8 h-8 rounded-full object-cover border border-[#333]" />
+                  <Image width={500} height={500} src={franchise.logo_url} alt="" className="w-8 h-8 rounded-full object-cover border border-[#333]" />
                 )}
                 <div>
                   <h3 className="text-sm font-black uppercase text-amber-300 tracking-wider">

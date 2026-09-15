@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import BadgeCanvasEditor, { BadgePosition } from '@/components/BadgeCanvasEditor'
 import { COUNTRY_LIST } from '@/lib/countries'
+import Image from 'next/image'
 
 const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST', 'CF']
 
@@ -123,7 +124,7 @@ export default function NewPlayerPage() {
           <label htmlFor="player-photo" className="cursor-pointer">
             <div className={`w-24 h-24 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors ${preview ? 'border-transparent' : 'border-[#333] hover:border-white'}`}>
               {preview ? (
-                <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                <Image width={500} height={500} src={preview} alt="Preview" className="w-full h-full object-cover" />
               ) : (
                 <div className="text-center">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="1.5" className="mx-auto mb-1">

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useCustomDialog } from '@/components/CustomDialog'
 import { requestNotificationPermission, sendNativeNotification } from '@/lib/notifications'
 import { retroAudio } from '@/lib/sounds'
+import Image from 'next/image'
 
 interface Player {
   id: string
@@ -551,7 +552,7 @@ export default function FranchisePortalPage() {
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full border border-[#333] bg-black flex items-center justify-center overflow-hidden shrink-0 shadow-xl">
             {franchise.logo_url ? (
-              <img src={franchise.logo_url} alt={franchise.name} className="w-full h-full object-cover" />
+              <Image width={500} height={500} src={franchise.logo_url} alt={franchise.name} className="w-full h-full object-cover" />
             ) : (
               <span className="text-[#666] text-xl font-bold uppercase">{franchise.name.substring(0, 2)}</span>
             )}
@@ -622,7 +623,7 @@ export default function FranchisePortalPage() {
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full overflow-hidden border border-[#333] bg-[#111] flex items-center justify-center shrink-0">
                       {player.photo_url ? (
-                        <img src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
+                        <Image width={500} height={500} src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
                       ) : (
                         <span className="text-[#444] text-sm font-bold uppercase">{player.name.substring(0, 2)}</span>
                       )}
@@ -670,7 +671,7 @@ export default function FranchisePortalPage() {
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full overflow-hidden border border-[#333] bg-[#111] flex items-center justify-center shrink-0">
                         {player.photo_url ? (
-                          <img src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
+                          <Image width={500} height={500} src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
                         ) : (
                           <span className="text-[#444] text-sm font-bold uppercase">{player.name.substring(0, 2)}</span>
                         )}

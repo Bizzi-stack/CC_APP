@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function NewSessionPage() {
   const router = useRouter()
@@ -160,7 +161,7 @@ export default function NewSessionPage() {
 
           {form.image_url && (
             <div className="mt-3 w-full h-52 rounded-xl border border-amber-500/30 overflow-hidden bg-black flex items-center justify-center relative shadow-xl">
-              <img src={form.image_url} alt="Poster preview" className="w-full h-full object-cover" />
+              <Image width={500} height={500} src={form.image_url} alt="Poster preview" className="w-full h-full object-cover" />
               <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-2.5 py-1 text-[9px] font-mono text-emerald-400 border border-emerald-500/30 rounded-lg shadow">
                 ✓ Graphic Attached
               </div>
