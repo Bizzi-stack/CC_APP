@@ -352,10 +352,10 @@ export default function FantasyPage() {
 
   const transfersRemaining = Math.max(0, MAX_WEEKLY_TRANSFERS - transfersUsed)
 
-  // Handle slot click to open transfer drawer — default to ALL players so any player can be picked for any slot
+  // Handle slot click to open transfer drawer — default to slot position, or ALL if flex
   const handleSlotClick = (slot: FantasySlot | PickSlot) => {
     setActivePickingSlot(slot as FantasySlot)
-    setSelectedPosFilter('ALL')
+    setSelectedPosFilter((slot as FantasySlot).positionType === 'FLEX' ? 'ALL' : (slot as FantasySlot).positionType)
     setSelectedTeamFilter('ALL')
     setSearchQuery('')
   }
@@ -612,10 +612,15 @@ export default function FantasyPage() {
       let matchesPos = true
       if (selectedPosFilter !== 'ALL') {
         const pPos = (player.position || '').toUpperCase()
-        if (selectedPosFilter === 'GK') matchesPos = pPos.includes('GK') || pPos.includes('GOAL')
-        else if (selectedPosFilter === 'DEF') matchesPos = pPos.includes('DEF') || pPos.includes('BACK')
-        else if (selectedPosFilter === 'MID') matchesPos = pPos.includes('MID') || pPos.includes('WING')
-        else if (selectedPosFilter === 'FWD') matchesPos = pPos.includes('FWD') || pPos.includes('STRIKER') || pPos.includes('ATT')
+        if (selectedPosFilter === 'GK') {
+          matchesPos = ['GK', 'GOAL'].some(term => pPos.includes(term))
+        } else if (selectedPosFilter === 'DEF') {
+          matchesPos = ['DEF', 'BACK', 'CB', 'LB', 'RB', 'LWB', 'RWB'].some(term => pPos.includes(term) || pPos === term)
+        } else if (selectedPosFilter === 'MID') {
+          matchesPos = ['MID', 'WING', 'CM', 'CDM', 'CAM', 'LM', 'RM'].some(term => pPos.includes(term) || pPos === term)
+        } else if (selectedPosFilter === 'FWD') {
+          matchesPos = ['FWD', 'STRIKER', 'ATT', 'ST', 'CF', 'LW', 'RW'].some(term => pPos.includes(term) || pPos === term)
+        }
       }
 
       return matchesSearch && matchesTeam && matchesPos
