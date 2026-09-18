@@ -217,6 +217,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Team name, Manager name, and User ID are required' }, { status: 400 })
     }
 
+    // 0. Check Gameweek Deadline
+    const { data: gwData } = await db
+      .from('fantasy_gameweeks')
+      .select('deadline')
+      .eq('id', gameweek)
+      .single()
+
+    if (gwData && gwData.deadline) {
+      const deadlineDate = new Date(gwData.deadline)
+      if (new Date() > deadlineDate) {
+        return NextResponse.json({ 
+          error: 'The deadline for this gameweek has passed. Squad changes are locked.' 
+        }, { status: 403 })
+      }
+    }
+
     // 1. Find or create fantasy team
     const { data: existingTeams, error: findError } = await db
       .from('fantasy_teams')

@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
           id,
           name,
           position,
+          photo_url,
           goals,
           assists
         )
@@ -65,8 +66,9 @@ export async function GET(request: NextRequest) {
       statsMap[`${s.gameweek}_${s.player_id}`] = s
     })
 
-    // 4. Calculate points for every team
+    // 4. Calculate points for every team & most common players
     const teamScoresMap: Record<string, { gwPoints: number; totalPoints: number }> = {}
+    const playerCounts: Record<string, { count: number; name: string; photo_url: string; position: string }> = {}
 
     teams.forEach((t: any) => {
       teamScoresMap[t.id] = { gwPoints: 0, totalPoints: 0 }
@@ -109,6 +111,19 @@ export async function GET(request: NextRequest) {
           teamScoresMap[pick.fantasy_team_id].gwPoints += pts
         }
       }
+
+      // Track player ownership for active gameweek
+      if (Number(pick.gameweek) === Number(gameweek) && player) {
+        if (!playerCounts[player.id]) {
+          playerCounts[player.id] = { 
+            count: 0, 
+            name: player.name, 
+            photo_url: player.photo_url, 
+            position: player.position 
+          }
+        }
+        playerCounts[player.id].count++
+      }
     })
 
     // 5. Build leaderboard array
@@ -143,6 +158,15 @@ export async function GET(request: NextRequest) {
     const averageScore = totalManagers > 0 ? Math.round(totalGwScoreSum / totalManagers) : 0
     const highestScore = totalManagers > 0 ? Math.max(...leaderboard.map(l => l.gameweek_points)) : 0
 
+    // Top 3 Most Common Players
+    const mostCommonPlayers = Object.values(playerCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3)
+      .map(p => ({
+        ...p,
+        ownership_percentage: totalManagers > 0 ? Math.round((p.count / totalManagers) * 100) : 0
+      }))
+
     let userStats = null
     if (userIdentifier) {
       const found = leaderboard.find(l => l.user_identifier === userIdentifier)
@@ -162,6 +186,7 @@ export async function GET(request: NextRequest) {
       average_score: averageScore,
       highest_score: highestScore,
       total_managers: totalManagers,
+      most_common_players: mostCommonPlayers,
       user_stats: userStats,
       leaderboard
     })

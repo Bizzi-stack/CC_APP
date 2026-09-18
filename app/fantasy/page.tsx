@@ -69,6 +69,13 @@ export default function FantasyPage() {
   const [baselinePlayerIds, setBaselinePlayerIds] = useState<string[]>([])
   const [isCarriedOver, setIsCarriedOver] = useState<boolean>(false)
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false)
+  
+  // Auth state
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('register')
+  const [authUsername, setAuthUsername] = useState('')
+  const [authPasscode, setAuthPasscode] = useState('')
+  const [authError, setAuthError] = useState('')
+  
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
 
@@ -728,7 +735,7 @@ export default function FantasyPage() {
                 onClick={() => setIsSetupModalOpen(true)}
                 className="text-[10px] text-amber-400 hover:underline uppercase font-bold"
               >
-                [Edit Name]
+                [Login / Switch Account]
               </button>
             </p>
 
@@ -1233,6 +1240,32 @@ export default function FantasyPage() {
               </span>
             </div>
 
+            {/* Most Common Players Widget */}
+            {leaderboardData.most_common_players && leaderboardData.most_common_players.length > 0 && (
+              <div className="bg-gradient-to-r from-[#111] to-[#0a0a0a] border border-[#222] p-3 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-extrabold text-amber-500 uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">TRENDING</span>
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">Most Picked Players</span>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
+                  {leaderboardData.most_common_players.map((p: any, idx: number) => (
+                    <div key={p.name} className="flex items-center gap-2 shrink-0 bg-black/50 px-2.5 py-1.5 rounded-lg border border-[#222]">
+                      <span className="text-[10px] font-black text-[#555]">#{idx + 1}</span>
+                      {p.photo_url ? (
+                        <img src={p.photo_url} alt={p.name} className="w-5 h-5 rounded-full object-cover border border-[#333]" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-[#222] border border-[#333]" />
+                      )}
+                      <div>
+                        <p className="text-[10px] font-bold text-white whitespace-nowrap">{p.name}</p>
+                        <p className="text-[9px] text-[#777] font-mono leading-none mt-0.5">{p.ownership_percentage}% Owned</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {leaderboardData.leaderboard.length === 0 ? (
               <div className="bg-[#0a0a0a] border border-[#222] p-12 text-center text-[#555] rounded-xl">
                 <p className="text-sm uppercase tracking-wider">No fantasy managers registered yet</p>
@@ -1711,65 +1744,136 @@ export default function FantasyPage() {
         </div>
       )}
 
-      {/* ================= TEAM SETUP / EDIT NAME MODAL ================= */}
+      {/* ================= TEAM SETUP / AUTH MODAL ================= */}
       {isSetupModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#0e0e0e] border border-amber-500/40 w-full max-w-sm rounded-2xl p-6 space-y-5 shadow-2xl">
-            <div>
-              <span className="text-[10px] font-extrabold text-amber-400 uppercase tracking-widest block">FPL REGISTRATION</span>
-              <h3 className="text-lg font-black text-white uppercase mt-1">Name Your Fantasy Team</h3>
-              <p className="text-xs text-[#888] mt-1">Enter your manager details to compete in the tournament fantasy league.</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <span className="text-[10px] font-extrabold text-amber-400 uppercase tracking-widest block">FPL MANAGER</span>
+                <h3 className="text-lg font-black text-white uppercase mt-1">{authMode === 'register' ? 'Register' : 'Log In'}</h3>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  type="button"
+                  onClick={() => { setAuthMode('login'); setAuthError(''); }}
+                  className={`text-[10px] uppercase font-bold px-2 py-1 rounded ${authMode === 'login' ? 'bg-amber-500 text-black' : 'bg-[#222] text-[#888]'}`}
+                >Login</button>
+                <button 
+                  type="button"
+                  onClick={() => { setAuthMode('register'); setAuthError(''); }}
+                  className={`text-[10px] uppercase font-bold px-2 py-1 rounded ${authMode === 'register' ? 'bg-amber-500 text-black' : 'bg-[#222] text-[#888]'}`}
+                >Sign Up</button>
+              </div>
             </div>
+
+            {authError && (
+              <div className="bg-red-950/50 border border-red-500/50 p-3 rounded-lg text-red-500 text-xs font-bold text-center">
+                {authError}
+              </div>
+            )}
 
             <form
               onSubmit={async e => {
                 e.preventDefault()
-                if (teamName.trim() && managerName.trim()) {
-                  localStorage.setItem('fpl_team_name', teamName.trim())
-                  localStorage.setItem('fpl_manager_name', managerName.trim())
-                  setIsSetupModalOpen(false)
-
-                  try {
+                setAuthError('')
+                
+                try {
+                  const res = await fetch('/api/fantasy/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      action: authMode,
+                      name: authMode === 'register' ? managerName.trim() : undefined,
+                      username: authUsername.trim(),
+                      passcode: authPasscode.trim()
+                    })
+                  })
+                  const data = await res.json()
+                  
+                  if (!res.ok) {
+                    setAuthError(data.error || 'Authentication failed')
+                    return
+                  }
+                  
+                  // Login/Register Success
+                  setUserIdentifier(data.manager.id)
+                  localStorage.setItem('fpl_manager_id', data.manager.id)
+                  localStorage.setItem('fpl_manager_name', data.manager.username)
+                  setManagerName(data.manager.name)
+                  
+                  if (authMode === 'register') {
+                    // Create Team record right away
                     await fetch('/api/fantasy/team', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
-                        user_identifier: userIdentifier,
-                        team_name: teamName.trim(),
-                        manager_name: managerName.trim(),
+                        user_identifier: data.manager.id,
+                        team_name: teamName.trim() || `${data.manager.username} FC`,
+                        manager_name: data.manager.name,
                         formation,
                         gameweek
                       })
                     })
-                    fetchAllData()
-                  } catch (err) {
-                    console.error('Error saving team details:', err)
                   }
+                  
+                  setIsSetupModalOpen(false)
+                  fetchAllData()
+                } catch (err) {
+                  setAuthError('Network error. Please try again.')
                 }
               }}
               className="space-y-4"
             >
+              {authMode === 'register' && (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-[#888] uppercase tracking-wider block">Your Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={managerName}
+                      onChange={e => setManagerName(e.target.value)}
+                      placeholder="e.g. John Doe"
+                      className="w-full bg-black border border-[#333] p-3 rounded-xl text-white text-xs outline-none focus:border-amber-400 font-bold"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-[#888] uppercase tracking-wider block">Fantasy Team Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={teamName}
+                      onChange={e => setTeamName(e.target.value)}
+                      placeholder="e.g. Cave Hill Strikers"
+                      className="w-full bg-black border border-[#333] p-3 rounded-xl text-white text-xs outline-none focus:border-amber-400 font-bold"
+                    />
+                  </div>
+                </>
+              )}
+              
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-[#888] uppercase tracking-wider block">Fantasy Team Name</label>
+                <label className="text-[10px] font-bold text-[#888] uppercase tracking-wider block">Username</label>
                 <input
                   type="text"
                   required
-                  value={teamName}
-                  onChange={e => setTeamName(e.target.value)}
-                  placeholder="e.g. Cave Hill Strikers"
+                  value={authUsername}
+                  onChange={e => setAuthUsername(e.target.value.replace(/\s+/g, '').toLowerCase())}
+                  placeholder="e.g. jdoe23"
                   className="w-full bg-black border border-[#333] p-3 rounded-xl text-white text-xs outline-none focus:border-amber-400 font-bold"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-[#888] uppercase tracking-wider block">Manager Name</label>
+                <label className="text-[10px] font-bold text-[#888] uppercase tracking-wider block">4-Digit PIN Passcode</label>
                 <input
-                  type="text"
+                  type="password"
                   required
-                  value={managerName}
-                  onChange={e => setManagerName(e.target.value)}
-                  placeholder="e.g. Coach Alex"
-                  className="w-full bg-black border border-[#333] p-3 rounded-xl text-white text-xs outline-none focus:border-amber-400 font-bold"
+                  maxLength={4}
+                  value={authPasscode}
+                  onChange={e => setAuthPasscode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="e.g. 1234"
+                  className="w-full bg-black border border-[#333] p-3 rounded-xl text-white text-xs outline-none focus:border-amber-400 font-bold tracking-widest text-center"
                 />
               </div>
 
@@ -1777,7 +1881,7 @@ export default function FantasyPage() {
                 type="submit"
                 className="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-black font-black uppercase text-xs tracking-widest p-3.5 rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-lg"
               >
-                Confirm & Enter Fantasy League
+                {authMode === 'register' ? 'Register & Enter Fantasy League' : 'Log In'}
               </button>
             </form>
           </div>
