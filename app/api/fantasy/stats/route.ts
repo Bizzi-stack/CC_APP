@@ -3,6 +3,8 @@ import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { calculatePlayerPoints } from '@/lib/fantasy'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+export const revalidate = 0
 
 const db = supabaseAdmin || supabase
 
