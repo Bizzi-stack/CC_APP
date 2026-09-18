@@ -91,12 +91,14 @@ export default function FantasyPage() {
     total_managers: number
     user_stats: any
     leaderboard: LeaderboardEntry[]
+    most_common_players?: any[]
   }>({
     average_score: 0,
     highest_score: 0,
     total_managers: 0,
     user_stats: null,
-    leaderboard: []
+    leaderboard: [],
+    most_common_players: []
   })
 
   // Transfer / Player Selection Drawer State
