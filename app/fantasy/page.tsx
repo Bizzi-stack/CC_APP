@@ -636,6 +636,8 @@ export default function FantasyPage() {
     })
   }, [allPlayers, searchQuery, selectedTeamFilter, selectedPosFilter])
 
+  const isGwLocked = gameweeksList.find(g => g.id === gameweek)?.status === 'completed'
+
   const renderPitchSlot = (slot?: PickSlot) => {
     if (!slot) return null
     const player = slot.player
@@ -643,8 +645,11 @@ export default function FantasyPage() {
     return (
       <div
         key={slot.slotId}
-        onClick={() => slot.player ? setActionSlot(slot) : handleSlotClick(slot)}
-        className="flex flex-col items-center group cursor-pointer active:scale-95 transition-transform"
+        onClick={() => {
+          if (isGwLocked) return;
+          slot.player ? setActionSlot(slot) : handleSlotClick(slot)
+        }}
+        className={`flex flex-col items-center group transition-transform ${isGwLocked ? 'cursor-not-allowed opacity-80' : 'cursor-pointer active:scale-95'}`}
       >
         {/* Player Avatar / Jersey Badge */}
         <div className="relative">
@@ -795,14 +800,16 @@ export default function FantasyPage() {
           {/* Save Lineup Button with Moving Gradient Glow */}
           <button
             onClick={handleSaveSquad}
-            disabled={isSaving}
+            disabled={isSaving || isGwLocked}
             className={`relative group overflow-hidden px-3.5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center ${
-              saveSuccess
+              isGwLocked
+                ? 'bg-[#222] text-[#555] cursor-not-allowed border border-[#333]'
+                : saveSuccess
                 ? 'bg-emerald-500 text-black shadow-[0_0_12px_rgba(16,185,129,0.5)]'
                 : 'text-black shadow-[0_0_15px_rgba(245,158,11,0.4)] hover:shadow-[0_0_22px_rgba(245,158,11,0.7)] active:scale-95'
             }`}
           >
-            {!saveSuccess && (
+            {!saveSuccess && !isGwLocked && (
               <>
                 <span className="absolute inset-0 bg-gradient-to-r from-amber-400 via-yellow-300 via-amber-500 to-amber-600 bg-[length:200%_200%] animate-gradientMove" />
                 <span className="absolute inset-0 bg-amber-400/30 blur-sm group-hover:blur-md transition-all" />
@@ -886,8 +893,9 @@ export default function FantasyPage() {
                     <button
                       key={f}
                       type="button"
-                      onClick={() => handleFormationChange(f)}
-                      className={`px-2.5 py-1 text-xs font-black font-mono rounded-lg transition-all cursor-pointer ${
+                      disabled={isGwLocked}
+                      onClick={() => !isGwLocked && handleFormationChange(f)}
+                      className={`px-2.5 py-1 text-xs font-black font-mono rounded-lg transition-all ${isGwLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${
                         formation === f
                           ? 'bg-amber-400 text-black shadow-md'
                           : 'bg-[#18181b] text-[#888] hover:text-white border border-[#262626]'
@@ -908,33 +916,35 @@ export default function FantasyPage() {
                   <span className="text-[9px] text-[#777] font-mono uppercase font-bold">1 Chip per GW</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  {/* Triple Captain Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleToggleChip('TRIPLE_CAPTAIN')}
-                    className={`p-2.5 rounded-xl border text-left transition-all relative overflow-hidden cursor-pointer ${
-                      activeChip === 'TRIPLE_CAPTAIN'
-                        ? 'bg-gradient-to-r from-amber-950/70 via-amber-900/50 to-amber-950/70 border-amber-400 text-white ring-2 ring-amber-400/50 shadow-xl'
-                        : 'bg-black border-[#262626] text-[#888] hover:text-white hover:border-[#444]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-black uppercase tracking-wider text-white">Triple Captain</span>
-                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded font-mono ${
-                        activeChip === 'TRIPLE_CAPTAIN' ? 'bg-amber-400 text-black' : 'bg-[#1e1e1e] text-[#666]'
-                      }`}>
-                        3X
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-[#aaa] mt-1 font-medium leading-tight">Captain earns 3x points instead of 2x</p>
-                  </button>
+                  <div className="grid grid-cols-2 gap-2 mt-3">
+                    {/* Triple Captain Button */}
+                    <button
+                      type="button"
+                      disabled={usedChips.includes('TRIPLE_CAPTAIN') || isGwLocked}
+                      onClick={() => handleToggleChip('TRIPLE_CAPTAIN')}
+                      className={`p-2.5 rounded-xl border text-left transition-all relative overflow-hidden ${isGwLocked || usedChips.includes('TRIPLE_CAPTAIN') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${
+                        activeChip === 'TRIPLE_CAPTAIN'
+                          ? 'bg-gradient-to-r from-amber-950/70 via-amber-900/50 to-amber-950/70 border-amber-400 text-white ring-2 ring-amber-400/50 shadow-xl'
+                          : 'bg-black border-[#262626] text-[#888] hover:text-white hover:border-[#444]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black uppercase tracking-wider text-white">Triple Captain</span>
+                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded font-mono ${
+                          activeChip === 'TRIPLE_CAPTAIN' ? 'bg-amber-400 text-black' : 'bg-[#1e1e1e] text-[#666]'
+                        }`}>
+                          3X
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-[#aaa] mt-1 font-medium leading-tight">Captain earns 3x points instead of 2x</p>
+                    </button>
 
-                  {/* Bench Boost Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleToggleChip('BENCH_BOOST')}
-                    className={`p-2.5 rounded-xl border text-left transition-all relative overflow-hidden cursor-pointer ${
+                    {/* Bench Boost Button */}
+                    <button
+                      type="button"
+                      disabled={usedChips.includes('BENCH_BOOST') || isGwLocked}
+                      onClick={() => handleToggleChip('BENCH_BOOST')}
+                      className={`p-2.5 rounded-xl border text-left transition-all relative overflow-hidden ${isGwLocked || usedChips.includes('BENCH_BOOST') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${
                       activeChip === 'BENCH_BOOST'
                         ? 'bg-gradient-to-r from-emerald-950/70 via-emerald-900/50 to-emerald-950/70 border-emerald-400 text-white ring-2 ring-emerald-400/50 shadow-xl'
                         : 'bg-black border-[#262626] text-[#888] hover:text-white hover:border-[#444]'
