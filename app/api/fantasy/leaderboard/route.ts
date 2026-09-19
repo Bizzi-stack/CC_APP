@@ -89,10 +89,10 @@ export async function GET(request: NextRequest) {
         pts = Number(stat.total_points)
       } else {
         pts = calculatePlayerPoints(pick.position_slot?.startsWith('SUB') ? player?.position : pick.position_slot, stat || {
-          goals: player?.goals || 0,
-          assists: player?.assists || 0,
+          goals: 0,
+          assists: 0,
           clean_sheet: false,
-          minutes_played: (player?.goals || player?.assists) ? 90 : 0,
+          minutes_played: 0,
           bonus_points: 0
         })
       }

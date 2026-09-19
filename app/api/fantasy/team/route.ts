@@ -153,10 +153,10 @@ export async function GET(request: NextRequest) {
     const processedPicks = (picksToUse || []).map((pick: any) => {
       const player = pick.players
       const stat = statsMap[pick.player_id] || {
-        goals: player?.goals || 0,
-        assists: player?.assists || 0,
+        goals: 0,
+        assists: 0,
         clean_sheet: false,
-        minutes_played: (player?.goals || player?.assists) ? 90 : 0,
+        minutes_played: 0,
         bonus_points: 0
       }
 
