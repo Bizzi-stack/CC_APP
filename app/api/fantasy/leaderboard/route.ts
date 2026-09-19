@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       if (stat && stat.total_points !== undefined && stat.total_points !== null) {
         pts = Number(stat.total_points)
       } else {
-        pts = calculatePlayerPoints(player?.position, stat || {
+        pts = calculatePlayerPoints(pick.position_slot?.startsWith('SUB') ? player?.position : pick.position_slot, stat || {
           goals: player?.goals || 0,
           assists: player?.assists || 0,
           clean_sheet: false,

@@ -160,7 +160,7 @@ export async function GET(request: NextRequest) {
         bonus_points: 0
       }
 
-      let pts = calculatePlayerPoints(player?.position, stat)
+      let pts = calculatePlayerPoints(pick.position_slot?.startsWith('SUB') ? player?.position : pick.position_slot, stat)
       if (pick.is_captain) {
         // Triple Captain (3x) vs Normal Captain (2x)
         pts *= activeChip === 'TRIPLE_CAPTAIN' ? 3 : 2
