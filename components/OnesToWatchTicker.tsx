@@ -33,25 +33,28 @@ export default function OnesToWatchTicker() {
       .then(data => {
         const all: Player[] = data.players || []
         
-        // 1. Check for explicitly tagged 'OTW' players
-        const otwExplicit = all.filter(p => Array.isArray(p.badges) && p.badges.includes('OTW'))
+        // 1. Check for explicitly tagged 'TOP' players or OTW
+        const explicit = all.filter(p => Array.isArray(p.badges) && (p.badges.includes('TOP') || p.badges.includes('OTW')))
         
-        // 2. Filter other players who have uploaded photos
-        const othersWithPhotos = all.filter(
-          p => (!Array.isArray(p.badges) || !p.badges.includes('OTW')) && p.photo_url && p.photo_url.trim() !== ''
-        )
+        // 2. Filter top performers (goals > 0 or assists > 0)
+        const performers = all.filter(p => (p.goals !== undefined && p.goals > 0) || (p.assists !== undefined && p.assists > 0))
+        
+        // 3. Fallback to players with photos if no one has scored yet
+        const withPhotos = all.filter(p => p.photo_url && p.photo_url.trim() !== '')
 
-        let displayPool: Player[]
-        if (otwExplicit.length > 0) {
-          // If admin has featured players, feature them prominently!
-          // Supplement with other photo players if under 12 so the marquee remains richly populated
-          displayPool = otwExplicit.length >= 10
-            ? otwExplicit
-            : [...otwExplicit, ...othersWithPhotos.slice(0, 16 - otwExplicit.length)]
+        let displayPool: Player[] = []
+        
+        if (performers.length > 0) {
+          displayPool = performers
+        } else if (explicit.length > 0) {
+          displayPool = explicit
         } else {
-          // Default pool: players with uploaded photos
-          displayPool = othersWithPhotos.length > 0 ? othersWithPhotos : all
+          // Fallback to max 10 random players with photos
+          displayPool = withPhotos.sort(() => 0.5 - Math.random()).slice(0, 10)
         }
+
+        // Randomize order of top performers so it feels fresh
+        displayPool = displayPool.sort(() => 0.5 - Math.random())
 
         setPlayers(displayPool)
         setLoading(false)
@@ -102,9 +105,9 @@ export default function OnesToWatchTicker() {
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 bg-amber-400 animate-pulse" />
           <h2 className="text-xs font-black uppercase tracking-widest text-white flex items-center gap-2">
-            <span>ONES TO WATCH</span>
+            <span>TOP PERFORMERS</span>
             <span className="bg-amber-400 text-black text-[9px] px-2 py-0.5 font-black uppercase tracking-wider">
-              OTW
+              TOP
             </span>
           </h2>
         </div>
@@ -132,13 +135,13 @@ export default function OnesToWatchTicker() {
             const teamName = player.franchises?.name || player.country || 'Free Agent'
             const flag = getCountryFlag(player.country || teamName)
             const photoUrl = player.photo_url || '/placeholder-avatar.png'
-            const isOtwTagged = Array.isArray(player.badges) && player.badges.includes('OTW')
+            const isTopTagged = Array.isArray(player.badges) && (player.badges.includes('TOP') || player.badges.includes('OTW'))
 
             return (
               <div
                 key={`${player.id}-${idx}`}
                 onClick={() => setSelectedPlayer(player)}
-                className="w-48 h-48 sm:w-56 sm:h-56 rounded-none overflow-hidden border border-[#242424] hover:border-amber-400 bg-[#080808] relative group/card cursor-pointer shrink-0 transition-all duration-300 hover:scale-[1.02] shadow-2xl"
+                className="group/card relative w-44 md:w-52 h-64 md:h-72 flex-shrink-0 rounded-none overflow-hidden bg-black border border-[#222] hover:border-amber-400/50 cursor-pointer shadow-xl transition-all"
               >
                 {/* Full-bleed Square Player Photo */}
                 <img
@@ -157,11 +160,11 @@ export default function OnesToWatchTicker() {
                   <span className="truncate max-w-[90px] uppercase">{teamName}</span>
                 </div>
 
-                {/* Top Right: Badges (OTW Indicator & Position Tag) */}
+                {/* Top Right: Badges (TOP Indicator & Position Tag) */}
                 <div className="absolute top-2 right-2 flex items-center gap-1">
-                  {isOtwTagged && (
+                  {isTopTagged && (
                     <span className="bg-amber-400 text-black font-black text-[9px] uppercase px-1.5 py-0.5 shadow tracking-wider">
-                      ★ OTW
+                      ★ TOP
                     </span>
                   )}
                   {player.position && (
@@ -175,7 +178,7 @@ export default function OnesToWatchTicker() {
                 <div className="absolute bottom-2.5 left-2.5 right-2.5 border-t border-white/10 pt-2 bg-black/60 backdrop-blur-sm px-2 py-1.5">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="text-[8px] font-mono uppercase tracking-widest text-amber-400 font-extrabold">
-                      {isOtwTagged ? 'FEATURED OTW' : 'SCOUT WATCH'}
+                      {isTopTagged ? 'TOP PERFORMER' : 'SCOUT WATCH'}
                     </span>
                     <span className="text-amber-400 text-[9px] font-bold opacity-0 group-hover/card:opacity-100 transition-opacity">
                       VIEW →
@@ -186,9 +189,9 @@ export default function OnesToWatchTicker() {
                   </h3>
                   <div className="flex items-center justify-between text-[10px] text-[#999] mt-0.5">
                     <span className="truncate uppercase font-medium">{teamName}</span>
-                    {player.goals !== undefined && player.goals > 0 && (
-                      <span className="text-white font-mono text-[9px]">
-                        {player.goals}G
+                    {((player.goals !== undefined && player.goals > 0) || (player.assists !== undefined && player.assists > 0)) && (
+                      <span className="text-emerald-400 font-mono text-[9px] font-bold tracking-wider">
+                        {[player.goals ? `${player.goals}G` : null, player.assists ? `${player.assists}A` : null].filter(Boolean).join(' | ')}
                       </span>
                     )}
                   </div>
@@ -234,9 +237,9 @@ export default function OnesToWatchTicker() {
                     <span className="text-[9px] font-mono uppercase tracking-widest text-amber-400 font-bold">
                       {selectedPlayer.franchises?.name || selectedPlayer.country || 'Free Agent'}
                     </span>
-                    {Array.isArray(selectedPlayer.badges) && selectedPlayer.badges.includes('OTW') && (
+                    {Array.isArray(selectedPlayer.badges) && (selectedPlayer.badges.includes('TOP') || selectedPlayer.badges.includes('OTW')) && (
                       <span className="bg-amber-400 text-black text-[8px] font-black uppercase px-1 py-0.2">
-                        ★ OTW
+                        ★ TOP
                       </span>
                     )}
                   </div>
