@@ -56,10 +56,10 @@ export async function GET(request: NextRequest) {
 
     const enrichedPlayers = (players || []).map((p: any) => {
       const stat = statsMap[p.id] || {
-        goals: p.goals || 0,
-        assists: p.assists || 0,
+        goals: 0,
+        assists: 0,
         clean_sheet: false,
-        minutes_played: (p.goals || p.assists) ? 90 : 0,
+        minutes_played: 0,
         bonus_points: 0
       }
 

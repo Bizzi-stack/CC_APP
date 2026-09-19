@@ -324,7 +324,10 @@ export default function FantasyPage() {
       const player = pick ? playerMap.get(pick.playerId) || null : null
       let pts = 0
       if (player) {
-        pts = player.fantasy_points !== undefined ? player.fantasy_points : calculatePlayerPoints(player.position, player.stats || {})
+        pts = calculatePlayerPoints(
+          slot.slotId.startsWith('SUB') ? player.position : slot.slotId,
+          player.stats || { goals: 0, assists: 0, clean_sheet: false, minutes_played: 0, bonus_points: 0 }
+        )
         if (pick?.isCaptain) {
           pts *= activeChip === 'TRIPLE_CAPTAIN' ? 3 : 2
         }
