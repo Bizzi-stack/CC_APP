@@ -111,12 +111,6 @@ export default function OnesToWatchTicker() {
             </span>
           </h2>
         </div>
-
-        <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-[#777]">
-          <span>FEATURED TALENTS</span>
-          <span className="text-[#444]">•</span>
-          <span className="text-amber-400/80 font-bold">{players.length} PLAYERS</span>
-        </div>
       </div>
 
       {/* Infinite Stock Ticker Carousel (Smooth Relaxed Glide to the Left) */}
