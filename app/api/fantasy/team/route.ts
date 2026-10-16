@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
                 const playerObj = Array.isArray(p.players) ? p.players[0] : p.players
                 const franchiseObj = Array.isArray(playerObj?.franchises) ? playerObj?.franchises[0] : playerObj?.franchises
                 const fName = franchiseObj?.name
-                return fName === 'England' || fName === 'Germany'
+                return ['England', 'Germany', 'Mexico', 'Brazil'].includes(fName)
               })
             : latestPicks
 
@@ -282,7 +282,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Validate transfer rules
     if (isFinals) {
-      // Finals Rule: Only England and Germany players allowed, with unlimited transfers
+      // Finals Rule: Only England, Germany, Mexico, and Brazil players allowed, with unlimited transfers
       if (Array.isArray(picks) && picks.length > 0) {
         const pickedPlayerIds = picks.map((p: any) => p.player_id).filter(Boolean)
         const { data: pickedPlayers } = await db
@@ -291,15 +291,16 @@ export async function POST(request: NextRequest) {
           .in('id', pickedPlayerIds)
 
         if (pickedPlayers) {
+          const eligibleTeams = ['England', 'Germany', 'Mexico', 'Brazil']
           const invalidPlayers = pickedPlayers.filter((p: any) => {
             const fName = Array.isArray(p.franchises) ? p.franchises[0]?.name : p.franchises?.name
-            return fName !== 'England' && fName !== 'Germany'
+            return !eligibleTeams.includes(fName)
           })
 
           if (invalidPlayers.length > 0) {
             const invalidNames = invalidPlayers.map((p: any) => p.name).join(', ')
             return NextResponse.json({
-              error: `Grand Finals Rule: Only players from England and Germany can be selected. Invalid: ${invalidNames}`
+              error: `Finals Week Rule: Only players from England, Germany, Mexico, and Brazil can be selected. Invalid: ${invalidNames}`
             }, { status: 400 })
           }
         }

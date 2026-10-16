@@ -388,11 +388,11 @@ export default function FantasyPage() {
   const handleSelectPlayer = (player: Player) => {
     if (!activePickingSlot) return
 
-    // In Finals, only England and Germany players can be picked
+    // In Finals, only England, Germany, Mexico, and Brazil players can be picked
     if (isFinals) {
       const teamName = player.franchises?.name
-      if (teamName !== 'England' && teamName !== 'Germany') {
-        alert('For the Grand Finals, only players from the England and Germany squads can be drafted.')
+      if (!['England', 'Germany', 'Mexico', 'Brazil'].includes(teamName || '')) {
+        alert('For Finals Week, only players from England, Germany, Mexico, and Brazil can be drafted.')
         return
       }
     }
@@ -474,7 +474,7 @@ export default function FantasyPage() {
       return
     }
 
-    // In Finals, ensure all picked players are from England or Germany
+    // In Finals, ensure all picked players are from England, Germany, Mexico, or Brazil
     if (isFinals) {
       const playerMap = new Map(allPlayers.map(p => [p.id, p]))
       const invalidPlayers: string[] = []
@@ -482,13 +482,13 @@ export default function FantasyPage() {
         const pick = squadPicks[slotId]
         if (!pick?.playerId) return
         const p = playerMap.get(pick.playerId)
-        if (p && p.franchises?.name !== 'England' && p.franchises?.name !== 'Germany') {
+        if (p && !['England', 'Germany', 'Mexico', 'Brazil'].includes(p.franchises?.name || '')) {
           invalidPlayers.push(p.name)
         }
       })
 
       if (invalidPlayers.length > 0) {
-        alert(`Grand Finals Rule: Only players from England and Germany are allowed in your Finals lineup.\n\nPlease swap out: ${invalidPlayers.join(', ')}`)
+        alert(`Finals Week Rule: Only players from England, Germany, Mexico, and Brazil are allowed in your Finals lineup.\n\nPlease swap out: ${invalidPlayers.join(', ')}`)
         return
       }
     }
@@ -651,7 +651,7 @@ export default function FantasyPage() {
   // Available unique tournament teams for filtering
   const tournamentNations = useMemo(() => {
     if (isFinals) {
-      return ['England', 'Germany']
+      return ['England', 'Germany', 'Mexico', 'Brazil']
     }
     const nations = new Set<string>()
     allPlayers.forEach(p => {
@@ -663,10 +663,10 @@ export default function FantasyPage() {
   // Filtered players in transfer drawer
   const filteredPlayers = useMemo(() => {
     return allPlayers.filter(player => {
-      // In Finals, ONLY England and Germany players are eligible!
+      // In Finals, ONLY England, Germany, Mexico, and Brazil players are eligible!
       if (isFinals) {
         const teamName = player.franchises?.name
-        if (teamName !== 'England' && teamName !== 'Germany') {
+        if (!['England', 'Germany', 'Mexico', 'Brazil'].includes(teamName || '')) {
           return false
         }
       }
@@ -697,7 +697,7 @@ export default function FantasyPage() {
   const renderPitchSlot = (slot?: PickSlot) => {
     if (!slot) return null
     const player = slot.player
-    const isEliminated = Boolean(isFinals && player && player.franchises?.name !== 'England' && player.franchises?.name !== 'Germany')
+    const isEliminated = Boolean(isFinals && player && !['England', 'Germany', 'Mexico', 'Brazil'].includes(player.franchises?.name || ''))
 
     return (
       <div
@@ -827,7 +827,7 @@ export default function FantasyPage() {
               {isFinals ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-gradient-to-r from-amber-950/80 via-yellow-900/60 to-amber-950/80 text-amber-300 border border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
                   <span className="text-amber-400">🏆</span>
-                  <span>Grand Finals • England 🏴󠁧󠁢󠁥󠁮󠁧󠁿 vs 🇩🇪 Germany • Unlimited Free Draft</span>
+                  <span>Finals • England 🏴󠁧󠁢󠁥󠁮󠁧󠁿, Germany 🇩🇪, Mexico 🇲🇽, Brazil 🇧🇷 • Unlimited Free Draft</span>
                 </span>
               ) : gameweek <= 1 ? (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-950/50 text-emerald-400 border border-emerald-500/30">
@@ -980,13 +980,17 @@ export default function FantasyPage() {
                         LIVE
                       </span>
                     </div>
-                    <h2 className="text-xl md:text-2xl font-black uppercase text-white tracking-tight flex items-center gap-2">
-                      <span>England</span>
-                      <span className="text-amber-400 text-base font-serif italic">vs</span>
-                      <span>Germany</span>
+                    <h2 className="text-xl md:text-2xl font-black uppercase text-white tracking-tight flex items-center gap-2 flex-wrap">
+                      <span>England 🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
+                      <span className="text-amber-400 text-sm font-serif italic">•</span>
+                      <span>Germany 🇩🇪</span>
+                      <span className="text-amber-400 text-sm font-serif italic">•</span>
+                      <span>Mexico 🇲🇽</span>
+                      <span className="text-amber-400 text-sm font-serif italic">•</span>
+                      <span>Brazil 🇧🇷</span>
                     </h2>
                     <p className="text-xs text-[#aaa] max-w-xl leading-relaxed">
-                      Only players from <strong className="text-white">England 🏴󠁧󠁢󠁥󠁮󠁧󠁿</strong> and <strong className="text-white">Germany 🇩🇪</strong> are eligible for the Grand Finals! Assemble your 8-a-side lineup with <strong className="text-amber-300">unlimited free transfers</strong>. Your Finals points will be added to your Gameweek 1-3 total to crown the champion!
+                      Players from <strong className="text-white">England 🏴󠁧󠁢󠁥󠁮󠁧󠁿</strong>, <strong className="text-white">Germany 🇩🇪</strong>, <strong className="text-white">Mexico 🇲🇽</strong>, and <strong className="text-white">Brazil 🇧🇷</strong> are eligible for the Finals fantasy draft! Assemble your lineup with <strong className="text-amber-300">unlimited free transfers</strong>. Your Finals points will be added to your Gameweek 1-3 total to crown the champion!
                     </p>
                   </div>
 
@@ -1239,8 +1243,8 @@ export default function FantasyPage() {
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <div className="bg-[#141414] border border-[#222] p-2 rounded-lg text-center">
                     <span className="text-[9px] uppercase font-bold text-[#777] block">Finalist Teams</span>
-                    <span className="text-sm font-black font-mono text-amber-400">
-                      England & Germany
+                    <span className="text-xs font-black font-mono text-amber-400">
+                      ENG · GER · MEX · BRA
                     </span>
                   </div>
                   <div className="bg-[#141414] border border-[#222] p-2 rounded-lg text-center">
@@ -1285,7 +1289,7 @@ export default function FantasyPage() {
 
               <p className="text-[11px] text-[#888]">
                 {isFinals
-                  ? 'Grand Finals Edition: Only players from England and Germany are eligible for your Finals draft. You have unlimited free transfers to assemble your championship squad!'
+                  ? 'Finals Edition: Players from England, Germany, Mexico, and Brazil are eligible for your Finals draft. You have unlimited free transfers to assemble your championship squad!'
                   : gameweek <= 1
                   ? 'Before Gameweek 1 kicks off, you can make unlimited squad changes and full team clears. Multiple managers can choose the same player.'
                   : isFullRebuildActive
@@ -1501,7 +1505,7 @@ export default function FantasyPage() {
                 <span className="text-amber-400 text-xl">🏆</span>
                 <div>
                   <h2 className="text-sm font-black uppercase tracking-wider text-amber-300">
-                    Grand Finals Edition • England vs Germany
+                    Finals Edition • England, Germany, Mexico & Brazil
                   </h2>
                   <p className="text-[10px] text-amber-400/80 font-medium">The Ultimate Tournament Decider</p>
                 </div>
@@ -1510,10 +1514,10 @@ export default function FantasyPage() {
               <div className="space-y-2 text-xs text-[#ddd]">
                 <div className="bg-black/60 p-3 rounded-xl border border-amber-500/30 space-y-1">
                   <strong className="text-amber-400 block uppercase font-mono text-[11px]">
-                    1. England & Germany Finalists Only
+                    1. England, Germany, Mexico & Brazil Finalists Only
                   </strong>
                   <p className="text-[#aaa]">
-                    Only players from the two finalists (<strong>England 🏴󠁧󠁢󠁥󠁮󠁧󠁿</strong> and <strong>Germany 🇩🇪</strong>) are eligible to be picked for your Grand Finals fantasy lineup.
+                    Only players from <strong>England 🏴󠁧󠁢󠁥󠁮󠁧󠁿</strong>, <strong>Germany 🇩🇪</strong>, <strong>Mexico 🇲🇽</strong>, and <strong>Brazil 🇧🇷</strong> are eligible to be picked for your Finals fantasy lineup.
                   </p>
                 </div>
 
@@ -1522,7 +1526,7 @@ export default function FantasyPage() {
                     2. Unlimited Free Draft Transfers
                   </strong>
                   <p className="text-[#aaa]">
-                    Because the field has narrowed to England vs Germany, all managers receive <strong>unlimited free transfers</strong> for the Finals. Rebuild your ideal 8-a-side championship squad without penalty!
+                    Because the field has narrowed to England, Germany, Mexico, and Brazil, all managers receive <strong>unlimited free transfers</strong> for the Finals. Rebuild your ideal 8-a-side championship squad without penalty!
                   </p>
                 </div>
 
@@ -1633,7 +1637,7 @@ export default function FantasyPage() {
                 </h3>
                 {isFinals ? (
                   <p className="text-[11px] text-amber-400 font-bold">
-                    🏆 Grand Finals Draft: England & Germany only • Unlimited free transfers
+                    🏆 Finals Draft: England, Germany, Mexico & Brazil • Unlimited free transfers
                   </p>
                 ) : gameweek <= 1 ? (
                   <p className="text-[11px] text-emerald-400 font-medium">Pre-GW1: Unlimited free picks & squad changes</p>
@@ -1661,7 +1665,7 @@ export default function FantasyPage() {
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder={isFinals ? "Search England & Germany finalists..." : "Search players by name..."}
+                placeholder={isFinals ? "Search finalists (ENG, GER, MEX, BRA)..." : "Search players by name..."}
                 className="w-full bg-black border border-[#333] px-3.5 py-2.5 rounded-xl text-white text-xs outline-none focus:border-amber-400 font-medium"
               />
 
@@ -1698,7 +1702,7 @@ export default function FantasyPage() {
                     selectedTeamFilter === 'ALL' ? 'bg-amber-400 text-black' : 'bg-[#181818] text-[#888]'
                   }`}
                 >
-                  {isFinals ? 'All Finalists (ENG & GER)' : 'All Teams'}
+                  {isFinals ? 'All Finalists (ENG, GER, MEX, BRA)' : 'All Teams'}
                 </button>
                 {tournamentNations.map(nation => (
                   <button
@@ -1709,7 +1713,7 @@ export default function FantasyPage() {
                       selectedTeamFilter === nation ? 'bg-amber-400 text-black' : 'bg-[#181818] text-[#888]'
                     }`}
                   >
-                    <span>{nation === 'England' ? '🏴󠁧󠁢󠁥󠁮󠁧󠁿' : nation === 'Germany' ? '🇩🇪' : ''}</span>
+                    <span>{nation === 'England' ? '🏴󠁧󠁢󠁥󠁮󠁧󠁿' : nation === 'Germany' ? '🇩🇪' : nation === 'Mexico' ? '🇲🇽' : nation === 'Brazil' ? '🇧🇷' : ''}</span>
                     <span>{nation}</span>
                   </button>
                 ))}
@@ -1721,7 +1725,7 @@ export default function FantasyPage() {
               {filteredPlayers.length === 0 ? (
                 <div className="text-center py-10 text-[#555] text-xs uppercase">
                   {isFinals
-                    ? 'No matching England or Germany players found'
+                    ? 'No matching players found for England, Germany, Mexico, or Brazil'
                     : 'No matching players found'}
                 </div>
               ) : (
