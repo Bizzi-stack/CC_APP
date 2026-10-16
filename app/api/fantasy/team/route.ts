@@ -109,7 +109,17 @@ export async function GET(request: NextRequest) {
 
         // If no explicit picks saved yet for current gameweek, carry over previous squad!
         if (picksToUse.length === 0) {
-          picksToUse = latestPicks.map((p: any) => ({
+          const isFinalsGw = gameweek === 4
+          const carriedPicks = isFinalsGw
+            ? latestPicks.filter((p: any) => {
+                const playerObj = Array.isArray(p.players) ? p.players[0] : p.players
+                const franchiseObj = Array.isArray(playerObj?.franchises) ? playerObj?.franchises[0] : playerObj?.franchises
+                const fName = franchiseObj?.name
+                return fName === 'England' || fName === 'Germany'
+              })
+            : latestPicks
+
+          picksToUse = carriedPicks.map((p: any) => ({
             ...p,
             gameweek,
             is_carried_over: true
@@ -219,10 +229,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Team name, Manager name, and User ID are required' }, { status: 400 })
     }
 
-    // 0. Check Gameweek Deadline
+    // 0. Check Gameweek Deadline & Details
     const { data: gwData } = await db
       .from('fantasy_gameweeks')
-      .select('deadline')
+      .select('id, deadline, name')
       .eq('id', gameweek)
       .single()
 
@@ -234,6 +244,8 @@ export async function POST(request: NextRequest) {
         }, { status: 403 })
       }
     }
+
+    const isFinals = gameweek === 4 || Boolean(gwData?.name?.toLowerCase().includes('final'))
 
     // 1. Find or create fantasy team
     const { data: existingTeams, error: findError } = await db
@@ -268,8 +280,32 @@ export async function POST(request: NextRequest) {
       usedChips = is_full_rebuild ? ['FULL_REBUILD'] : []
     }
 
-    // 2. Validate transfer rules for Gameweek 2 onwards
-    if (gameweek > 1) {
+    // 2. Validate transfer rules
+    if (isFinals) {
+      // Finals Rule: Only England and Germany players allowed, with unlimited transfers
+      if (Array.isArray(picks) && picks.length > 0) {
+        const pickedPlayerIds = picks.map((p: any) => p.player_id).filter(Boolean)
+        const { data: pickedPlayers } = await db
+          .from('players')
+          .select('id, name, franchise_id, franchises:franchises!players_franchise_id_fkey (id, name)')
+          .in('id', pickedPlayerIds)
+
+        if (pickedPlayers) {
+          const invalidPlayers = pickedPlayers.filter((p: any) => {
+            const fName = Array.isArray(p.franchises) ? p.franchises[0]?.name : p.franchises?.name
+            return fName !== 'England' && fName !== 'Germany'
+          })
+
+          if (invalidPlayers.length > 0) {
+            const invalidNames = invalidPlayers.map((p: any) => p.name).join(', ')
+            return NextResponse.json({
+              error: `Grand Finals Rule: Only players from England and Germany can be selected. Invalid: ${invalidNames}`
+            }, { status: 400 })
+          }
+        }
+      }
+      // Note: Unlimited transfers for Finals, no transfer limit check
+    } else if (gameweek > 1) {
       if (is_full_rebuild) {
         // Check if FULL_REBUILD was already used in an earlier gameweek
         const { data: pastRebuildPicks } = await db

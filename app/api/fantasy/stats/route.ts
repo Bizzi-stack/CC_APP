@@ -75,9 +75,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       gameweek,
       gameweeks: gameweeks || [
-        { id: 1, name: 'Gameweek 1 - Group Stage', status: 'active' },
-        { id: 2, name: 'Gameweek 2 - Group Stage', status: 'upcoming' },
-        { id: 3, name: 'Gameweek 3 - Finals', status: 'upcoming' }
+        { id: 1, name: 'Gameweek 1 - Group Stage', status: 'completed' },
+        { id: 2, name: 'Gameweek 2 - Group Stage', status: 'completed' },
+        { id: 3, name: 'Gameweek 3', status: 'completed' },
+        { id: 4, name: 'Finals', status: 'active' }
       ],
       players: enrichedPlayers
     })

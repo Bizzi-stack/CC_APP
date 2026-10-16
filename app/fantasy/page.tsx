@@ -54,7 +54,7 @@ interface LeaderboardEntry {
 
 export default function FantasyPage() {
   const [activeTab, setActiveTab] = useState<'pitch' | 'transfers' | 'leaderboard' | 'rules'>('pitch')
-  const [gameweek, setGameweek] = useState<number>(1)
+  const [gameweek, setGameweek] = useState<number>(4)
   const [gameweeksList, setGameweeksList] = useState<any[]>([])
   
   // Manager Identity, Team, Formation & FPL Chips
@@ -205,6 +205,18 @@ export default function FantasyPage() {
       const statsData = await statsRes.json()
       setAllPlayers(statsData.players || [])
       setGameweeksList(statsData.gameweeks || [])
+
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search)
+        const urlGw = urlParams.get('gameweek')
+        if (urlGw) {
+          const parsed = parseInt(urlGw)
+          if (!isNaN(parsed) && parsed !== gameweek) {
+            setGameweek(parsed)
+            return
+          }
+        }
+      }
 
       // 2. Fetch Leaderboard & FPL Metrics
       const lbRes = await fetch(`/api/fantasy/leaderboard?gameweek=${gameweek}&user_identifier=${userIdentifier}`)
@@ -376,8 +388,17 @@ export default function FantasyPage() {
   const handleSelectPlayer = (player: Player) => {
     if (!activePickingSlot) return
 
-    // Enforce 4 weekly transfers limit for GW2+ (unless Full Rebuild active)
-    if (gameweek > 1 && !isFullRebuildActive && baselinePlayerIds.length > 0) {
+    // In Finals, only England and Germany players can be picked
+    if (isFinals) {
+      const teamName = player.franchises?.name
+      if (teamName !== 'England' && teamName !== 'Germany') {
+        alert('For the Grand Finals, only players from the England and Germany squads can be drafted.')
+        return
+      }
+    }
+
+    // Enforce 4 weekly transfers limit for GW2+ (unless Full Rebuild active or in Finals)
+    if (!isFinals && gameweek > 1 && !isFullRebuildActive && baselinePlayerIds.length > 0) {
       const testDraft: { [slot: string]: string } = {}
       Object.keys(squadPicks).forEach(k => {
         if (squadPicks[k]?.playerId && squadPicks[k].playerId !== player.id) {
@@ -453,6 +474,25 @@ export default function FantasyPage() {
       return
     }
 
+    // In Finals, ensure all picked players are from England or Germany
+    if (isFinals) {
+      const playerMap = new Map(allPlayers.map(p => [p.id, p]))
+      const invalidPlayers: string[] = []
+      Object.keys(squadPicks).forEach(slotId => {
+        const pick = squadPicks[slotId]
+        if (!pick?.playerId) return
+        const p = playerMap.get(pick.playerId)
+        if (p && p.franchises?.name !== 'England' && p.franchises?.name !== 'Germany') {
+          invalidPlayers.push(p.name)
+        }
+      })
+
+      if (invalidPlayers.length > 0) {
+        alert(`Grand Finals Rule: Only players from England and Germany are allowed in your Finals lineup.\n\nPlease swap out: ${invalidPlayers.join(', ')}`)
+        return
+      }
+    }
+
     setIsSaving(true)
     setSaveSuccess(false)
     try {
@@ -522,8 +562,8 @@ export default function FantasyPage() {
 
   // Clear Entire Team & Start Over
   const handleClearTeam = async () => {
-    if (gameweek <= 1) {
-      if (!window.confirm('Clear your entire squad and start over? (Unlimited resets available before Gameweek 1 kicks off)')) {
+    if (gameweek <= 1 || isFinals) {
+      if (!window.confirm(isFinals ? 'Clear your Grand Finals squad and draft a fresh team?' : 'Clear your entire squad and start over? (Unlimited resets available before Gameweek 1 kicks off)')) {
         return
       }
 
@@ -606,18 +646,31 @@ export default function FantasyPage() {
     }
   }
 
+  const isFinals = gameweek === 4 || Boolean(gameweeksList.find(g => g.id === gameweek)?.name?.toLowerCase().includes('final'))
+
   // Available unique tournament teams for filtering
   const tournamentNations = useMemo(() => {
+    if (isFinals) {
+      return ['England', 'Germany']
+    }
     const nations = new Set<string>()
     allPlayers.forEach(p => {
       if (p.franchises?.name) nations.add(p.franchises.name)
     })
     return Array.from(nations).sort()
-  }, [allPlayers])
+  }, [allPlayers, isFinals])
 
   // Filtered players in transfer drawer
   const filteredPlayers = useMemo(() => {
     return allPlayers.filter(player => {
+      // In Finals, ONLY England and Germany players are eligible!
+      if (isFinals) {
+        const teamName = player.franchises?.name
+        if (teamName !== 'England' && teamName !== 'Germany') {
+          return false
+        }
+      }
+
       const matchesSearch = player.name.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesTeam = selectedTeamFilter === 'ALL' || player.franchises?.name === selectedTeamFilter
       
@@ -637,13 +690,14 @@ export default function FantasyPage() {
 
       return matchesSearch && matchesTeam && matchesPos
     })
-  }, [allPlayers, searchQuery, selectedTeamFilter, selectedPosFilter])
+  }, [allPlayers, searchQuery, selectedTeamFilter, selectedPosFilter, isFinals])
 
   const isGwLocked = gameweeksList.find(g => g.id === gameweek)?.status === 'completed'
 
   const renderPitchSlot = (slot?: PickSlot) => {
     if (!slot) return null
     const player = slot.player
+    const isEliminated = Boolean(isFinals && player && player.franchises?.name !== 'England' && player.franchises?.name !== 'Germany')
 
     return (
       <div
@@ -657,7 +711,9 @@ export default function FantasyPage() {
         {/* Player Avatar / Jersey Badge */}
         <div className="relative">
           <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full overflow-hidden border-2 flex items-center justify-center bg-black/80 shadow-xl transition-all group-hover:ring-2 group-hover:ring-amber-400 ${
-            player ? 'border-amber-400' : 'border-dashed border-white/40'
+            player 
+              ? (isEliminated ? 'border-red-500 ring-2 ring-red-500/50 bg-red-950/30' : 'border-amber-400') 
+              : 'border-dashed border-white/40'
           }`}>
             {player?.photo_url ? (
               <Image width={500} height={500} src={player.photo_url} alt={player.name} className="w-full h-full object-cover object-top" />
@@ -680,9 +736,16 @@ export default function FantasyPage() {
           )}
 
           {/* Transferred In Badge */}
-          {gameweek > 1 && baselinePlayerIds.length > 0 && player && !baselinePlayerIds.includes(player.id) && (
+          {gameweek > 1 && baselinePlayerIds.length > 0 && player && !baselinePlayerIds.includes(player.id) && !isEliminated && (
             <span className="absolute -top-1 -left-1 bg-emerald-400 text-black text-[8px] font-black px-1.5 py-0.2 rounded-full border border-black shadow z-10">
               ⇄ IN
+            </span>
+          )}
+
+          {/* Eliminated in Finals Warning */}
+          {isEliminated && (
+            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full border border-black shadow-lg animate-pulse z-20">
+              OUT
             </span>
           )}
 
@@ -699,8 +762,10 @@ export default function FantasyPage() {
           <span className="text-[10px] font-bold text-white block truncate">
             {player ? player.name.split(' ')[0] : slot.label}
           </span>
-          <span className="text-[9px] font-mono font-bold text-emerald-400 block">
-            {player ? `${slot.computedPoints} pts` : slot.positionType}
+          <span className={`text-[9px] font-mono font-bold block ${
+            isEliminated ? 'text-red-400 font-sans' : 'text-emerald-400'
+          }`}>
+            {player ? (isEliminated ? 'Swap Out' : `${slot.computedPoints} pts`) : slot.positionType}
           </span>
         </div>
       </div>
@@ -717,18 +782,26 @@ export default function FantasyPage() {
           </Link>
           
           {/* Gameweek Selector */}
-          <div className="flex items-center gap-2 bg-[#161616] border border-[#333] px-2.5 py-1 rounded-full">
-            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Gameweek</span>
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all ${
+            isFinals ? 'bg-amber-950/40 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.25)]' : 'bg-[#161616] border-[#333]'
+          }`}>
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${isFinals ? 'text-amber-400 flex items-center gap-1 font-black' : 'text-amber-400'}`}>
+              {isFinals && <span>🏆</span>}
+              Gameweek
+            </span>
             <select
               value={gameweek}
               onChange={e => setGameweek(parseInt(e.target.value))}
               className="bg-transparent text-white font-bold text-xs uppercase outline-none cursor-pointer"
             >
-              {gameweeksList.map(gw => (
-                <option key={gw.id} value={gw.id} className="bg-black text-white">
-                  GW {gw.id} {gw.status === 'active' ? '(Live)' : ''}
-                </option>
-              ))}
+              {gameweeksList.map(gw => {
+                const isGwFinals = gw.id === 4 || gw.name.toLowerCase().includes('final')
+                return (
+                  <option key={gw.id} value={gw.id} className="bg-black text-white">
+                    {isGwFinals ? `🏆 ${gw.name}` : `GW ${gw.id} - ${gw.name.replace(/Gameweek \d+\s*[-:]?\s*/i, '')}`} {gw.status === 'active' ? '(Live)' : ''}
+                  </option>
+                )
+              })}
             </select>
           </div>
         </div>
@@ -751,7 +824,12 @@ export default function FantasyPage() {
 
             {/* Gameweek Transfer & Rebuild Status Badge */}
             <div className="flex items-center gap-2 mt-2 flex-wrap">
-              {gameweek <= 1 ? (
+              {isFinals ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-gradient-to-r from-amber-950/80 via-yellow-900/60 to-amber-950/80 text-amber-300 border border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                  <span className="text-amber-400">🏆</span>
+                  <span>Grand Finals • England 🏴󠁧󠁢󠁥󠁮󠁧󠁿 vs 🇩🇪 Germany • Unlimited Free Draft</span>
+                </span>
+              ) : gameweek <= 1 ? (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-950/50 text-emerald-400 border border-emerald-500/30">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   Pre-GW1 • Unlimited Squad Changes & Resets
@@ -774,7 +852,7 @@ export default function FantasyPage() {
                 </span>
               )}
 
-              {gameweek > 1 && (
+              {!isFinals && gameweek > 1 && (
                 rebuildUsed ? (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold uppercase text-[#666] bg-[#111] border border-[#222]">
                     🔒 1-Time Rebuild Used
@@ -887,6 +965,43 @@ export default function FantasyPage() {
         {/* ================= TAB 1: PITCH VIEW ================= */}
         {activeTab === 'pitch' && (
           <div className="space-y-4">
+            {/* Grand Finals Championship Banner */}
+            {isFinals && (
+              <div className="relative overflow-hidden bg-gradient-to-r from-amber-950/70 via-[#18140a] to-amber-950/70 border border-amber-500/50 rounded-2xl p-4 md:p-5 shadow-2xl">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-amber-400 text-lg">🏆</span>
+                      <span className="text-[10px] font-black tracking-widest uppercase text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30">
+                        THE GRAND FINALS DRAFT
+                      </span>
+                      <span className="bg-red-600 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded animate-pulse">
+                        LIVE
+                      </span>
+                    </div>
+                    <h2 className="text-xl md:text-2xl font-black uppercase text-white tracking-tight flex items-center gap-2">
+                      <span>England</span>
+                      <span className="text-amber-400 text-base font-serif italic">vs</span>
+                      <span>Germany</span>
+                    </h2>
+                    <p className="text-xs text-[#aaa] max-w-xl leading-relaxed">
+                      Only players from <strong className="text-white">England 🏴󠁧󠁢󠁥󠁮󠁧󠁿</strong> and <strong className="text-white">Germany 🇩🇪</strong> are eligible for the Grand Finals! Assemble your 8-a-side lineup with <strong className="text-amber-300">unlimited free transfers</strong>. Your Finals points will be added to your Gameweek 1-3 total to crown the champion!
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => setActiveTab('transfers')}
+                      className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black uppercase text-xs px-4 py-2.5 rounded-xl shadow-lg transition-transform active:scale-95 cursor-pointer"
+                    >
+                      Draft Finalists ⚡
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Formation & FPL Chips Bar */}
             <div className="space-y-2">
               <div className="flex items-center justify-between bg-[#0e0e0e] border border-[#222] p-2 rounded-xl">
@@ -914,7 +1029,7 @@ export default function FantasyPage() {
               <div className="bg-[#0c0c0c] border border-amber-500/30 p-3 rounded-2xl space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block">
-                    FPL CHIPS (GAMEWEEK {gameweek})
+                    {isFinals ? '🏆 GRAND FINALS CHIPS' : `FPL CHIPS (GAMEWEEK ${gameweek})`}
                   </span>
                   <span className="text-[9px] text-[#777] font-mono uppercase font-bold">1 Chip per GW</span>
                 </div>
@@ -980,11 +1095,14 @@ export default function FantasyPage() {
 
               {/* Pitch Status Banner */}
               <div className="relative z-10 flex items-center justify-between mb-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-[10px]">
-                <span className="font-bold text-amber-300 uppercase tracking-wide">
-                  8-A-Side ({formation}) ({startersCount}/8 Selected)
+                <span className="font-bold text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
+                  {isFinals && <span>🏆</span>}
+                  <span>{isFinals ? `Grand Finals (${formation})` : `8-A-Side (${formation})`}</span>
+                  <span className="text-[#888]">({startersCount}/8 Selected)</span>
                 </span>
                 <span className="font-mono text-white font-bold">
-                  Live GW: <span className="text-emerald-400">{startingScore} PTS</span>
+                  {isFinals ? 'Finals Score: ' : 'Live GW: '}
+                  <span className="text-emerald-400">{startingScore} PTS</span>
                 </span>
               </div>
 
@@ -1060,17 +1178,17 @@ export default function FantasyPage() {
               </button>
               <button
                 onClick={handleClearTeam}
-                disabled={isSaving || (gameweek > 1 && rebuildUsed && !isFullRebuildActive)}
+                disabled={isSaving || (!isFinals && gameweek > 1 && rebuildUsed && !isFullRebuildActive)}
                 className={`border p-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
-                  gameweek > 1 && rebuildUsed && !isFullRebuildActive
+                  !isFinals && gameweek > 1 && rebuildUsed && !isFullRebuildActive
                     ? 'bg-[#141414] border-[#222] text-[#555] cursor-not-allowed'
-                    : gameweek > 1 && !isFullRebuildActive
-                    ? 'bg-amber-950/40 hover:bg-amber-900/50 border-amber-500/40 text-amber-400'
-                    : 'bg-red-950/40 hover:bg-red-900/50 border-red-500/40 text-red-400'
+                    : isFinals || gameweek <= 1 || isFullRebuildActive
+                    ? 'bg-red-950/40 hover:bg-red-900/50 border-red-500/40 text-red-400'
+                    : 'bg-amber-950/40 hover:bg-amber-900/50 border-amber-500/40 text-amber-400'
                 }`}
-                title={gameweek > 1 && rebuildUsed && !isFullRebuildActive ? '1-Time Rebuild already used' : undefined}
+                title={!isFinals && gameweek > 1 && rebuildUsed && !isFullRebuildActive ? '1-Time Rebuild already used' : undefined}
               >
-                {gameweek <= 1 ? 'Clear Team' : isFullRebuildActive ? 'Clear Team' : '⚡ Rebuild'}
+                {gameweek <= 1 ? 'Clear Team' : isFinals ? 'Clear Team' : isFullRebuildActive ? 'Clear Team' : '⚡ Rebuild'}
               </button>
             </div>
           </div>
@@ -1082,14 +1200,23 @@ export default function FantasyPage() {
             {/* Squad Manager & Transfer Policy Header Card */}
             <div className="bg-[#0e0e0e] border border-[#222] p-4 rounded-xl space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <h2 className="text-sm font-bold uppercase text-white tracking-wider">
-                  {gameweek <= 1
+                <h2 className="text-sm font-bold uppercase text-white tracking-wider flex items-center gap-2">
+                  {isFinals ? (
+                    <>
+                      <span className="text-amber-400">🏆</span>
+                      <span>Squad Manager (The Grand Finals)</span>
+                    </>
+                  ) : gameweek <= 1
                     ? 'Squad Manager (Pre-GW1 Setup)'
                     : isFullRebuildActive
                     ? 'Squad Manager (⚡ 1-Time Rebuild Active)'
                     : `Squad Manager (Gameweek ${gameweek})`}
                 </h2>
-                {gameweek <= 1 ? (
+                {isFinals ? (
+                  <span className="text-[10px] text-amber-300 font-bold uppercase bg-amber-950/50 border border-amber-500/40 px-2 py-0.5 rounded shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+                    🏆 Unlimited Finals Draft (ENG & GER Only)
+                  </span>
+                ) : gameweek <= 1 ? (
                   <span className="text-[10px] text-emerald-400 font-bold uppercase bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded">
                     Unlimited Free Picks
                   </span>
@@ -1108,7 +1235,22 @@ export default function FantasyPage() {
                 )}
               </div>
 
-              {gameweek > 1 && (
+              {isFinals ? (
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="bg-[#141414] border border-[#222] p-2 rounded-lg text-center">
+                    <span className="text-[9px] uppercase font-bold text-[#777] block">Finalist Teams</span>
+                    <span className="text-sm font-black font-mono text-amber-400">
+                      England & Germany
+                    </span>
+                  </div>
+                  <div className="bg-[#141414] border border-[#222] p-2 rounded-lg text-center">
+                    <span className="text-[9px] uppercase font-bold text-[#777] block">Transfers</span>
+                    <span className="text-sm font-black font-mono text-emerald-400">
+                      Unlimited Free
+                    </span>
+                  </div>
+                </div>
+              ) : gameweek > 1 && (
                 <div className="grid grid-cols-3 gap-2 pt-1">
                   <div className="bg-[#141414] border border-[#222] p-2 rounded-lg text-center">
                     <span className="text-[9px] uppercase font-bold text-[#777] block">Transfers Used</span>
@@ -1142,7 +1284,9 @@ export default function FantasyPage() {
               )}
 
               <p className="text-[11px] text-[#888]">
-                {gameweek <= 1
+                {isFinals
+                  ? 'Grand Finals Edition: Only players from England and Germany are eligible for your Finals draft. You have unlimited free transfers to assemble your championship squad!'
+                  : gameweek <= 1
                   ? 'Before Gameweek 1 kicks off, you can make unlimited squad changes and full team clears. Multiple managers can choose the same player.'
                   : isFullRebuildActive
                   ? '1-Time Full Squad Rebuild is active! You can freely clear out and overhaul all 10 players for this gameweek without counting against your weekly transfer limit.'
@@ -1222,17 +1366,19 @@ export default function FantasyPage() {
 
               <button
                 onClick={handleClearTeam}
-                disabled={isSaving || (gameweek > 1 && rebuildUsed && !isFullRebuildActive)}
+                disabled={isSaving || (!isFinals && gameweek > 1 && rebuildUsed && !isFullRebuildActive)}
                 className={`border text-xs font-bold uppercase tracking-wider px-4 py-4 rounded-xl transition-all cursor-pointer ${
-                  gameweek > 1 && rebuildUsed && !isFullRebuildActive
+                  !isFinals && gameweek > 1 && rebuildUsed && !isFullRebuildActive
                     ? 'bg-[#141414] border-[#222] text-[#555] cursor-not-allowed'
-                    : gameweek > 1 && !isFullRebuildActive
-                    ? 'bg-amber-950/40 hover:bg-amber-900/60 border-amber-500/50 text-amber-400'
-                    : 'bg-red-950/40 hover:bg-red-900/60 border-red-500/50 text-red-400'
+                    : isFinals || gameweek <= 1 || isFullRebuildActive
+                    ? 'bg-red-950/40 hover:bg-red-900/60 border-red-500/50 text-red-400'
+                    : 'bg-amber-950/40 hover:bg-amber-900/60 border-amber-500/50 text-amber-400'
                 }`}
-                title={gameweek > 1 && rebuildUsed && !isFullRebuildActive ? '1-Time Rebuild already used' : undefined}
+                title={!isFinals && gameweek > 1 && rebuildUsed && !isFullRebuildActive ? '1-Time Rebuild already used' : undefined}
               >
                 {gameweek <= 1
+                  ? 'Clear Team'
+                  : isFinals
                   ? 'Clear Team'
                   : isFullRebuildActive
                   ? 'Clear Team'
@@ -1349,6 +1495,48 @@ export default function FantasyPage() {
         {/* ================= TAB 4: RULES & SCORING ================= */}
         {activeTab === 'rules' && (
           <div className="space-y-4">
+            {/* Grand Finals Special Edition Rules Card */}
+            <div className="bg-gradient-to-r from-amber-950/70 via-[#181308] to-amber-950/70 border-2 border-amber-500/60 p-5 rounded-2xl space-y-3 shadow-2xl">
+              <div className="flex items-center gap-2">
+                <span className="text-amber-400 text-xl">🏆</span>
+                <div>
+                  <h2 className="text-sm font-black uppercase tracking-wider text-amber-300">
+                    Grand Finals Edition • England vs Germany
+                  </h2>
+                  <p className="text-[10px] text-amber-400/80 font-medium">The Ultimate Tournament Decider</p>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-xs text-[#ddd]">
+                <div className="bg-black/60 p-3 rounded-xl border border-amber-500/30 space-y-1">
+                  <strong className="text-amber-400 block uppercase font-mono text-[11px]">
+                    1. England & Germany Finalists Only
+                  </strong>
+                  <p className="text-[#aaa]">
+                    Only players from the two finalists (<strong>England 🏴󠁧󠁢󠁥󠁮󠁧󠁿</strong> and <strong>Germany 🇩🇪</strong>) are eligible to be picked for your Grand Finals fantasy lineup.
+                  </p>
+                </div>
+
+                <div className="bg-black/60 p-3 rounded-xl border border-amber-500/30 space-y-1">
+                  <strong className="text-emerald-400 block uppercase font-mono text-[11px]">
+                    2. Unlimited Free Draft Transfers
+                  </strong>
+                  <p className="text-[#aaa]">
+                    Because the field has narrowed to England vs Germany, all managers receive <strong>unlimited free transfers</strong> for the Finals. Rebuild your ideal 8-a-side championship squad without penalty!
+                  </p>
+                </div>
+
+                <div className="bg-black/60 p-3 rounded-xl border border-amber-500/30 space-y-1">
+                  <strong className="text-cyan-400 block uppercase font-mono text-[11px]">
+                    3. Finals Points Add to Grand Tournament Total
+                  </strong>
+                  <p className="text-[#aaa]">
+                    All points scored by your players in the Grand Final are added directly onto your points from <strong>Gameweek 1, Gameweek 2, and Gameweek 3</strong>. The manager with the highest cumulative total across all weeks at the final whistle wins the tournament crown!
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Squad Management & Transfers Rules Card */}
             <div className="bg-gradient-to-r from-amber-950/40 via-black to-amber-950/40 border border-amber-500/40 p-5 rounded-2xl space-y-3 shadow-xl">
               <div className="flex items-center gap-2">
@@ -1439,10 +1627,15 @@ export default function FantasyPage() {
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[#222] pb-3">
               <div>
-                <h3 className="text-base font-bold text-white uppercase tracking-wide">
-                  Pick {activePickingSlot.label} ({activePickingSlot.slotId})
+                <h3 className="text-base font-bold text-white uppercase tracking-wide flex items-center gap-1.5">
+                  {isFinals && <span>🏆</span>}
+                  <span>Pick {activePickingSlot.label} ({activePickingSlot.slotId})</span>
                 </h3>
-                {gameweek <= 1 ? (
+                {isFinals ? (
+                  <p className="text-[11px] text-amber-400 font-bold">
+                    🏆 Grand Finals Draft: England & Germany only • Unlimited free transfers
+                  </p>
+                ) : gameweek <= 1 ? (
                   <p className="text-[11px] text-emerald-400 font-medium">Pre-GW1: Unlimited free picks & squad changes</p>
                 ) : isFullRebuildActive ? (
                   <p className="text-[11px] text-amber-400 font-medium">⚡ 1-Time Full Rebuild Active: Unlimited transfers</p>
@@ -1468,7 +1661,7 @@ export default function FantasyPage() {
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search players by name..."
+                placeholder={isFinals ? "Search England & Germany finalists..." : "Search players by name..."}
                 className="w-full bg-black border border-[#333] px-3.5 py-2.5 rounded-xl text-white text-xs outline-none focus:border-amber-400 font-medium"
               />
 
@@ -1505,18 +1698,19 @@ export default function FantasyPage() {
                     selectedTeamFilter === 'ALL' ? 'bg-amber-400 text-black' : 'bg-[#181818] text-[#888]'
                   }`}
                 >
-                  All Teams
+                  {isFinals ? 'All Finalists (ENG & GER)' : 'All Teams'}
                 </button>
                 {tournamentNations.map(nation => (
                   <button
                     key={nation}
                     type="button"
                     onClick={() => setSelectedTeamFilter(nation)}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase whitespace-nowrap transition-colors ${
+                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase whitespace-nowrap transition-colors flex items-center gap-1 ${
                       selectedTeamFilter === nation ? 'bg-amber-400 text-black' : 'bg-[#181818] text-[#888]'
                     }`}
                   >
-                    {nation}
+                    <span>{nation === 'England' ? '🏴󠁧󠁢󠁥󠁮󠁧󠁿' : nation === 'Germany' ? '🇩🇪' : ''}</span>
+                    <span>{nation}</span>
                   </button>
                 ))}
               </div>
@@ -1525,7 +1719,11 @@ export default function FantasyPage() {
             {/* Players List */}
             <div className="flex-1 overflow-y-auto space-y-2 pr-1 pb-16">
               {filteredPlayers.length === 0 ? (
-                <div className="text-center py-10 text-[#555] text-xs uppercase">No matching players found</div>
+                <div className="text-center py-10 text-[#555] text-xs uppercase">
+                  {isFinals
+                    ? 'No matching England or Germany players found'
+                    : 'No matching players found'}
+                </div>
               ) : (
                 filteredPlayers.map(player => (
                   <div
